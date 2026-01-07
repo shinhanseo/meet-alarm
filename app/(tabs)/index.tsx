@@ -1,98 +1,151 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+import { useState, useEffect } from "react";
+import { View, StyleSheet, Text, TextInput, ActivityIndicator} from "react-native";
+import MapView, { Region }from "react-native-maps";
+import * as Location from "expo-location";
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+  type Place = {
+    name : string;
+    address : string;
+    lat : number;
+    lng : number;
+  }
+  
+  const [region, setRegion] = useState<Region | null>(null);
+  const [origin, setOrigin] = useState("");
+  const [destination, setDestination] = useState("");
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+  useEffect(() => {
+    (async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        console.log("위치 권한 거부됨");
+        return;
+      }
+
+      const location = await Location.getCurrentPositionAsync({});
+
+      setRegion({
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+        latitudeDelta: 0.01,
+        longitudeDelta: 0.01,
+      });
+    })();
+  }, []);
+
+  if (!region) {
+    return (
+      <View style={styles.loading}>
+        <ActivityIndicator size="large" />
+        <Text>내 위치 불러오는 중...</Text>
+      </View>
+    );
+  }
+  
+  return (
+    <View style={styles.container}>
+      {/* 지도 (배경) */}
+      <MapView
+        style={StyleSheet.absoluteFillObject}
+        initialRegion={region}
+        showsUserLocation
+        userInterfaceStyle="light"
+      />
+
+      {/* 출발지, 목적지 입력하는 카드 섹션 */}
+      <View style={styles.card}>
+        {/* 그린 포인트 바 */}
+        <View style={styles.accent} />
+
+        <View style={{ flex: 1 }}>
+          <Text style={styles.title}>어디로 이동하시나요?</Text>
+
+          {/* 출발 */}
+          <View style={styles.row}>
+            <TextInput
+              value={origin}
+              onChangeText={setOrigin}
+              placeholder="출발지를 입력하세요"
+              placeholderTextColor="#9AA0A6"
+              style={styles.input}
+            />
+          </View>
+
+          {/* 도착 */}
+          <View style={styles.row}>
+            <TextInput
+              value={destination}
+              onChangeText={setDestination}
+              placeholder="목적지를 입력하세요"
+              placeholderTextColor="#9AA0A6"
+              style={styles.input}
+            />
+          </View>
+        </View>
+      </View>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  container: {
+    flex: 1,
+    backgroundColor: "#F7F8F7", // 지도 깔리면 사실상 안 보임
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+
+  card: {
+    position: "absolute",
+    top: 50,
+    left: 10,
+    right: 10,
+
+    flexDirection: "row",
+    backgroundColor: "#75B06F",
+    borderRadius: 18,
+    padding: 16,
+
+    elevation: 5,
+    shadowColor: "#000",
+    shadowOpacity: 0.12,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 6 },
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+
+  accent: {
+    width: 6,
+    borderRadius: 6,
+    backgroundColor: "#F0F8A4",
+    marginRight: 14,
+  },
+
+  title: {
+    fontSize: 16,
+    fontWeight: "800",
+    marginBottom: 12,
+    color: "#1F2937",
+  },
+
+  row: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    marginBottom: 10,
+  },
+
+  input: {
+    flex: 1,
+    height: 44,
+    backgroundColor: "#F1F5F1",
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    fontSize: 15,
+    color: "#111827",
+  },
+
+  loading: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
