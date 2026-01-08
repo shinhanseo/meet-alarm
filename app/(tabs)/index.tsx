@@ -7,9 +7,9 @@ import { usePlacesStore } from "../../store/usePlacesStore";
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { originPlace, destPlace, setPlace, reset} = usePlacesStore();
-
+  const { originPlace, destPlace, setPlace, reset, meetingTime} = usePlacesStore();
   const [region, setRegion] = useState<Region | null>(null);
+
   // 위치 가져오기
   useEffect(() => {
     (async () => {
@@ -48,6 +48,12 @@ export default function HomeScreen() {
     });
   };
 
+  const openTimer = () => {
+    router.push({
+      pathname : "/set-time",
+    });
+  }
+
   if (!region) {
     return (
       <View style={styles.loading}>
@@ -72,8 +78,6 @@ export default function HomeScreen() {
         <View style={styles.accent} />
 
         <View style={{ flex: 1 }}>
-          <Text style={styles.title}>어디로 이동하시나요?</Text>
-
           {/* 출발 */}
           <Pressable onPress={() => openSearch("origin")} style={styles.row}>
             <Text style={styles.label}>출발</Text>
@@ -99,11 +103,30 @@ export default function HomeScreen() {
               pointerEvents="none"
             />
           </Pressable>
+
+          <Pressable onPress={() => openTimer()} style={styles.row}>
+            <Text style={styles.label}>시간</Text>
+            <TextInput 
+              value={
+                meetingTime
+                  ? meetingTime.toLocaleTimeString("ko-KR", {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })
+                  : ""
+              }
+              placeholder="약속 시간은 입력하세요"
+              placeholderTextColor="#9AA0A6"
+              style={styles.input}
+              editable={false}
+              pointerEvents="none"
+            />
+          </Pressable>
         </View>
       </View>
       <View style={styles.actions}>
         <Pressable onPress={reset} style={styles.resetBtn}>
-          <Text style={styles.resetText}>장소 초기화</Text>
+          <Text style={styles.resetText}>초기화</Text>
         </Pressable>
       </View>
     </View>
@@ -179,7 +202,7 @@ const styles = StyleSheet.create({
 
   actions: {
     position: "absolute",
-    top: 50 + 160 + 20, // 카드 top + 카드 height + 간격
+    top: 50 + 160 + 50, // 카드 top + 카드 height + 간격
     left: 10,
     right: 10,
     alignItems: "flex-start",

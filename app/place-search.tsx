@@ -20,10 +20,7 @@ type Place = {
   lng: number;
 };
 
-const BASE_URL =
-  Platform.OS === "android"
-    ? "http://10.0.2.2:4000"
-    : "http://192.168.0.30:4000";
+const BASE_URL = "http://192.168.0.30:4000";
 
 export default function PlaceSearchScreen() {
   const router = useRouter();
