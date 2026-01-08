@@ -12,6 +12,7 @@ import {
 import { useLocalSearchParams, useRouter, Stack } from "expo-router";
 import axios from "axios";
 import { usePlacesStore } from "../store/usePlacesStore";
+import { API_BASE_URL } from "@/src/config/env";
 
 type Place = {
   name: string;
@@ -48,7 +49,7 @@ export default function PlaceSearchScreen() {
     try {
       setLoading(true);
 
-      const res = await axios.get(`${BASE_URL}/api/places/search`, {
+      const res = await axios.get(`${API_BASE_URL}/api/places/search`, {
         params: { q: query },
         timeout: 5000,
       });

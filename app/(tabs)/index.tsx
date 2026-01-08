@@ -115,7 +115,7 @@ export default function HomeScreen() {
                     })
                   : ""
               }
-              placeholder="약속 시간은 입력하세요"
+              placeholder="약속 시간을 입력하세요"
               placeholderTextColor="#9AA0A6"
               style={styles.input}
               editable={false}
@@ -127,6 +127,11 @@ export default function HomeScreen() {
       <View style={styles.actions}>
         <Pressable onPress={reset} style={styles.resetBtn}>
           <Text style={styles.resetText}>초기화</Text>
+        </Pressable>
+      </View>
+      <View style={styles.routeSearch}>
+        <Pressable style={styles.routeSearchBtn}>
+          <Text style={styles.resetText}> 경로 탐색하기</Text>
         </Pressable>
       </View>
     </View>
@@ -219,5 +224,20 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: "700",
     color: "#111827",
+  },
+
+  routeSearch : {
+    position: "absolute",
+    top: 50 + 160 + 50, // 카드 top + 카드 height + 간격
+    left: 10,
+    right: 20,
+    alignItems: "flex-end",
+  },
+
+  routeSearchBtn : {
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    backgroundColor: "#F0F8A4",
   },
 });
