@@ -1,20 +1,16 @@
-import { useState, useEffect } from "react";
-import { View, StyleSheet, Text, TextInput, ActivityIndicator} from "react-native";
-import MapView, { Region }from "react-native-maps";
+import { useEffect, useRef, useState } from "react";
+import { View, StyleSheet, Text, TextInput, ActivityIndicator, Pressable } from "react-native";
+import MapView, { Region } from "react-native-maps";
 import * as Location from "expo-location";
+import { useRouter } from "expo-router";
+import { usePlacesStore } from "../../store/usePlacesStore";
 
 export default function HomeScreen() {
-  type Place = {
-    name : string;
-    address : string;
-    lat : number;
-    lng : number;
-  }
-  
-  const [region, setRegion] = useState<Region | null>(null);
-  const [origin, setOrigin] = useState("");
-  const [destination, setDestination] = useState("");
+  const router = useRouter();
+  const { originPlace, destPlace, setPlace, reset} = usePlacesStore();
 
+  const [region, setRegion] = useState<Region | null>(null);
+  // 위치 가져오기
   useEffect(() => {
     (async () => {
       const { status } = await Location.requestForegroundPermissionsAsync();
@@ -22,17 +18,35 @@ export default function HomeScreen() {
         console.log("위치 권한 거부됨");
         return;
       }
-
+  
       const location = await Location.getCurrentPositionAsync({});
-
-      setRegion({
+      const r = {
         latitude: location.coords.latitude,
         longitude: location.coords.longitude,
         latitudeDelta: 0.01,
         longitudeDelta: 0.01,
-      });
+      };
+      setRegion(r);
+
+      // zustand 스토어에 출발지가 아직 없을 때만 현재 위치로 설정
+      if (!originPlace) {
+        setPlace("origin", {
+          name: "현재 위치",
+          address: "내 위치",
+          lat: r.latitude,
+          lng: r.longitude,
+        });
+      }
     })();
-  }, []);
+  }, [originPlace, setPlace]);
+  
+
+  const openSearch = (mode: "origin" | "dest") => {
+    router.push({
+      pathname: "/place-search",
+      params: { mode },
+    });
+  };
 
   if (!region) {
     return (
@@ -42,7 +56,7 @@ export default function HomeScreen() {
       </View>
     );
   }
-  
+
   return (
     <View style={styles.container}>
       {/* 지도 (배경) */}
@@ -55,34 +69,42 @@ export default function HomeScreen() {
 
       {/* 출발지, 목적지 입력하는 카드 섹션 */}
       <View style={styles.card}>
-        {/* 그린 포인트 바 */}
         <View style={styles.accent} />
 
         <View style={{ flex: 1 }}>
           <Text style={styles.title}>어디로 이동하시나요?</Text>
 
           {/* 출발 */}
-          <View style={styles.row}>
+          <Pressable onPress={() => openSearch("origin")} style={styles.row}>
+            <Text style={styles.label}>출발</Text>
             <TextInput
-              value={origin}
-              onChangeText={setOrigin}
+              value={originPlace ? originPlace.name : ""}
               placeholder="출발지를 입력하세요"
               placeholderTextColor="#9AA0A6"
               style={styles.input}
+              editable={false} // 직접 타이핑 X
+              pointerEvents="none"
             />
-          </View>
+          </Pressable>
 
           {/* 도착 */}
-          <View style={styles.row}>
+          <Pressable onPress={() => openSearch("dest")} style={styles.row}>
+            <Text style={styles.label}>도착</Text>
             <TextInput
-              value={destination}
-              onChangeText={setDestination}
+              value={destPlace ? destPlace.name : ""}
               placeholder="목적지를 입력하세요"
               placeholderTextColor="#9AA0A6"
               style={styles.input}
+              editable={false}
+              pointerEvents="none"
             />
-          </View>
+          </Pressable>
         </View>
+      </View>
+      <View style={styles.actions}>
+        <Pressable onPress={reset} style={styles.resetBtn}>
+          <Text style={styles.resetText}>장소 초기화</Text>
+        </Pressable>
       </View>
     </View>
   );
@@ -91,7 +113,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F7F8F7", // 지도 깔리면 사실상 안 보임
+    backgroundColor: "#F7F8F7",
   },
 
   card: {
@@ -132,6 +154,12 @@ const styles = StyleSheet.create({
     gap: 12,
     marginBottom: 10,
   },
+  
+  label: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#1F2937",
+  },
 
   input: {
     flex: 1,
@@ -147,5 +175,26 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+  },
+
+  actions: {
+    position: "absolute",
+    top: 50 + 160 + 20, // 카드 top + 카드 height + 간격
+    left: 10,
+    right: 10,
+    alignItems: "flex-start",
+  },
+  
+  resetBtn: {
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 12,
+    backgroundColor: "#F0F8A4",
+  },
+  
+  resetText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#111827",
   },
 });
