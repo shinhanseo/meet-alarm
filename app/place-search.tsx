@@ -21,8 +21,6 @@ type Place = {
   lng: number;
 };
 
-const BASE_URL = "http://192.168.0.30:4000";
-
 export default function PlaceSearchScreen() {
   const router = useRouter();
   const { mode } = useLocalSearchParams<{ mode: "origin" | "dest" }>();

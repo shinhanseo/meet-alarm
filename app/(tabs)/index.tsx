@@ -53,6 +53,17 @@ export default function HomeScreen() {
       pathname : "/set-time",
     });
   }
+  
+  const dircetionSearch = () => {
+    if (!originPlace || !destPlace || !meetingTime){
+      return;
+    }
+
+    router.push({
+      pathname : "/direction-search",
+    })
+
+  }
 
   if (!region) {
     return (
@@ -130,7 +141,7 @@ export default function HomeScreen() {
         </Pressable>
       </View>
       <View style={styles.routeSearch}>
-        <Pressable style={styles.routeSearchBtn}>
+        <Pressable onPress={() => dircetionSearch()}style={styles.routeSearchBtn}>
           <Text style={styles.resetText}> 경로 탐색하기</Text>
         </Pressable>
       </View>
@@ -151,7 +162,7 @@ const styles = StyleSheet.create({
     right: 10,
 
     flexDirection: "row",
-    backgroundColor: "#75B06F",
+    backgroundColor: "#CBF3BB",
     borderRadius: 18,
     padding: 16,
 
