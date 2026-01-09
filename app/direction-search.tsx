@@ -6,8 +6,8 @@ import {
   Text,
   StyleSheet,
   ActivityIndicator,
-  SafeAreaView,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import axios from "axios";
 import { usePlacesStore } from "../store/usePlacesStore";
 import { API_BASE_URL } from "@/src/config/env";
@@ -101,7 +101,7 @@ export default function DirectionSearchScreen() {
     return (
       <View style={styles.center}>
         <ActivityIndicator />
-        <Text style={{ marginTop: 10 }}>경로 탐색 중...</Text>
+        <Text style={{ marginTop: 10, backgroundColor : "#fff" }}>경로 탐색 중...</Text>
       </View>
     );
   }
@@ -274,6 +274,6 @@ const styles = StyleSheet.create({
   },
   primaryBtnText: { color: "#000", fontSize: 15, fontWeight: "800"},
 
-  center: { flex: 1, alignItems: "center", justifyContent: "center", padding: 16 },
+  center: { flex: 1, alignItems: "center", justifyContent: "center", padding: 16, backgroundColor : "#fff"},
   centerTitle: { fontSize: 16, fontWeight: "800", color: "#111827" },
 });
