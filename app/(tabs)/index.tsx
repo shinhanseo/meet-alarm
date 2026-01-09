@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { View, StyleSheet, Text, TextInput, ActivityIndicator, Pressable } from "react-native";
+import { View, StyleSheet, Text, TextInput, ActivityIndicator, Pressable, Alert } from "react-native";
 import MapView, { Region } from "react-native-maps";
 import * as Location from "expo-location";
 import { useRouter } from "expo-router";
@@ -56,6 +56,15 @@ export default function HomeScreen() {
   
   const dircetionSearch = () => {
     if (!originPlace || !destPlace || !meetingTime){
+      Alert.alert(
+        "입력이 필요해요",
+        `${
+          !originPlace ? "출발지" :
+          !destPlace ? "도착지" :
+          "약속 시간"
+        }를 먼저 설정해주세요.`,
+        [{ text: "확인" }]
+      );
       return;
     }
 

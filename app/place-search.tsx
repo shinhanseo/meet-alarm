@@ -7,7 +7,6 @@ import {
   Text,
   StyleSheet,
   ActivityIndicator,
-  Platform,
 } from "react-native";
 import { useLocalSearchParams, useRouter, Stack } from "expo-router";
 import axios from "axios";
@@ -51,6 +50,7 @@ export default function PlaceSearchScreen() {
         params: { q: query },
         timeout: 5000,
       });
+
 
       setItems(res.data?.places ?? []);
     } catch (e) {
