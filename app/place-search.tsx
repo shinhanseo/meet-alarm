@@ -10,6 +10,8 @@ import {
 } from "react-native";
 import { useLocalSearchParams, useRouter, Stack } from "expo-router";
 import axios from "axios";
+import { Ionicons } from "@expo/vector-icons";
+
 import { usePlacesStore } from "../store/usePlacesStore";
 import { API_BASE_URL } from "@/src/config/env";
 
@@ -51,7 +53,6 @@ export default function PlaceSearchScreen() {
         timeout: 5000,
       });
 
-
       setItems(res.data?.places ?? []);
     } catch (e) {
       setItems([]);
@@ -70,13 +71,34 @@ export default function PlaceSearchScreen() {
     router.back();
   };
 
+  const goMapPick = () => {
+    if (!mode) return;
+    router.push({
+      pathname: "/map-pick",
+      params: { mode },
+    });
+  };
+
   return (
     <>
       <Stack.Screen options={{ headerShown: false }} />
       <View style={styles.container}>
-        <Text style={styles.header}>
-          {mode === "origin" ? "출발지 검색" : "목적지 검색"}
-        </Text>
+        {/* 헤더 + 지도 선택 아이콘 */}
+        <View style={styles.headerRow}>
+          <Text style={styles.header}>
+            {mode === "origin" ? "출발지 검색" : "목적지 검색"}
+          </Text>
+
+          <Pressable
+            onPress={goMapPick}
+            hitSlop={10}
+            style={styles.iconBtn}
+            accessibilityRole="button"
+            accessibilityLabel="지도에서 위치 선택"
+          >
+            <Ionicons name="map-outline" size={22} color="#111827" />
+          </Pressable>
+        </View>
 
         <TextInput
           value={q}
@@ -84,7 +106,7 @@ export default function PlaceSearchScreen() {
           placeholder="장소명 또는 주소로 검색해보세요!"
           style={styles.input}
           autoFocus
-          />
+        />
 
         {loading ? (
           <View style={styles.center}>
@@ -93,7 +115,7 @@ export default function PlaceSearchScreen() {
           </View>
         ) : (
           <FlatList
-          data={items}
+            data={items}
             keyExtractor={(item, idx) => item.name + idx}
             keyboardShouldPersistTaps="handled"
             renderItem={({ item }) => (
@@ -109,16 +131,37 @@ export default function PlaceSearchScreen() {
                 <Text style={styles.empty}>장소명 또는 주소로 검색해보세요!</Text>
               )
             }
-            />
-          )}
+          />
+        )}
       </View>
     </>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, paddingTop: 60, paddingHorizontal: 16, backgroundColor: "#fff" },
-  header: { fontSize: 18, fontWeight: "800", marginBottom: 12 },
+  container: {
+    flex: 1,
+    paddingTop: 60,
+    paddingHorizontal: 16,
+    backgroundColor: "#fff",
+  },
+
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 12,
+  },
+  header: { fontSize: 18, fontWeight: "800" },
+
+  iconBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
   input: {
     height: 44,
     borderWidth: 1,
@@ -128,9 +171,15 @@ const styles = StyleSheet.create({
     backgroundColor: "#F9FAFB",
     marginBottom: 10,
   },
-  item: { paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: "#F3F4F6" },
+
+  item: {
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F3F4F6",
+  },
   itemTitle: { fontSize: 15, fontWeight: "700", color: "#111827" },
   itemSub: { marginTop: 4, fontSize: 12, color: "#6B7280" },
+
   empty: { paddingVertical: 18, textAlign: "center", color: "#6B7280" },
   center: { flex: 1, justifyContent: "center", alignItems: "center" },
 });
