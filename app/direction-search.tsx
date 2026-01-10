@@ -16,50 +16,59 @@ type Segment = {
   type: "WALK" | "BUS" | "SUBWAY" | string;
   timeMin: number;
   timeText: string;
-  from?: string;
-  to?: string;
-  distanceM : number;
-  route?: string; // BUS
-  line?: string;  // SUBWAY
-  stops?: number;
+  from?: string; // 출발지
+  to?: string;  // 목적지
+  distanceM : number; // WALK일 때 미터 표시용
+  route?: string; // 버스 번호 ex) 광역 8106, 일반 52
+  line?: string;  // 지하철 노선 ex) 7호선, 서해선, 2호선
+  stops?: number; // 지나가는 정거장
+  color?: string;
 };
 
 type RouteItem = {
-  summary: {
-    totalTimeMin: number;
-    totalTimeText: string;
-    totalWalkTimeMin: number;
-    totalWalkTimeText: string;
-    totalFare: number;
-    transferCount: number;
+  summary: {  // 경로 전체 정보
+    totalTimeMin: number; // 전체 시간(분)
+    totalTimeText: string; // 텍스트 출력용 ex) 1시간 27분
+    totalWalkTimeMin: number; // 전체 도보 시간
+    totalWalkTimeText: string; // 텍스트 출력용
+    totalFare: number;  // 총 요금
+    transferCount: number; // 환승 횟수
   };
-  segments: Segment[];
+  segments: Segment[]; // 경로 ex) 도보 10분(703m) -> 수도권 7호선 5분 -> 도본 5분(387m)
 };
 
-const formatWon = (n: number) => `${Number(n || 0).toLocaleString("ko-KR")}원`;
+const formatWon = (n: number) => `${Number(n || 0).toLocaleString("ko-KR")}원`; // ex) 1870 -> 1,870원 
 
-const formatDistance = (m?: number) => {
+const formatDistance = (m?: number) => { // km -> m로 변환
   if (m == null) return "";
   if (m < 1000) return `${m}m`;
   const km = m / 1000;
   return `${km.toFixed(km < 10 ? 1 : 0)}km`; // 1.2km / 12km
 };
 
-function SegmentChip({ seg }: { seg: Segment }) {
+function SegmentChip({ seg }: { seg: Segment }) { // 경로 표시에 사용되는 텍스트 
   const dist = formatDistance(seg.distanceM);
   const walkSuffix = dist ? `(${dist})` : "";
 
   const label =
-    seg.type === "WALK"
-      ? `도보 ${seg.timeText}${walkSuffix}`
-      : seg.type === "BUS"
-      ? `${seg.route ?? "버스"} ${seg.timeText}`
-      : seg.type === "SUBWAY"
-      ? `${seg.line ?? "지하철"} ${seg.timeText}`
+    seg.type === "WALK" // ex) 도보 10분(703m)
+      ? `🚶 도보 ${seg.timeText}${walkSuffix}`
+      : seg.type === "BUS"  // ex) 일반 52 14분
+      ? `🚌 ${seg.route ?? "버스"} ${seg.timeText}`
+      : seg.type === "SUBWAY" // 수도권 7호선 5분
+      ? `🚇 ${seg.line ?? "지하철"} ${seg.timeText}`
       : `${seg.type} ${seg.timeText}`;
+  
+  const backgroundColor =
+    seg.type === "WALK"
+      ? "#FAFAFA"
+      : seg.color
+      ? `#${seg.color}`
+      : "#E5E7EB";
+    
 
   return (
-    <View style={styles.chip}>
+    <View style={[styles.chip, { backgroundColor }]}>
       <Text style={styles.chipText}>{label}</Text>
     </View>
   );
@@ -69,7 +78,7 @@ function SegmentChip({ seg }: { seg: Segment }) {
 export default function DirectionSearchScreen() {
   const { originPlace, destPlace } = usePlacesStore();
   const [loading, setLoading] = useState(true);
-  const [routes, setRoutes] = useState<RouteItem[]>([]); // 경로에 대한 정보보
+  const [routes, setRoutes] = useState<RouteItem[]>([]); // 경로에 대한 정보
   const [selectedIndex, setSelectedIndex] = useState(0); // 선택된 라우터 기본으로 1번 경로로 지정
 
   useEffect(() => {
@@ -247,14 +256,14 @@ const styles = StyleSheet.create({
 
   cardMeta: { marginTop: 6, fontSize: 13, color: "#6B7280" },
 
-  chipsWrap: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 12 },
+  chipsWrap: { flexDirection: "column", flexWrap: "wrap", gap: 8, marginTop: 12 },
   chip: {
     backgroundColor: "#F3F4F6",
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 999,
   },
-  chipText: { fontSize: 12, color: "#111827" },
+  chipText: { fontSize: 15, color: "#111827" },
 
   bottomBar: {
     position: "absolute",
