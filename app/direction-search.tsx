@@ -60,7 +60,7 @@ function SegmentChip({ seg }: { seg: Segment }) {
       : `${seg.type} ${seg.timeText}`;
 
   const subLabel =
-    seg.from && seg.to ? `${seg.from} ⭢ ${seg.to}` : "";
+    seg.from && seg.to ? `${seg.from} → ${seg.to}` : "";
 
   const backgroundColor = seg.type === "WALK" ? "#FAFAFA" : seg.color ? `#${seg.color}` : "#E5E7EB";
 
@@ -69,7 +69,7 @@ function SegmentChip({ seg }: { seg: Segment }) {
   return (
     <View style={{ gap: 4 }}>
       {/* 경로 표시(각 노선에 맞는 배경색) */}
-      <View style={[styles.chip, { backgroundColor }]}>
+      <View style={[styles.chip, { backgroundColor, alignSelf: "flex-start" }]}>
         <Text style={[styles.chipText, { color: textColor }]}>
           {mainLabel}
         </Text>
@@ -268,7 +268,7 @@ const styles = StyleSheet.create({
 
   cardMeta: { marginTop: 6, fontSize: 13, color: "#6B7280" },
 
-  chipsWrap: { flexDirection: "column", flexWrap: "wrap", gap: 8, marginTop: 12 },
+  chipsWrap: { flexDirection: "column", gap: 8, marginTop: 12 },
   chip: {
     backgroundColor: "#F3F4F6",
     paddingHorizontal: 10,
