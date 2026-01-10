@@ -46,33 +46,45 @@ const formatDistance = (m?: number) => { // km -> m로 변환
   return `${km.toFixed(km < 10 ? 1 : 0)}km`; // 1.2km / 12km
 };
 
-function SegmentChip({ seg }: { seg: Segment }) { // 경로 표시에 사용되는 텍스트 
+function SegmentChip({ seg }: { seg: Segment }) {
   const dist = formatDistance(seg.distanceM);
   const walkSuffix = dist ? `(${dist})` : "";
 
-  const label =
-    seg.type === "WALK" // ex) 도보 10분(703m)
+  const mainLabel =
+    seg.type === "WALK"
       ? `🚶 도보 ${seg.timeText}${walkSuffix}`
-      : seg.type === "BUS"  // ex) 일반 52 14분
+      : seg.type === "BUS"
       ? `🚌 ${seg.route ?? "버스"} ${seg.timeText}`
-      : seg.type === "SUBWAY" // 수도권 7호선 5분
+      : seg.type === "SUBWAY"
       ? `🚇 ${seg.line ?? "지하철"} ${seg.timeText}`
       : `${seg.type} ${seg.timeText}`;
-  
-  const backgroundColor =
-    seg.type === "WALK"
-      ? "#FAFAFA"
-      : seg.color
-      ? `#${seg.color}`
-      : "#E5E7EB";
-    
+
+  const subLabel =
+    seg.from && seg.to ? `${seg.from} ⭢ ${seg.to}` : "";
+
+  const backgroundColor = seg.type === "WALK" ? "#FAFAFA" : seg.color ? `#${seg.color}` : "#E5E7EB";
+
+  const textColor = seg.type === "WALK" ? "#111827" : "#FFFFFF";
 
   return (
-    <View style={[styles.chip, { backgroundColor }]}>
-      <Text style={styles.chipText}>{label}</Text>
+    <View style={{ gap: 4 }}>
+      {/* 경로 표시(각 노선에 맞는 배경색) */}
+      <View style={[styles.chip, { backgroundColor }]}>
+        <Text style={[styles.chipText, { color: textColor }]}>
+          {mainLabel}
+        </Text>
+      </View>
+
+      {/* 출발/도착 */}
+      {!!subLabel && (
+        <Text style={styles.chipSubText} numberOfLines={1}>
+          {subLabel}
+        </Text>
+      )}
     </View>
   );
 }
+
 
 
 export default function DirectionSearchScreen() {
@@ -285,4 +297,11 @@ const styles = StyleSheet.create({
 
   center: { flex: 1, alignItems: "center", justifyContent: "center", padding: 16, backgroundColor : "#fff"},
   centerTitle: { fontSize: 16, fontWeight: "800", color: "#111827" },
+
+  chipSubText: {
+    fontSize: 12,
+    color: "#6B7280",
+    marginLeft: 6,
+  },
+  
 });
