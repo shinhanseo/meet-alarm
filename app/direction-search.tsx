@@ -221,13 +221,11 @@ export default function DirectionSearchScreen() {
           style={[styles.primaryBtn, !selectedRoute && { opacity: 0.5 }]}
           disabled={!selectedRoute}
           onPress={() => {
-            console.log("선택한 경로:", selectedRoute); 
-          }}
-        >
-          <Text style={styles.primaryBtnText} onPress={() => {
             setSelectedRoute(routes[selectedIndex])
             router.push("/timer");
-          }}>이 경로 선택</Text>
+          }}
+        >
+          <Text style={styles.primaryBtnText}>이 경로 선택</Text>
         </Pressable>
       </View>
     </SafeAreaView>
