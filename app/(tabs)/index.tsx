@@ -7,16 +7,88 @@ import {
   ActivityIndicator,
   Pressable,
   Alert,
+  ScrollView,
+  useWindowDimensions, 
 } from "react-native";
-import MapView, { Region } from "react-native-maps";
+import { Region } from "react-native-maps";
 import * as Location from "expo-location";
 import { useRouter } from "expo-router";
 import { usePlacesStore } from "../../store/usePlacesStore";
+import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
+
+
+// (추가) 거리 포맷
+const formatDistance = (m?: number) => {
+  if (m == null) return "";
+  if (m < 1000) return `${m}m`;
+  const km = m / 1000;
+  return `${km.toFixed(km < 10 ? 1 : 0)}km`;
+};
+
+// 선택 경로 표시용 칩
+function SegmentChip({ seg }: { seg: any }) {
+  const dist = formatDistance(seg.distanceM);
+  const walkSuffix = dist ? `(${dist})` : "";
+
+  const mainLabel =
+    seg.type === "WALK"
+      ? `🚶 도보 ${seg.timeText}${walkSuffix}`
+      : seg.type === "BUS"
+      ? `🚌 ${seg.route ?? "버스"} ${seg.timeText}`
+      : seg.type === "SUBWAY"
+      ? `🚇 ${seg.line ?? "지하철"} ${seg.timeText}`
+      : `${seg.type} ${seg.timeText}`;
+
+  const subLabel =
+    seg.from && seg.to
+      ? seg.type === "SUBWAY"
+        ? `${seg.from}역 → ${seg.to}역`
+        : `${seg.from} → ${seg.to}`
+      : "";
+
+  const backgroundColor =
+    seg.type === "WALK" ? "#FAFAFA" : seg.color ? `#${seg.color}` : "#E5E7EB";
+
+  const textColor = seg.type === "WALK" ? "#111827" : "#FFFFFF";
+
+  return (
+    <View style={{ gap: 4 }}>
+      <View style={[styles.chip, { backgroundColor, alignSelf: "flex-start" }]}>
+        <Text style={[styles.chipText, { color: textColor }]}>{mainLabel}</Text>
+      </View>
+
+      {!!subLabel && (
+        <Text style={styles.chipSubText} numberOfLines={1}>
+          {subLabel}
+        </Text>
+      )}
+    </View>
+  );
+}
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { originPlace, destPlace, setPlace, reset, meetingTime, meetingDayOffset, setMeetingDayOffset } = usePlacesStore();
+  const { height: screenH } = useWindowDimensions(); 
+  const {
+    originPlace,
+    destPlace,
+    setPlace,
+    reset,
+    meetingTime,
+    meetingDayOffset,
+    setMeetingDayOffset,
+    selectedRoute,
+  } = usePlacesStore();
   const [region, setRegion] = useState<Region | null>(null);
+
+  const bufferMin = 10;
+
+  // 출발시간 카드 높이 측정용
+  const [resultCardH, setResultCardH] = useState(0);
+  const RESULT_TOP = 50 + 160 + 95; // resultCard의 top과 동일하게 유지
+  const GAP = 12;
+  const BOTTOM_MARGIN = 10; // 화면 바닥 여백
+  const tabBarH = useBottomTabBarHeight();
 
   // 위치 가져오기
   useEffect(() => {
@@ -86,15 +158,58 @@ export default function HomeScreen() {
     );
   }
 
+  // "오늘/내일 + 시/분"을 실제 Date로 합치는 함수
+  const buildMeetingDateTime = (mt: Date, dayOffset: 0 | 1) => {
+    const d = new Date();
+    d.setHours(mt.getHours(), mt.getMinutes(), 0, 0);
+    d.setDate(d.getDate() + dayOffset);
+    return d;
+  };
+
+  // 출발 추천 시각(ms)
+  const departAtMs = useMemo(() => {
+    if (!selectedRoute || !meetingTime) return null;
+
+    const meetingAt = buildMeetingDateTime(meetingTime, meetingDayOffset).getTime(); // ms
+    const travelMs = selectedRoute.summary.totalTimeMin * 60 * 1000; // ms
+    const bufferMs = bufferMin * 60 * 1000; // ms
+
+    return meetingAt - travelMs - bufferMs; // ms
+  }, [selectedRoute, meetingTime, meetingDayOffset, bufferMin]);
+
+  // 출발 추천 시각 텍스트
+  const departTimeText = useMemo(() => {
+    if (!departAtMs) return "";
+    return new Date(departAtMs).toLocaleTimeString("ko-KR", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+  }, [departAtMs]);
+
+  const readyToShowResult = !!(
+    originPlace &&
+    destPlace &&
+    meetingTime &&
+    selectedRoute &&
+    departAtMs
+  );
+
+  //route 카드가 시작되는 top (출발시간 카드 바로 아래)
+  const routeTop = readyToShowResult ? RESULT_TOP + resultCardH + GAP : styles.routeSummaryCard.top;
+
+  // 화면 바닥까지 남는 높이
+  const routeMaxH = useMemo(() => {
+    // routeTop이 숫자가 아닐 가능성 방어
+    const topNum = typeof routeTop === "number" ? routeTop : 0;
+
+    const h = screenH - topNum - tabBarH - BOTTOM_MARGIN;
+    return Math.max(250, h);
+  }, [screenH, routeTop]);
+
   return (
     <View style={styles.container}>
-      <MapView
-        style={StyleSheet.absoluteFillObject}
-        initialRegion={region}
-        showsUserLocation
-        userInterfaceStyle="light"
-      />
-
+      {/* 상단 입력 카드 */}
       <View style={styles.card}>
         <View style={styles.accent} />
 
@@ -129,7 +244,6 @@ export default function HomeScreen() {
           <View style={styles.row}>
             <Text style={styles.label}>시간</Text>
 
-            {/* 시간 선택 영역(Pressable) */}
             <Pressable onPress={openTimer} style={styles.timePressable}>
               <TextInput
                 value={timeText}
@@ -141,22 +255,37 @@ export default function HomeScreen() {
               />
             </Pressable>
 
-            {/* 오늘/내일 세그먼트 */}
             <View style={styles.segment}>
               <Pressable
                 onPress={() => setMeetingDayOffset(0)}
-                style={[styles.segmentBtn, meetingDayOffset === 0 && styles.segmentBtnActive]}
+                style={[
+                  styles.segmentBtn,
+                  meetingDayOffset === 0 && styles.segmentBtnActive,
+                ]}
               >
-                <Text style={[styles.segmentText, meetingDayOffset === 0 && styles.segmentTextActive]}>
+                <Text
+                  style={[
+                    styles.segmentText,
+                    meetingDayOffset === 0 && styles.segmentTextActive,
+                  ]}
+                >
                   오늘
                 </Text>
               </Pressable>
 
               <Pressable
                 onPress={() => setMeetingDayOffset(1)}
-                style={[styles.segmentBtn, meetingDayOffset === 1 && styles.segmentBtnActive]}
+                style={[
+                  styles.segmentBtn,
+                  meetingDayOffset === 1 && styles.segmentBtnActive,
+                ]}
               >
-                <Text style={[styles.segmentText, meetingDayOffset === 1 && styles.segmentTextActive]}>
+                <Text
+                  style={[
+                    styles.segmentText,
+                    meetingDayOffset === 1 && styles.segmentTextActive,
+                  ]}
+                >
                   내일
                 </Text>
               </Pressable>
@@ -165,17 +294,74 @@ export default function HomeScreen() {
         </View>
       </View>
 
+      {/* 초기화 버튼 */}
       <View style={styles.actions}>
         <Pressable onPress={reset} style={styles.resetBtn}>
           <Text style={styles.resetText}>초기화</Text>
         </Pressable>
       </View>
 
+      {/* 경로 탐색 버튼 */}
       <View style={styles.routeSearch}>
         <Pressable onPress={directionSearch} style={styles.routeSearchBtn}>
-          <Text style={styles.resetText}>경로 탐색하기</Text>
+          <Text style={styles.resetText}>
+            {selectedRoute ? "경로 다시 탐색하기" : "경로 탐색하기"}
+          </Text>
         </Pressable>
       </View>
+
+      {/* 결과 패널(경로까지 선택되면 표시): 가운데(위) */}
+      {readyToShowResult && (
+        <View
+          style={styles.resultCard}
+          onLayout={(e) => setResultCardH(e.nativeEvent.layout.height)}
+        >
+          <Text style={styles.resultTitle}>출발 추천 시간</Text>
+          <Text style={styles.resultBig}>
+            {meetingDayOffset === 0 ? "오늘 " : "내일 "}
+            {departTimeText}
+          </Text>
+
+          <Text style={styles.resultHint}>(타이머 예정)</Text>
+        </View>
+      )}
+
+      {/* 선택한 경로 요약 (남는 공간만큼 카드가 커지게 maxHeight 동적 적용) */}
+      {selectedRoute && (
+        <View
+          style={[
+            styles.routeSummaryCard,
+            readyToShowResult && {
+              top: RESULT_TOP + resultCardH + GAP, // 출발시간 카드 바로 아래
+              bottom: undefined,
+            },
+            { maxHeight: routeMaxH },
+          ]}
+        >
+          <View style={styles.routeSummaryHeader}>
+            <Text style={styles.routeSummaryTitle}>선택한 경로</Text>
+            <Pressable onPress={directionSearch}>
+              <Text style={styles.routeSummaryLink}>경로 변경</Text>
+            </Pressable>
+          </View>
+
+          <Text style={styles.routeSummaryMeta}>
+            {selectedRoute.summary.totalTimeText} · 환승{" "}
+            {selectedRoute.summary.transferCount}회 · 도보{" "}
+            {selectedRoute.summary.totalWalkTimeText}
+          </Text>
+
+          <ScrollView
+            style={{ marginTop: 12 }}
+            contentContainerStyle={{ gap: 10 }}
+            showsVerticalScrollIndicator={false}
+          >
+            {selectedRoute.segments?.map((seg, i) => (
+              <SegmentChip key={`seg-${i}`} seg={seg} />
+            ))}
+          </ScrollView>
+        </View>
+      )}
     </View>
   );
 }
@@ -264,8 +450,6 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
   },
 
-  loading: { flex: 1, justifyContent: "center", alignItems: "center" },
-
   actions: {
     position: "absolute",
     top: 50 + 160 + 50,
@@ -297,4 +481,81 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     backgroundColor: "#F0F8A4",
   },
+
+  // 출발시간 카드
+  resultCard: {
+    position: "absolute",
+    left: 10,
+    right: 10,
+    top: 50 + 160 + 95,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 18,
+    padding: 16,
+    elevation: 6,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 6 },
+  },
+  resultTitle: { fontSize: 13, fontWeight: "900", color: "#6B7280" },
+  resultBig: {
+    marginTop: 6,
+    fontSize: 30,
+    fontWeight: "900",
+    color: "#111827",
+  },
+  resultSub: {
+    marginTop: 8,
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#374151",
+  },
+  resultHint: { marginTop: 6, fontSize: 12, color: "#9AA0A6" },
+
+  // 선택한 경로 카드
+  routeSummaryCard: {
+    position: "absolute",
+    left: 10,
+    right: 10,
+    top: 50 + 160 + 95 + 120, 
+    maxHeight: 250, 
+    backgroundColor: "#FFFFFF",
+    borderRadius: 18,
+    padding: 16,
+    elevation: 4,
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 6 },
+  },
+
+  routeSummaryHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  routeSummaryTitle: { fontSize: 14, fontWeight: "900", color: "#111827" },
+  routeSummaryLink: { fontSize: 12, fontWeight: "900", color: "#2F6B2F" },
+  routeSummaryMeta: {
+    marginTop: 8,
+    fontSize: 12,
+    color: "#6B7280",
+    fontWeight: "700",
+  },
+
+  // 칩 스타일
+  chip: {
+    backgroundColor: "#F3F4F6",
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 999,
+  },
+  chipText: { fontSize: 15, color: "#111827" },
+  chipSubText: {
+    fontSize: 12,
+    color: "#6B7280",
+    marginLeft: 6,
+  },
+
+  loading: { flex: 1, justifyContent: "center", alignItems: "center" },
 });
