@@ -62,7 +62,7 @@ export default function SetTimeScreen() {
         style={styles.confirmBtn}
         onPress={() => {
           setMeetingTime(tempTime);
-          router.back();
+          router.replace("/");
         }}
       >
         <Text style={styles.confirmText}>확인</Text>
