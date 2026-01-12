@@ -102,5 +102,6 @@ export const usePlacesStore = create<PlacesState>((set) => ({
       destPlace: null,
       meetingTime: null,
       meetingDayOffset: 0,
+      selectedRoute: null,
     }),
 }));
