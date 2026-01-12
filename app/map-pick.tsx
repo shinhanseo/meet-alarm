@@ -2,7 +2,7 @@ import { View, Pressable, Text, StyleSheet, ActivityIndicator } from "react-nati
 import MapView, { Region } from "react-native-maps";
 import * as Location from "expo-location";
 import { useState, useEffect } from "react";
-import { useLocalSearchParams, useRouter, Stack } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { API_BASE_URL } from "@/src/config/env";
 import axios from "axios";
