@@ -11,6 +11,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import axios from "axios";
 import { usePlacesStore } from "../store/usePlacesStore";
 import { API_BASE_URL } from "@/src/config/env";
+import { useLocalSearchParams, useRouter } from "expo-router";
 
 type Segment = {
   type: "WALK" | "BUS" | "SUBWAY" | string;
@@ -22,7 +23,7 @@ type Segment = {
   route?: string; // 버스 번호 ex) 광역 8106, 일반 52
   line?: string;  // 지하철 노선 ex) 7호선, 서해선, 2호선
   stops?: number; // 지나가는 정거장
-  color?: string;
+  color?: string; // 노선에 맞는 색상
 };
 
 type RouteItem = {
@@ -59,8 +60,11 @@ function SegmentChip({ seg }: { seg: Segment }) {
       ? `🚇 ${seg.line ?? "지하철"} ${seg.timeText}`
       : `${seg.type} ${seg.timeText}`;
 
-  const subLabel =
-    seg.from && seg.to ? `${seg.from} → ${seg.to}` : "";
+  const subLabel = seg.from && seg.to 
+      ? seg.type === "SUBWAY"
+      ? `${seg.from}역 → ${seg.to}역`
+      : `${seg.from} → ${seg.to}` 
+      : "";
 
   const backgroundColor = seg.type === "WALK" ? "#FAFAFA" : seg.color ? `#${seg.color}` : "#E5E7EB";
 
@@ -88,7 +92,8 @@ function SegmentChip({ seg }: { seg: Segment }) {
 
 
 export default function DirectionSearchScreen() {
-  const { originPlace, destPlace } = usePlacesStore();
+  const router = useRouter();
+  const { originPlace, destPlace, setSelectedRoute } = usePlacesStore();
   const [loading, setLoading] = useState(true);
   const [routes, setRoutes] = useState<RouteItem[]>([]); // 경로에 대한 정보
   const [selectedIndex, setSelectedIndex] = useState(0); // 선택된 라우터 기본으로 1번 경로로 지정
@@ -219,7 +224,10 @@ export default function DirectionSearchScreen() {
             console.log("선택한 경로:", selectedRoute); 
           }}
         >
-          <Text style={styles.primaryBtnText}>이 경로 선택</Text>
+          <Text style={styles.primaryBtnText} onPress={() => {
+            setSelectedRoute(routes[selectedIndex])
+            router.push("/timer");
+          }}>이 경로 선택</Text>
         </Pressable>
       </View>
     </SafeAreaView>
