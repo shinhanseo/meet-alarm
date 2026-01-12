@@ -11,7 +11,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import axios from "axios";
 import { usePlacesStore } from "../store/usePlacesStore";
 import { API_BASE_URL } from "@/src/config/env";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 
 type Segment = {
   type: "WALK" | "BUS" | "SUBWAY" | string;
@@ -222,7 +222,7 @@ export default function DirectionSearchScreen() {
           disabled={!selectedRoute}
           onPress={() => {
             setSelectedRoute(routes[selectedIndex])
-            router.push("/timer");
+            router.push("/");
           }}
         >
           <Text style={styles.primaryBtnText}>이 경로 선택</Text>
