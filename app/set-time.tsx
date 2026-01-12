@@ -53,7 +53,6 @@ export default function SetTimeScreen() {
               mode="time"
               display="default"
               onChange={onChange}
-              is24Hour={true}
             />
           )}
         </>
