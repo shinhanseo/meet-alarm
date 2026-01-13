@@ -20,7 +20,6 @@ export default function RootLayout() {
         <Stack.Screen name="set-time" options={{ headerShown: false }} />
         <Stack.Screen name="direction-search" options={{ headerShown: false }} />
         <Stack.Screen name="map-pick" options={{ headerShown: false }} />
-        <Stack.Screen name="timer" options={{ headerShown: false }} />
         <Stack.Screen name="modal" options={{ presentation: "modal", title: "Modal" }} />
       </Stack>
       <StatusBar style="auto"/>
