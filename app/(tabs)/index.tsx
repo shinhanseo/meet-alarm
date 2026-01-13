@@ -99,7 +99,7 @@ export default function HomeScreen() {
   // 타이머 seconds
   const [seconds, setSeconds] = useState<number>(0);
 
-  // ✅ "오늘/내일 + 시/분"을 실제 Date로 합치는 함수 (useMemo보다 위에 있어야 함)
+  // "오늘/내일 + 시/분"을 실제 Date로 합치는 함수 
   function buildMeetingDateTime(mt: Date, dayOffset: 0 | 1) {
     const d = new Date();
     d.setHours(mt.getHours(), mt.getMinutes(), 0, 0);
@@ -131,7 +131,7 @@ export default function HomeScreen() {
     });
   }, [departAtMs]);
 
-  // 타이머 표시 텍스트 (mm:ss)
+  // 타이머 표시 텍스트 (hh:mm:ss)
   const timerText = useMemo(() => {
     const hh = Math.floor(seconds / 3600);
     const mm = Math.floor((seconds % 3600) / 60);
@@ -404,13 +404,16 @@ export default function HomeScreen() {
           onLayout={(e) => setResultCardH(e.nativeEvent.layout.height)}
         >
           <Text style={styles.resultTitle}>출발 추천 시간</Text>
-          <Text style={styles.resultBig}>
-            {meetingDayOffset === 0 ? "오늘 " : "내일 "}
-            {departTimeText}
-          </Text>
+            <View style={styles.resultRow}>
+              <Text style={styles.resultBig}>
+                {meetingDayOffset === 0 ? "오늘 " : "내일 "}
+                {departTimeText}
+              </Text>
 
-          {/* 타이머 표시 */}
-          <Text style={styles.resultSub}>출발까지 {timerText} 남음</Text>
+              <View style={styles.timerPill}>
+                <Text style={[styles.timerText, seconds <= 300 && styles.timerPillDanger]}>{timerText}</Text>
+              </View>
+          </View>
         </View>
       )}
 
@@ -587,7 +590,7 @@ const styles = StyleSheet.create({
   },
   resultTitle: { fontSize: 13, fontWeight: "900", color: "#6B7280" },
   resultBig: {
-    marginTop: 6,
+    marginBottom : 11,
     fontSize: 30,
     fontWeight: "900",
     color: "#111827",
@@ -646,4 +649,32 @@ const styles = StyleSheet.create({
   },
 
   loading: { flex: 1, justifyContent: "center", alignItems: "center" },
+
+  resultRow: {
+    marginTop: 5,
+    flexDirection: "row",
+    alignItems: "flex-end",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+  
+  timerPill: {
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 16,
+    backgroundColor: "#fff",
+    minWidth: 200,
+    alignItems: "center",
+  },
+  
+  timerText: {
+    fontSize: 30,
+    fontWeight: "900",
+    color: "#000",
+  },
+
+  timerPillDanger: {
+    color: "#DC2626", // 빨간색
+  },  
+  
 });
