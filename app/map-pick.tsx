@@ -32,7 +32,7 @@ export default function MapPickScreen() {
   const displayLocationText = buildingName ||
                               name ||
                               address ||
-                              "지도를 움직여 위치를 선택하세요";
+                              "현재 위치";
   
   const actionText = mode === "origin" ? "출발지로 설정" : "목적지로 설정";
 
