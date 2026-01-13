@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import {
   View,
   StyleSheet,
@@ -90,6 +90,8 @@ export default function HomeScreen() {
   const BOTTOM_MARGIN = 10; // 화면 바닥 여백
   const tabBarH = useBottomTabBarHeight();
 
+  const prevOffsetRef = useRef(meetingDayOffset); // 내일에서 오늘로 바꿀 때 현재 시간보다 그 전의 약속인 경우를 감지하기 위해
+
   // 위치 가져오기
   useEffect(() => {
     (async () => {
@@ -118,6 +120,31 @@ export default function HomeScreen() {
       }
     })();
   }, [originPlace, setPlace]);
+
+  useEffect(() => {
+    const prev = prevOffsetRef.current;
+    const curr = meetingDayOffset;
+  
+    if (prev === 1 && curr === 0 && meetingTime) {
+      const now = new Date();
+      const todayAt = new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        now.getDate(),
+        meetingTime.getHours(),
+        meetingTime.getMinutes(),
+        0,
+        0
+      );
+  
+      if (todayAt.getTime() < Date.now()) {
+        Alert.alert("이미 지난 시간입니다", "약속 시간을 다시 설정해주세요",  [{ text: "확인" }]);
+        router.push({ pathname: "/set-time" });
+      }
+    }
+  
+    prevOffsetRef.current = curr;
+  }, [meetingDayOffset, meetingTime]);
 
   const openSearch = (mode: "origin" | "dest") => {
     router.push({ pathname: "/place-search", params: { mode } });
@@ -206,7 +233,7 @@ export default function HomeScreen() {
     const h = screenH - topNum - tabBarH - BOTTOM_MARGIN;
     return Math.max(250, h);
   }, [screenH, routeTop]);
-
+  
   return (
     <View style={styles.container}>
       {/* 상단 입력 카드 */}
@@ -488,7 +515,7 @@ const styles = StyleSheet.create({
     left: 10,
     right: 10,
     top: 50 + 160 + 95,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#DFF3E7",
     borderRadius: 18,
     padding: 16,
     elevation: 6,
@@ -519,7 +546,7 @@ const styles = StyleSheet.create({
     right: 10,
     top: 50 + 160 + 95 + 120, 
     maxHeight: 250, 
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#F2FAE8",
     borderRadius: 18,
     padding: 16,
     elevation: 4,
