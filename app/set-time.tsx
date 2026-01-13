@@ -1,4 +1,4 @@
-import { View, Text, Pressable, StyleSheet, Platform } from "react-native";
+import { View, Text, Pressable, StyleSheet, Platform, Alert } from "react-native";
 import DateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
 import { useMemo, useState } from "react";
 import { useRouter } from "expo-router";
@@ -6,7 +6,7 @@ import { usePlacesStore } from "../store/usePlacesStore";
 
 export default function SetTimeScreen() {
   const router = useRouter();
-  const { meetingTime, setMeetingTime } = usePlacesStore();
+  const { meetingTime, setMeetingTime, meetingDayOffset } = usePlacesStore();
 
   const [tempTime, setTempTime] = useState<Date>(meetingTime ?? new Date());
   const [showAndroidPicker, setShowAndroidPicker] = useState(false);
@@ -61,6 +61,22 @@ export default function SetTimeScreen() {
       <Pressable
         style={styles.confirmBtn}
         onPress={() => {
+          const base = new Date();
+          base.setDate(base.getDate() + meetingDayOffset);
+
+          base.setHours(
+            tempTime.getHours(),
+            tempTime.getMinutes(),
+            0,
+            0
+          );
+
+          const meetingMs = base.getTime();
+
+          if (meetingMs < Date.now()) {
+            Alert.alert("이미 지난 시간입니다", "약속 시간을 다시 설정해주세요",  [{ text: "확인" }]);
+            return;
+          }
           setMeetingTime(tempTime);
           router.replace("/");
         }}
