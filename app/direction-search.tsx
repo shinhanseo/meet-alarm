@@ -6,6 +6,7 @@ import {
   Text,
   StyleSheet,
   ActivityIndicator,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import axios from "axios";
@@ -89,8 +90,6 @@ function SegmentChip({ seg }: { seg: Segment }) {
   );
 }
 
-
-
 export default function DirectionSearchScreen() {
   const router = useRouter();
   const { originPlace, destPlace, setSelectedRoute } = usePlacesStore();
@@ -110,8 +109,17 @@ export default function DirectionSearchScreen() {
 
         setRoutes(res.data.routes ?? []);
         setSelectedIndex(0);
-      } catch (e) {
-        console.error(e);
+      } catch (e : any) {
+        if (e.response.status === 404) {
+          Alert.alert(
+            "경로를 찾을 수 없어요",
+            "출발지와 목적지가 너무 가까워서 경로가 제공되지 않을 수 있어요.\n도보로 이동해보세요.",
+            [{ text: "확인" }]
+          );
+          setRoutes([]);
+          setSelectedIndex(0); // 너 타입이 number면 -1로
+          return;
+        }
       } finally {
         setLoading(false);
       }
@@ -222,7 +230,7 @@ export default function DirectionSearchScreen() {
           disabled={!selectedRoute}
           onPress={() => {
             setSelectedRoute(routes[selectedIndex])
-            router.push("/");
+            router.replace("/");
           }}
         >
           <Text style={styles.primaryBtnText}>이 경로 선택</Text>
