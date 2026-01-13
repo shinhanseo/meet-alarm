@@ -8,14 +8,13 @@ import {
   Pressable,
   Alert,
   ScrollView,
-  useWindowDimensions, 
+  useWindowDimensions,
 } from "react-native";
 import { Region } from "react-native-maps";
 import * as Location from "expo-location";
 import { useRouter } from "expo-router";
 import { usePlacesStore } from "../../store/usePlacesStore";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
-
 
 // (추가) 거리 포맷
 const formatDistance = (m?: number) => {
@@ -68,7 +67,7 @@ function SegmentChip({ seg }: { seg: any }) {
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { height: screenH } = useWindowDimensions(); 
+  const { height: screenH } = useWindowDimensions();
   const {
     originPlace,
     destPlace,
@@ -79,6 +78,7 @@ export default function HomeScreen() {
     setMeetingDayOffset,
     selectedRoute,
   } = usePlacesStore();
+
   const [region, setRegion] = useState<Region | null>(null);
 
   const bufferMin = 10;
@@ -90,7 +90,57 @@ export default function HomeScreen() {
   const BOTTOM_MARGIN = 10; // 화면 바닥 여백
   const tabBarH = useBottomTabBarHeight();
 
-  const prevOffsetRef = useRef(meetingDayOffset); // 내일에서 오늘로 바꿀 때 현재 시간보다 그 전의 약속인 경우를 감지하기 위해
+  // 내일->오늘 전환 감지
+  const prevOffsetRef = useRef(meetingDayOffset);
+
+  // 개발모드(StrictMode)로 Alert 2번 뜨는 것 방지 가드
+  const alertGuardRef = useRef(false);
+
+  // 타이머 seconds
+  const [seconds, setSeconds] = useState<number>(0);
+
+  // ✅ "오늘/내일 + 시/분"을 실제 Date로 합치는 함수 (useMemo보다 위에 있어야 함)
+  function buildMeetingDateTime(mt: Date, dayOffset: 0 | 1) {
+    const d = new Date();
+    d.setHours(mt.getHours(), mt.getMinutes(), 0, 0);
+    d.setDate(d.getDate() + dayOffset);
+    return d;
+  }
+
+  // 출발 추천 시각(ms)
+  const departAtMs = useMemo(() => {
+    if (!selectedRoute || !meetingTime) return null;
+
+    const meetingAt = buildMeetingDateTime(
+      meetingTime,
+      meetingDayOffset as 0 | 1
+    ).getTime(); // ms
+    const travelMs = selectedRoute.summary.totalTimeMin * 60 * 1000; // ms
+    const bufferMs = bufferMin * 60 * 1000; // ms
+
+    return meetingAt - travelMs - bufferMs; // ms
+  }, [selectedRoute, meetingTime, meetingDayOffset, bufferMin]);
+
+  // 출발 추천 시각 텍스트
+  const departTimeText = useMemo(() => {
+    if (!departAtMs) return "";
+    return new Date(departAtMs).toLocaleTimeString("ko-KR", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+  }, [departAtMs]);
+
+  // 타이머 표시 텍스트 (mm:ss)
+  const timerText = useMemo(() => {
+    const hh = Math.floor(seconds / 3600);
+    const mm = Math.floor((seconds % 3600) / 60);
+    const ss = seconds % 60;
+  
+    const two = (n: number) => n.toString().padStart(2, "0");
+  
+    return `${two(hh)}:${two(mm)}:${two(ss)}`;
+  }, [seconds]);
 
   // 위치 가져오기
   useEffect(() => {
@@ -121,30 +171,69 @@ export default function HomeScreen() {
     })();
   }, [originPlace, setPlace]);
 
+  // 내일->오늘 바꿀 때, 오늘 시간이 이미 지났으면 경고 + 시간설정 화면 이동
   useEffect(() => {
     const prev = prevOffsetRef.current;
     const curr = meetingDayOffset;
-  
-    if (prev === 1 && curr === 0 && meetingTime) {
-      const now = new Date();
-      const todayAt = new Date(
-        now.getFullYear(),
-        now.getMonth(),
-        now.getDate(),
-        meetingTime.getHours(),
-        meetingTime.getMinutes(),
-        0,
-        0
-      );
-  
-      if (todayAt.getTime() < Date.now()) {
-        Alert.alert("이미 지난 시간입니다", "약속 시간을 다시 설정해주세요",  [{ text: "확인" }]);
-        router.push({ pathname: "/set-time" });
-      }
+
+    // 전환이 아니면 가드 풀기
+    if (!(prev === 1 && curr === 0)) {
+      alertGuardRef.current = false;
+      prevOffsetRef.current = curr;
+      return;
     }
-  
+
+    if (!meetingTime) {
+      prevOffsetRef.current = curr;
+      return;
+    }
+
+    // StrictMode / 중복 호출 방지
+    if (alertGuardRef.current) {
+      prevOffsetRef.current = curr;
+      return;
+    }
+
+    const now = new Date();
+    const todayAt = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+      meetingTime.getHours(),
+      meetingTime.getMinutes(),
+      0,
+      0
+    );
+
+    if (todayAt.getTime() < Date.now()) {
+      alertGuardRef.current = true;
+      Alert.alert("이미 지난 시간입니다", "약속 시간을 다시 설정해주세요", [
+        {
+          text: "확인",
+          onPress: () => router.push({ pathname: "/set-time" }),
+        },
+      ]);
+    }
+
     prevOffsetRef.current = curr;
-  }, [meetingDayOffset, meetingTime]);
+  }, [meetingDayOffset, meetingTime, router]);
+
+  // 출발까지 남은 시간 타이머
+  useEffect(() => {
+    if (!departAtMs) {
+      setSeconds(0);
+      return;
+    }
+
+    const update = () => {
+      const diff = Math.max(0, Math.floor((departAtMs - Date.now()) / 1000));
+      setSeconds(diff);
+    };
+
+    update();
+    const id = setInterval(update, 1000);
+    return () => clearInterval(id);
+  }, [departAtMs]);
 
   const openSearch = (mode: "origin" | "dest") => {
     router.push({ pathname: "/place-search", params: { mode } });
@@ -185,35 +274,6 @@ export default function HomeScreen() {
     );
   }
 
-  // "오늘/내일 + 시/분"을 실제 Date로 합치는 함수
-  const buildMeetingDateTime = (mt: Date, dayOffset: 0 | 1) => {
-    const d = new Date();
-    d.setHours(mt.getHours(), mt.getMinutes(), 0, 0);
-    d.setDate(d.getDate() + dayOffset);
-    return d;
-  };
-
-  // 출발 추천 시각(ms)
-  const departAtMs = useMemo(() => {
-    if (!selectedRoute || !meetingTime) return null;
-
-    const meetingAt = buildMeetingDateTime(meetingTime, meetingDayOffset).getTime(); // ms
-    const travelMs = selectedRoute.summary.totalTimeMin * 60 * 1000; // ms
-    const bufferMs = bufferMin * 60 * 1000; // ms
-
-    return meetingAt - travelMs - bufferMs; // ms
-  }, [selectedRoute, meetingTime, meetingDayOffset, bufferMin]);
-
-  // 출발 추천 시각 텍스트
-  const departTimeText = useMemo(() => {
-    if (!departAtMs) return "";
-    return new Date(departAtMs).toLocaleTimeString("ko-KR", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    });
-  }, [departAtMs]);
-
   const readyToShowResult = !!(
     originPlace &&
     destPlace &&
@@ -222,18 +282,18 @@ export default function HomeScreen() {
     departAtMs
   );
 
-  //route 카드가 시작되는 top (출발시간 카드 바로 아래)
-  const routeTop = readyToShowResult ? RESULT_TOP + resultCardH + GAP : styles.routeSummaryCard.top;
+  // route 카드가 시작되는 top (출발시간 카드 바로 아래)
+  const routeTop = readyToShowResult
+    ? RESULT_TOP + resultCardH + GAP
+    : (styles.routeSummaryCard.top as number);
 
   // 화면 바닥까지 남는 높이
   const routeMaxH = useMemo(() => {
-    // routeTop이 숫자가 아닐 가능성 방어
     const topNum = typeof routeTop === "number" ? routeTop : 0;
-
     const h = screenH - topNum - tabBarH - BOTTOM_MARGIN;
     return Math.max(250, h);
-  }, [screenH, routeTop]);
-  
+  }, [screenH, routeTop, tabBarH]);
+
   return (
     <View style={styles.container}>
       {/* 상단 입력 카드 */}
@@ -337,7 +397,7 @@ export default function HomeScreen() {
         </Pressable>
       </View>
 
-      {/* 결과 패널(경로까지 선택되면 표시): 가운데(위) */}
+      {/* 결과 패널 */}
       {readyToShowResult && (
         <View
           style={styles.resultCard}
@@ -349,17 +409,18 @@ export default function HomeScreen() {
             {departTimeText}
           </Text>
 
-          <Text style={styles.resultHint}>(타이머 예정)</Text>
+          {/* 타이머 표시 */}
+          <Text style={styles.resultSub}>출발까지 {timerText} 남음</Text>
         </View>
       )}
 
-      {/* 선택한 경로 요약 (남는 공간만큼 카드가 커지게 maxHeight 동적 적용) */}
+      {/* 선택한 경로 요약 */}
       {selectedRoute && (
         <View
           style={[
             styles.routeSummaryCard,
             readyToShowResult && {
-              top: RESULT_TOP + resultCardH + GAP, // 출발시간 카드 바로 아래
+              top: RESULT_TOP + resultCardH + GAP,
               bottom: undefined,
             },
             { maxHeight: routeMaxH },
@@ -544,8 +605,8 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: 10,
     right: 10,
-    top: 50 + 160 + 95 + 120, 
-    maxHeight: 250, 
+    top: 50 + 160 + 95 + 120,
+    maxHeight: 250,
     backgroundColor: "#F2FAE8",
     borderRadius: 18,
     padding: 16,
