@@ -1,12 +1,11 @@
 import { useEffect, useMemo, useState, useRef } from "react";
-import { View, Alert, ScrollView, ActivityIndicator, Text, Image } from "react-native";
+import { View, Alert, ScrollView } from "react-native";
 import { useRouter } from "expo-router";
 import axios from "axios";
 
 import { API_BASE_URL } from "@/src/config/env";
 import { usePlacesStore } from "@/store/usePlacesStore";
 import { styles } from "./styles";
-import { THEME } from "./theme";
 
 import HeaderBar from "./components/HeaderBar";
 import MeetingSection from "./components/MeetingSection";
@@ -28,7 +27,7 @@ type WeatherDto = {
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { originPlace, destPlace, meetingTime, meetingDayOffset, selectedRoute } = usePlacesStore();
+  const { originPlace, destPlace, meetingTime, meetingDayOffset, selectedRoute, departureAt, setDepartureAt, } = usePlacesStore();
 
   const bufferMin = 10;
 
@@ -86,11 +85,6 @@ export default function HomeScreen() {
     fetchDestWeather();
   }, [destPlace]);
 
-  const isBadWeather =
-    destWeather?.main === "Rain" ||
-    destWeather?.main === "Snow" ||
-    destWeather?.main === "Thunderstorm";
-
   // 출발 추천 시각(ms)
   const departAtMs = useMemo(() => {
     if (!selectedRoute || !meetingTime) return null;
@@ -102,16 +96,31 @@ export default function HomeScreen() {
     return meetingAt - travelMs - bufferMs;
   }, [selectedRoute, meetingTime, meetingDayOffset, bufferMin]);
 
+  useEffect(() => {
+    if (!departAtMs) {
+      if (departureAt !== null) setDepartureAt(null);
+      return;
+    }
+  
+    const d = new Date(departAtMs);
+  
+    // departureAt이 같은지 비교(불필요한 set 방지)
+    const prev = departureAt?.getTime() ?? null;
+    if (prev !== d.getTime()) {
+      setDepartureAt(d);
+    }
+  }, [departAtMs, departureAt, setDepartureAt]);
+
   // 출발 추천 시각 텍스트
   const departTimeText = useMemo(() => {
-    if (!departAtMs) return "";
-    return new Date(departAtMs).toLocaleTimeString("ko-KR", {
+    if (!departureAt) return "";
+    return departureAt.toLocaleTimeString("ko-KR", {
       hour: "2-digit",
       minute: "2-digit",
       hour12: false,
     });
-  }, [departAtMs]);
-
+  }, [departureAt]);
+  
   // 타이머 표시 텍스트 (hh:mm:ss)
   const timerText = useMemo(() => {
     const hh = Math.floor(seconds / 3600);
@@ -155,20 +164,21 @@ export default function HomeScreen() {
 
   // 출발까지 남은 시간 타이머
   useEffect(() => {
-    if (!departAtMs) {
+    const base = departureAt?.getTime();
+    if (!base) {
       setSeconds(0);
       return;
     }
 
     const update = () => {
-      const diff = Math.max(0, Math.floor((departAtMs - Date.now()) / 1000));
+      const diff = Math.max(0, Math.floor((base - Date.now()) / 1000));
       setSeconds(diff);
     };
 
     update();
     const id = setInterval(update, 1000);
     return () => clearInterval(id);
-  }, [departAtMs]);
+  }, [departureAt]);
 
   const directionSearch = () => {
     if (!originPlace || !destPlace || !meetingTime) {

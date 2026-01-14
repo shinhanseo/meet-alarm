@@ -36,7 +36,13 @@ export default function TimerSection({
               ]}
             >
               <Text style={[styles.badgeText, seconds <= 300 && styles.badgeDanger]}>
-                {seconds <= 300 ? "5분 이내" : "여유 있음"}
+              {seconds <= 0
+                ? "지금 출발하세요!"
+                : seconds <= 300
+                ? "서둘러야 해요!"
+                : seconds <= 600
+                ? "슬슬 나갈 준비하세요"
+                : "아직 여유 있어요"}
               </Text>
             </View>
           </View>

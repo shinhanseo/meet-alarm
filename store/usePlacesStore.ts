@@ -46,6 +46,8 @@ type PlacesState = {
   meetingDayOffset: DayOffset;
 
   selectedRoute: RouteItem | null;
+   
+  departureAt: Date | null;
 
   setPlace: (mode: Mode, place: Place) => void;
 
@@ -54,6 +56,8 @@ type PlacesState = {
 
   setSelectedRoute: (route: RouteItem | null) => void;
   clearSelectedRoute: () => void;
+
+  setDepartureAt: (d: Date | null) => void;
 
   reset: () => void;
 };
@@ -66,6 +70,7 @@ export const usePlacesStore = create<PlacesState>((set) => ({
   meetingDayOffset: 0,
 
   selectedRoute: null,
+  departureAt : null,
 
   setPlace: (mode, place) =>
     set((state) => ({
@@ -96,6 +101,12 @@ export const usePlacesStore = create<PlacesState>((set) => ({
     set((state) => ({
       ...state,
       selectedRoute: null,
+    })),
+
+  setDepartureAt: (d) => 
+    set((s) => ({ 
+      ...s, 
+      departureAt: d 
     })),
 
   reset: () =>

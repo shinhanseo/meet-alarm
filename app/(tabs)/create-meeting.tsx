@@ -13,6 +13,8 @@ import { Region } from "react-native-maps";
 import * as Location from "expo-location";
 import { useRouter } from "expo-router";
 import { usePlacesStore } from "../../store/usePlacesStore";
+import axios from "axios";
+import { API_BASE_URL } from "@/src/config/env";
 
 export default function CreateMeetingScreen() {
   const router = useRouter();
@@ -109,9 +111,6 @@ export default function CreateMeetingScreen() {
 
   return (
     <View style={styles.container}>
-      {/* 배경 장식 */}
-      <View style={styles.bgBlobTop} />
-      <View style={styles.bgBlobBottom} />
 
       {/* 상단 헤더 */}
       <View style={styles.header}>
@@ -210,7 +209,7 @@ export default function CreateMeetingScreen() {
           </View>
         </View>
 
-        {/* 상태/가이드 섹션(화면 꽉 차게 채우기) */}
+        {/* 상태/가이드 섹션 */}
         <View style={styles.infoCard}>
           <Text style={styles.infoTitle}>진행 상태</Text>
 
@@ -277,28 +276,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: THEME.bg,
-  },
-
-  // 배경 장식
-  bgBlobTop: {
-    position: "absolute",
-    top: -120,
-    right: -140,
-    width: 320,
-    height: 320,
-    borderRadius: 999,
-    backgroundColor: THEME.orangeSoft,
-    opacity: 0.9,
-  },
-  bgBlobBottom: {
-    position: "absolute",
-    bottom: -160,
-    left: -140,
-    width: 360,
-    height: 360,
-    borderRadius: 999,
-    backgroundColor: THEME.orangeSoft,
-    opacity: 0.7,
   },
 
   loading: {
