@@ -27,7 +27,19 @@ type WeatherDto = {
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { originPlace, destPlace, meetingTime, meetingDayOffset, selectedRoute, departureAt, setDepartureAt, } = usePlacesStore();
+
+  const {
+    originPlace,
+    destPlace,
+    meetingTime: meetingTimeStr,     // string | null
+    meetingDayOffset,
+    selectedRoute,
+    departureAt: departureAtStr,     // string | null
+    setDepartureAt,                 // (iso: string | null) => void
+  } = usePlacesStore();
+
+  const meetingTime = meetingTimeStr ? new Date(meetingTimeStr) : null;
+  const departureAt = departureAtStr ? new Date(departureAtStr) : null;
 
   const bufferMin = 10;
 
@@ -89,7 +101,11 @@ export default function HomeScreen() {
   const departAtMs = useMemo(() => {
     if (!selectedRoute || !meetingTime) return null;
 
-    const meetingAt = buildMeetingDateTime(meetingTime, meetingDayOffset as 0 | 1).getTime();
+    const meetingAt = buildMeetingDateTime(
+      meetingTime,
+      meetingDayOffset as 0 | 1
+    ).getTime();
+
     const travelMs = selectedRoute.summary.totalTimeMin * 60 * 1000;
     const bufferMs = bufferMin * 60 * 1000;
 
@@ -98,18 +114,17 @@ export default function HomeScreen() {
 
   useEffect(() => {
     if (!departAtMs) {
-      if (departureAt !== null) setDepartureAt(null);
+      if (departureAtStr !== null) setDepartureAt(null);
       return;
     }
-  
-    const d = new Date(departAtMs);
-  
-    // departureAt이 같은지 비교(불필요한 set 방지)
-    const prev = departureAt?.getTime() ?? null;
-    if (prev !== d.getTime()) {
-      setDepartureAt(d);
+
+    const nextISO = new Date(departAtMs).toISOString();
+
+    // 불필요한 set 방지
+    if (departureAtStr !== nextISO) {
+      setDepartureAt(nextISO);
     }
-  }, [departAtMs, departureAt, setDepartureAt]);
+  }, [departAtMs, departureAtStr, setDepartureAt]);
 
   // 출발 추천 시각 텍스트
   const departTimeText = useMemo(() => {
@@ -120,7 +135,7 @@ export default function HomeScreen() {
       hour12: false,
     });
   }, [departureAt]);
-  
+
   // 타이머 표시 텍스트 (hh:mm:ss)
   const timerText = useMemo(() => {
     const hh = Math.floor(seconds / 3600);
@@ -181,7 +196,7 @@ export default function HomeScreen() {
   }, [departureAt]);
 
   const directionSearch = () => {
-    if (!originPlace || !destPlace || !meetingTime) {
+    if (!originPlace || !destPlace || !meetingTimeStr) {
       Alert.alert(
         "입력이 필요해요",
         `${!originPlace ? "출발지" : !destPlace ? "도착지" : "약속 시간"}를 먼저 설정해주세요.`,
@@ -193,17 +208,26 @@ export default function HomeScreen() {
     router.push({ pathname: "/direction-search" });
   };
 
-  const readyToShowResult = !!(originPlace && destPlace && meetingTime && selectedRoute && departAtMs);
+  const readyToShowResult = !!(
+    originPlace &&
+    destPlace &&
+    meetingTimeStr &&
+    selectedRoute &&
+    departAtMs
+  );
 
   return (
     <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
         <HeaderBar onPressCreate={() => router.push("/create-meeting")} />
 
         <MeetingSection
           originPlace={originPlace}
           destPlace={destPlace}
-          meetingTime={meetingTime}
+          meetingTime={meetingTime} // ✅ MeetingSection이 Date를 기대한다면 이대로
           meetingDayOffset={meetingDayOffset}
           selectedRoute={selectedRoute}
           onPressCreate={() => router.push("/create-meeting")}
@@ -219,7 +243,6 @@ export default function HomeScreen() {
           timerText={timerText}
         />
 
-        {/* 목적지 날씨 카드 */}
         <WeatherSection
           destPlaceName={destPlace?.name ?? null}
           loading={weatherLoading}
@@ -227,7 +250,10 @@ export default function HomeScreen() {
           weather={destWeather}
         />
 
-        <RouteSection selectedRoute={selectedRoute} onPressChangeRoute={directionSearch} />
+        <RouteSection
+          selectedRoute={selectedRoute}
+          onPressChangeRoute={directionSearch}
+        />
 
         <View style={{ height: 12 }} />
       </ScrollView>

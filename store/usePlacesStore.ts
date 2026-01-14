@@ -42,79 +42,78 @@ type PlacesState = {
   originPlace: Place | null;
   destPlace: Place | null;
 
-  meetingTime: Date | null;
+  meetingTime: string | null;
   meetingDayOffset: DayOffset;
 
   selectedRoute: RouteItem | null;
    
-  departureAt: Date | null;
+  departureAt: string | null;
 
   setPlace: (mode: Mode, place: Place) => void;
 
-  setMeetingTime: (time: Date) => void;
+  setMeetingTime: (time: string) => void;
   setMeetingDayOffset: (offset: DayOffset) => void;
 
   setSelectedRoute: (route: RouteItem | null) => void;
   clearSelectedRoute: () => void;
 
-  setDepartureAt: (d: Date | null) => void;
+  setDepartureAt: (d: string | null) => void;
 
   reset: () => void;
 };
 
-export const usePlacesStore = create<PlacesState>((set) => ({
-  originPlace: null,
-  destPlace: null,
-
-  meetingTime: null,
-  meetingDayOffset: 0,
-
-  selectedRoute: null,
-  departureAt : null,
-
-  setPlace: (mode, place) =>
-    set((state) => ({
-      ...state,
-      originPlace: mode === "origin" ? place : state.originPlace,
-      destPlace: mode === "dest" ? place : state.destPlace,
-    })),
-
-  setMeetingTime: (time) =>
-    set((state) => ({
-      ...state,
-      meetingTime: time,
-    })),
-
-  setMeetingDayOffset: (offset) =>
-    set((state) => ({
-      ...state,
-      meetingDayOffset: offset,
-    })),
-
-  setSelectedRoute: (route) =>
-    set((state) => ({
-      ...state,
-      selectedRoute: route,
-    })),
-
-  clearSelectedRoute: () =>
-    set((state) => ({
-      ...state,
-      selectedRoute: null,
-    })),
-
-  setDepartureAt: (d) => 
-    set((s) => ({ 
-      ...s, 
-      departureAt: d 
-    })),
-
-  reset: () =>
-    set({
+export const usePlacesStore = create<PlacesState>()(
+  persist(
+    (set) => ({
       originPlace: null,
       destPlace: null,
+
       meetingTime: null,
       meetingDayOffset: 0,
+
       selectedRoute: null,
+      departureAt: null,
+
+      setPlace: (mode, place) =>
+        set((state) => ({
+          ...state,
+          originPlace: mode === "origin" ? place : state.originPlace,
+          destPlace: mode === "dest" ? place : state.destPlace,
+        })),
+
+      setMeetingTime: (time) => set((state) => ({ ...state, meetingTime: time })),
+      setMeetingDayOffset: (offset) =>
+        set((state) => ({ ...state, meetingDayOffset: offset })),
+
+      setSelectedRoute: (route) =>
+        set((state) => ({ ...state, selectedRoute: route })),
+      clearSelectedRoute: () => set((state) => ({ ...state, selectedRoute: null })),
+
+      setDepartureAt: (d) => set((state) => ({ ...state, departureAt: d })),
+
+      reset: () =>
+        set({
+          originPlace: null,
+          destPlace: null,
+          meetingTime: null,
+          meetingDayOffset: 0,
+          selectedRoute: null,
+          departureAt: null,
+        }),
     }),
-}));
+    {
+      name: "places-store-v1", // AsyncStorage key 이름
+      storage: createJSONStorage(() => AsyncStorage),
+
+      // 스토어에 있는 변수 모두 asyncStorage에 저장
+      partialize: (state) => ({
+        originPlace: state.originPlace,
+        destPlace: state.destPlace,
+        meetingTime: state.meetingTime,
+        meetingDayOffset: state.meetingDayOffset,
+        selectedRoute: state.selectedRoute,
+        departureAt: state.departureAt,
+      }),
+    }
+  )
+);

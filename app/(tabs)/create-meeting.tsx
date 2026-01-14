@@ -13,21 +13,23 @@ import { Region } from "react-native-maps";
 import * as Location from "expo-location";
 import { useRouter } from "expo-router";
 import { usePlacesStore } from "../../store/usePlacesStore";
-import axios from "axios";
-import { API_BASE_URL } from "@/src/config/env";
 
 export default function CreateMeetingScreen() {
   const router = useRouter();
 
+  // ✅ store는 string 기반(meetingTime/departureAt는 ISO string | null)
   const {
     originPlace,
     destPlace,
     setPlace,
     reset,
-    meetingTime,
+    meetingTime: meetingTimeStr, // string | null
     meetingDayOffset,
     setMeetingDayOffset,
   } = usePlacesStore();
+
+  // ✅ 화면/로직에서는 Date로 변환해서 사용
+  const meetingTime = meetingTimeStr ? new Date(meetingTimeStr) : null;
 
   const [region, setRegion] = useState<Region | null>(null);
 
@@ -69,7 +71,8 @@ export default function CreateMeetingScreen() {
   };
 
   const directionSearch = () => {
-    if (!originPlace || !destPlace || !meetingTime) {
+    // ✅ 체크는 원본 string 기준이 안전
+    if (!originPlace || !destPlace || !meetingTimeStr) {
       Alert.alert(
         "입력이 필요해요",
         `${!originPlace ? "출발지" : !destPlace ? "도착지" : "약속 시간"}를 먼저 설정해주세요.`,
@@ -91,14 +94,15 @@ export default function CreateMeetingScreen() {
   }, [meetingTime]);
 
   const progressText = useMemo(() => {
-    const done = [!!originPlace, !!destPlace, !!meetingTime].filter(Boolean).length;
+    const done = [!!originPlace, !!destPlace, !!meetingTimeStr].filter(Boolean)
+      .length;
     if (done === 0) return "아직 아무것도 설정되지 않았어요.";
     if (done === 1) return "좋아요. 하나만 더 설정해봐요.";
     if (done === 2) return "거의 다 됐어요. 마지막으로 시간만 설정하면 돼요.";
     return "완료! 이제 경로를 탐색할 수 있어요.";
-  }, [originPlace, destPlace, meetingTime]);
+  }, [originPlace, destPlace, meetingTimeStr]);
 
-  const ready = !!(originPlace && destPlace && meetingTime);
+  const ready = !!(originPlace && destPlace && meetingTimeStr);
 
   if (!region) {
     return (
@@ -111,7 +115,6 @@ export default function CreateMeetingScreen() {
 
   return (
     <View style={styles.container}>
-
       {/* 상단 헤더 */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>약속 설정</Text>
@@ -124,7 +127,7 @@ export default function CreateMeetingScreen() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        {/* 입력 카드 (기본틀 유지: 출발/도착/시간 + 오늘/내일) */}
+        {/* 입력 카드 */}
         <View style={styles.card}>
           <View style={styles.accent} />
 
@@ -220,7 +223,7 @@ export default function CreateMeetingScreen() {
             <View style={[styles.dot, destPlace && styles.dotOn]} />
             <Text style={styles.progressText}>도착지</Text>
 
-            <View style={[styles.dot, meetingTime && styles.dotOn]} />
+            <View style={[styles.dot, meetingTimeStr && styles.dotOn]} />
             <Text style={styles.progressText}>시간</Text>
           </View>
 
@@ -237,11 +240,10 @@ export default function CreateMeetingScreen() {
           )}
         </View>
 
-        {/* 빈 공간 채움용(ScrollView라 자연스럽게 아래로 내려감) */}
         <View style={{ height: 90 }} />
       </ScrollView>
 
-      {/* 하단 고정 버튼(기본틀: 경로 탐색하기 버튼) */}
+      {/* 하단 고정 버튼 */}
       <View style={styles.bottomBar}>
         <Pressable
           onPress={directionSearch}
@@ -250,7 +252,9 @@ export default function CreateMeetingScreen() {
           <Text style={styles.directionText}>경로 탐색하기</Text>
         </Pressable>
         <Text style={styles.bottomHint}>
-          {ready ? "경로를 선택하면 홈에서 타이머가 보여요." : "필수 입력을 먼저 설정해주세요."}
+          {ready
+            ? "경로를 선택하면 홈에서 타이머가 보여요."
+            : "필수 입력을 먼저 설정해주세요."}
         </Text>
       </View>
     </View>
@@ -312,11 +316,10 @@ const styles = StyleSheet.create({
 
   content: {
     paddingHorizontal: 14,
-    paddingBottom: 140, // bottomBar 공간
+    paddingBottom: 140,
     gap: 12,
   },
 
-  // 입력 카드(기본틀)
   card: {
     flexDirection: "row",
     backgroundColor: THEME.card,
@@ -406,7 +409,6 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
   },
 
-  // 중간 정보 카드(화면 채우기)
   infoCard: {
     backgroundColor: THEME.card,
     borderRadius: 20,
@@ -416,9 +418,19 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   infoTitle: { fontSize: 14, fontWeight: "900", color: THEME.text },
-  infoDesc: { fontSize: 13, fontWeight: "800", color: THEME.muted, lineHeight: 18 },
+  infoDesc: {
+    fontSize: 13,
+    fontWeight: "800",
+    color: THEME.muted,
+    lineHeight: 18,
+  },
 
-  progressRow: { flexDirection: "row", alignItems: "center", gap: 8, flexWrap: "wrap" },
+  progressRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    flexWrap: "wrap",
+  },
   dot: {
     width: 10,
     height: 10,
@@ -428,7 +440,12 @@ const styles = StyleSheet.create({
     borderColor: THEME.border,
   },
   dotOn: { backgroundColor: THEME.orange, borderColor: THEME.orangeBorder },
-  progressText: { fontSize: 12, fontWeight: "900", color: THEME.text, marginRight: 10 },
+  progressText: {
+    fontSize: 12,
+    fontWeight: "900",
+    color: THEME.text,
+    marginRight: 10,
+  },
 
   tipBox: {
     backgroundColor: THEME.orangeSoft,
@@ -439,9 +456,13 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   tipTitle: { fontSize: 12, fontWeight: "900", color: THEME.orangeDark },
-  tipText: { fontSize: 12, fontWeight: "800", color: THEME.muted, lineHeight: 18 },
+  tipText: {
+    fontSize: 12,
+    fontWeight: "800",
+    color: THEME.muted,
+    lineHeight: 18,
+  },
 
-  // 하단 고정
   bottomBar: {
     position: "absolute",
     left: 0,
