@@ -7,6 +7,7 @@ import {
   Pressable,
   Alert,
   ActivityIndicator,
+  ScrollView,
 } from "react-native";
 import { Region } from "react-native-maps";
 import * as Location from "expo-location";
@@ -87,130 +88,186 @@ export default function CreateMeetingScreen() {
     });
   }, [meetingTime]);
 
+  const progressText = useMemo(() => {
+    const done = [!!originPlace, !!destPlace, !!meetingTime].filter(Boolean).length;
+    if (done === 0) return "아직 아무것도 설정되지 않았어요.";
+    if (done === 1) return "좋아요. 하나만 더 설정해봐요.";
+    if (done === 2) return "거의 다 됐어요. 마지막으로 시간만 설정하면 돼요.";
+    return "완료! 이제 경로를 탐색할 수 있어요.";
+  }, [originPlace, destPlace, meetingTime]);
+
+  const ready = !!(originPlace && destPlace && meetingTime);
+
   if (!region) {
     return (
       <View style={styles.loading}>
         <ActivityIndicator size="large" />
-        <Text>내 위치 불러오는 중...</Text>
+        <Text style={styles.loadingText}>내 위치 불러오는 중...</Text>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-    {/* 상단 입력 카드 */}
-    <View style={styles.card}>
-      <View style={styles.accent} />
+      {/* 배경 장식 */}
+      <View style={styles.bgBlobTop} />
+      <View style={styles.bgBlobBottom} />
 
-      <View style={{ flex: 1 }}>
-        {/* 출발 */}
-        <Pressable onPress={() => openSearch("origin")} style={styles.row}>
-          <Text style={styles.label}>출발</Text>
-          <TextInput
-            value={originPlace ? originPlace.name : ""}
-            placeholder="출발지를 입력하세요"
-            placeholderTextColor="#9AA0A6"
-            style={styles.input}
-            editable={false}
-            pointerEvents="none"
-          />
+      {/* 상단 헤더 */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>약속 설정</Text>
+        <Pressable onPress={reset} style={styles.resetBtnTop}>
+          <Text style={styles.resetTextTop}>초기화</Text>
         </Pressable>
+      </View>
 
-        {/* 도착 */}
-        <Pressable onPress={() => openSearch("dest")} style={styles.row}>
-          <Text style={styles.label}>도착</Text>
-          <TextInput
-            value={destPlace ? destPlace.name : ""}
-            placeholder="목적지를 입력하세요"
-            placeholderTextColor="#9AA0A6"
-            style={styles.input}
-            editable={false}
-            pointerEvents="none"
-          />
-        </Pressable>
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* 입력 카드 (기본틀 유지: 출발/도착/시간 + 오늘/내일) */}
+        <View style={styles.card}>
+          <View style={styles.accent} />
 
-        {/* 시간 + 오늘/내일 */}
-        <View style={styles.row}>
-          <Text style={styles.label}>시간</Text>
-
-          <Pressable onPress={openTimer} style={styles.timePressable}>
-            <TextInput
-              value={timeText}
-              placeholder="약속 시간"
-              placeholderTextColor="#9AA0A6"
-              style={styles.timeinput}
-              editable={false}
-              pointerEvents="none"
-            />
-          </Pressable>
-
-          <View style={styles.segment}>
-            <Pressable
-              onPress={() => setMeetingDayOffset(0)}
-              style={[
-                styles.segmentBtn,
-                meetingDayOffset === 0 && styles.segmentBtnActive,
-              ]}
-            >
-              <Text
-                style={[
-                  styles.segmentText,
-                  meetingDayOffset === 0 && styles.segmentTextActive,
-                ]}
-              >
-                오늘
-              </Text>
+          <View style={{ flex: 1 }}>
+            {/* 출발 */}
+            <Pressable onPress={() => openSearch("origin")} style={styles.row}>
+              <Text style={styles.label}>출발</Text>
+              <TextInput
+                value={originPlace ? originPlace.name : ""}
+                placeholder="출발지를 입력하세요"
+                placeholderTextColor={THEME.placeholder}
+                style={styles.input}
+                editable={false}
+                pointerEvents="none"
+              />
             </Pressable>
 
-            <Pressable
-              onPress={() => setMeetingDayOffset(1)}
-              style={[
-                styles.segmentBtn,
-                meetingDayOffset === 1 && styles.segmentBtnActive,
-              ]}
-            >
-              <Text
-                style={[
-                  styles.segmentText,
-                  meetingDayOffset === 1 && styles.segmentTextActive,
-                ]}
-              >
-                내일
-              </Text>
+            {/* 도착 */}
+            <Pressable onPress={() => openSearch("dest")} style={styles.row}>
+              <Text style={styles.label}>도착</Text>
+              <TextInput
+                value={destPlace ? destPlace.name : ""}
+                placeholder="목적지를 입력하세요"
+                placeholderTextColor={THEME.placeholder}
+                style={styles.input}
+                editable={false}
+                pointerEvents="none"
+              />
             </Pressable>
+
+            {/* 시간 + 오늘/내일 */}
+            <View style={styles.row}>
+              <Text style={styles.label}>시간</Text>
+
+              <Pressable onPress={openTimer} style={styles.timePressable}>
+                <TextInput
+                  value={timeText}
+                  placeholder="약속 시간"
+                  placeholderTextColor={THEME.placeholder}
+                  style={styles.timeinput}
+                  editable={false}
+                  pointerEvents="none"
+                />
+              </Pressable>
+
+              <View style={styles.segment}>
+                <Pressable
+                  onPress={() => setMeetingDayOffset(0)}
+                  style={[
+                    styles.segmentBtn,
+                    meetingDayOffset === 0 && styles.segmentBtnActive,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.segmentText,
+                      meetingDayOffset === 0 && styles.segmentTextActive,
+                    ]}
+                  >
+                    오늘
+                  </Text>
+                </Pressable>
+
+                <Pressable
+                  onPress={() => setMeetingDayOffset(1)}
+                  style={[
+                    styles.segmentBtn,
+                    meetingDayOffset === 1 && styles.segmentBtnActive,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.segmentText,
+                      meetingDayOffset === 1 && styles.segmentTextActive,
+                    ]}
+                  >
+                    내일
+                  </Text>
+                </Pressable>
+              </View>
+            </View>
           </View>
         </View>
-      </View>
-    </View>
 
-    <View style={styles.actions}>
-        <Pressable onPress={reset} style={styles.resetBtn}>
-          <Text style={styles.resetText}>초기화</Text>
+        {/* 상태/가이드 섹션(화면 꽉 차게 채우기) */}
+        <View style={styles.infoCard}>
+          <Text style={styles.infoTitle}>진행 상태</Text>
+
+          <View style={styles.progressRow}>
+            <View style={[styles.dot, originPlace && styles.dotOn]} />
+            <Text style={styles.progressText}>출발지</Text>
+
+            <View style={[styles.dot, destPlace && styles.dotOn]} />
+            <Text style={styles.progressText}>도착지</Text>
+
+            <View style={[styles.dot, meetingTime && styles.dotOn]} />
+            <Text style={styles.progressText}>시간</Text>
+          </View>
+
+          <Text style={styles.infoDesc}>{progressText}</Text>
+
+          {!ready && (
+            <View style={styles.tipBox}>
+              <Text style={styles.tipTitle}>팁</Text>
+              <Text style={styles.tipText}>
+                출발/도착이 가까우면 경로가 안 뜰 수 있어요. 그럴 땐 도보 이동을
+                고려해보세요.
+              </Text>
+            </View>
+          )}
+        </View>
+
+        {/* 빈 공간 채움용(ScrollView라 자연스럽게 아래로 내려감) */}
+        <View style={{ height: 90 }} />
+      </ScrollView>
+
+      {/* 하단 고정 버튼(기본틀: 경로 탐색하기 버튼) */}
+      <View style={styles.bottomBar}>
+        <Pressable
+          onPress={directionSearch}
+          style={[styles.routeSearchBtn, !ready && { opacity: 0.55 }]}
+        >
+          <Text style={styles.directionText}>경로 탐색하기</Text>
         </Pressable>
-    </View>
-
-    {/* 경로 탐색 버튼 */}
-    <View style={styles.routeSearch}>
-      <Pressable onPress={directionSearch} style={styles.routeSearchBtn}>
-        <Text style={styles.directionText}>
-          경로 탐색하기
+        <Text style={styles.bottomHint}>
+          {ready ? "경로를 선택하면 홈에서 타이머가 보여요." : "필수 입력을 먼저 설정해주세요."}
         </Text>
-      </Pressable>
-    </View>
+      </View>
     </View>
   );
 }
 
 const THEME = {
-  bg: "#FAFAF9",            // 따뜻한 화이트 배경
+  bg: "#FAFAF9",
   card: "#FFFFFF",
   text: "#111827",
   muted: "#6B7280",
   placeholder: "#9AA0A6",
-  border: "#E7E5E4",        // stone 계열
+  border: "#E7E5E4",
   inputBg: "#FFFFFF",
 
-  orange: "#F97316",        // 포인트
+  orange: "#F97316",
   orangeDark: "#EA580C",
   orangeSoft: "#FFF7ED",
   orangeBorder: "#FED7AA",
@@ -222,40 +279,84 @@ const styles = StyleSheet.create({
     backgroundColor: THEME.bg,
   },
 
-  // 로딩
+  // 배경 장식
+  bgBlobTop: {
+    position: "absolute",
+    top: -120,
+    right: -140,
+    width: 320,
+    height: 320,
+    borderRadius: 999,
+    backgroundColor: THEME.orangeSoft,
+    opacity: 0.9,
+  },
+  bgBlobBottom: {
+    position: "absolute",
+    bottom: -160,
+    left: -140,
+    width: 360,
+    height: 360,
+    borderRadius: 999,
+    backgroundColor: THEME.orangeSoft,
+    opacity: 0.7,
+  },
+
   loading: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: THEME.bg,
   },
+  loadingText: { marginTop: 8, color: THEME.muted, fontWeight: "800" },
 
-  // 상단 입력 카드(기존 레이아웃 유지)
-  card: {
-    position: "absolute",
-    top: 50,
-    left: 10,
-    right: 10,
+  header: {
+    paddingTop: 54,
+    paddingHorizontal: 14,
+    paddingBottom: 10,
     flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  headerTitle: { fontSize: 22, fontWeight: "900", color: THEME.text },
+
+  resetBtnTop: {
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 12,
     backgroundColor: THEME.card,
-    borderRadius: 18,
-    padding: 16,
-
-    // 기존 elevation/shadow는 유지하되 "뿌연 느낌" 줄이려고 약하게
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOpacity: 0.06,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 6 },
-
     borderWidth: 1,
-    borderColor: THEME.border,
+    borderColor: THEME.orangeBorder,
+  },
+  resetTextTop: {
+    fontSize: 13,
+    fontWeight: "900",
+    color: THEME.orangeDark,
   },
 
-  // 왼쪽 포인트 바
+  content: {
+    paddingHorizontal: 14,
+    paddingBottom: 140, // bottomBar 공간
+    gap: 12,
+  },
+
+  // 입력 카드(기본틀)
+  card: {
+    flexDirection: "row",
+    backgroundColor: THEME.card,
+    borderRadius: 20,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: THEME.border,
+    elevation: 4,
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 8 },
+  },
+
   accent: {
-    width: 6,
-    borderRadius: 6,
+    width: 7,
+    borderRadius: 10,
     backgroundColor: THEME.orange,
     marginRight: 14,
   },
@@ -269,19 +370,18 @@ const styles = StyleSheet.create({
 
   label: {
     fontSize: 16,
-    fontWeight: "700",
+    fontWeight: "800",
     color: THEME.text,
   },
 
   input: {
     flex: 1,
-    height: 44,
+    height: 46,
     backgroundColor: THEME.inputBg,
-    borderRadius: 12,
+    borderRadius: 14,
     paddingHorizontal: 14,
     fontSize: 15,
     color: THEME.text,
-
     borderWidth: 1,
     borderColor: THEME.border,
   },
@@ -289,32 +389,30 @@ const styles = StyleSheet.create({
   timePressable: { flex: 1 },
 
   timeinput: {
-    height: 44,
+    height: 46,
     backgroundColor: THEME.inputBg,
-    borderRadius: 12,
+    borderRadius: 14,
     paddingHorizontal: 14,
     fontSize: 15,
     color: THEME.text,
     minWidth: 90,
-
     borderWidth: 1,
     borderColor: THEME.border,
   },
 
-  // 오늘/내일 세그먼트(기존 구조 유지, 색만 오렌지)
   segment: {
     flexDirection: "row",
     backgroundColor: THEME.orangeSoft,
-    borderRadius: 12,
+    borderRadius: 14,
     padding: 3,
     borderWidth: 1,
     borderColor: THEME.orangeBorder,
   },
 
   segmentBtn: {
-    paddingVertical: 8,
-    paddingHorizontal: 10,
-    borderRadius: 10,
+    paddingVertical: 9,
+    paddingHorizontal: 12,
+    borderRadius: 12,
   },
 
   segmentBtnActive: {
@@ -331,51 +429,78 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
   },
 
-  // 초기화 버튼 위치(기존 유지)
-  actions: {
-    position: "absolute",
-    top: 50 + 160 + 50,
-    left: 10,
-    right: 10,
-    alignItems: "flex-start",
+  // 중간 정보 카드(화면 채우기)
+  infoCard: {
+    backgroundColor: THEME.card,
+    borderRadius: 20,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: THEME.border,
+    gap: 10,
   },
+  infoTitle: { fontSize: 14, fontWeight: "900", color: THEME.text },
+  infoDesc: { fontSize: 13, fontWeight: "800", color: THEME.muted, lineHeight: 18 },
 
-  resetBtn: {
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 12,
+  progressRow: { flexDirection: "row", alignItems: "center", gap: 8, flexWrap: "wrap" },
+  dot: {
+    width: 10,
+    height: 10,
+    borderRadius: 999,
+    backgroundColor: "#E5E7EB",
+    borderWidth: 1,
+    borderColor: THEME.border,
+  },
+  dotOn: { backgroundColor: THEME.orange, borderColor: THEME.orangeBorder },
+  progressText: { fontSize: 12, fontWeight: "900", color: THEME.text, marginRight: 10 },
+
+  tipBox: {
     backgroundColor: THEME.orangeSoft,
+    borderRadius: 16,
+    padding: 12,
     borderWidth: 1,
     borderColor: THEME.orangeBorder,
+    gap: 6,
+  },
+  tipTitle: { fontSize: 12, fontWeight: "900", color: THEME.orangeDark },
+  tipText: { fontSize: 12, fontWeight: "800", color: THEME.muted, lineHeight: 18 },
+
+  // 하단 고정
+  bottomBar: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    paddingHorizontal: 14,
+    paddingTop: 12,
+    paddingBottom: 22,
+    backgroundColor: THEME.bg,
+    borderTopWidth: 1,
+    borderTopColor: THEME.border,
   },
 
-  resetText: {
-    fontSize: 13,
-    fontWeight: "900",
-    color: "THEME.orangeDark",
+  routeSearchBtn: {
+    paddingVertical: 14,
+    borderRadius: 16,
+    backgroundColor: THEME.orange,
+    alignItems: "center",
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 8 },
   },
 
   directionText: {
-    fontSize: 13,
+    fontSize: 15,
     fontWeight: "900",
     color: "#fff",
   },
 
-  // 경로 탐색 버튼 위치(기존 유지)
-  routeSearch: {
-    position: "absolute",
-    top: 50 + 160 + 50,
-    left: 10,
-    right: 20,
-    alignItems: "flex-end",
-  },
-
-  routeSearchBtn: {
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderRadius: 12,
-    backgroundColor: THEME.orange,
+  bottomHint: {
+    marginTop: 10,
+    fontSize: 12,
+    fontWeight: "800",
+    color: THEME.muted,
+    textAlign: "center",
   },
 });
-
-
