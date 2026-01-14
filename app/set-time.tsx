@@ -36,7 +36,7 @@ export default function SetTimeScreen() {
             display="spinner"
             onChange={onChange}
             style={styles.iosPicker}
-            textColor="#FFFFFF" 
+            textColor="#FFFFFF"
           />
         </View>
       ) : (
@@ -74,7 +74,7 @@ export default function SetTimeScreen() {
           const meetingMs = base.getTime();
 
           if (meetingMs < Date.now()) {
-            Alert.alert("이미 지난 시간입니다", "약속 시간을 다시 설정해주세요",  [{ text: "확인" }]);
+            Alert.alert("이미 지난 시간입니다", "약속 시간을 다시 설정해주세요", [{ text: "확인" }]);
             return;
           }
           setMeetingTime(tempTime);
@@ -87,10 +87,22 @@ export default function SetTimeScreen() {
   );
 }
 
+const THEME = {
+  bg: "#FAFAF9",
+  card: "#FFFFFF",
+  text: "#111827",
+  muted: "#6B7280",
+
+  orange: "#F97316",
+  orangeDark: "#EA580C",
+  orangeSoft: "#FFF7ED",
+  orangeBorder: "#FED7AA",
+};
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F7F8F7",
+    backgroundColor: THEME.bg,
     paddingTop: 80,
     paddingHorizontal: 20,
     alignItems: "center",
@@ -99,14 +111,14 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 22,
     fontWeight: "800",
-    color: "#1F2937",
+    color: THEME.text,
     marginBottom: 30,
   },
 
-  //  iOS 전용
+  // iOS 전용
   iosTimeWrapper: {
     width: "100%",
-    backgroundColor: "#75B06F",
+    backgroundColor: THEME.orange,
     borderRadius: 20,
     paddingVertical: 10,
     paddingHorizontal: 10,
@@ -126,7 +138,7 @@ const styles = StyleSheet.create({
   // Android용 시간 표시 카드
   timeRow: {
     width: "100%",
-    backgroundColor: "#75B06F",
+    backgroundColor: THEME.orange,
     borderRadius: 16,
     paddingVertical: 16,
     paddingHorizontal: 16,
@@ -163,10 +175,14 @@ const styles = StyleSheet.create({
     marginTop: 40,
     width: "100%",
     height: 52,
-    backgroundColor: "#F0F8A4",
+    backgroundColor: THEME.orangeSoft,
     borderRadius: 16,
     alignItems: "center",
     justifyContent: "center",
+
+    borderWidth: 1,
+    borderColor: THEME.orangeBorder,
+
     elevation: 4,
     shadowColor: "#000",
     shadowOpacity: 0.12,
@@ -177,7 +193,7 @@ const styles = StyleSheet.create({
   confirmText: {
     fontSize: 16,
     fontWeight: "800",
-    color: "#000",
+    color: THEME.orangeDark,
     letterSpacing: 0.3,
   },
 });
