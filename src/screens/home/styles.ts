@@ -20,7 +20,7 @@ export const styles = StyleSheet.create({
   },
   headerBtnText: { color: "#fff", fontWeight: "900", fontSize: 13 },
 
-  sectionLabel: { fontSize: 12, fontWeight: "900", color: THEME.muted },
+  sectionLabel: { fontSize: 14, fontWeight: "900", color: THEME.muted },
 
   emptyCard: {
     backgroundColor: THEME.card,
@@ -149,4 +149,63 @@ export const styles = StyleSheet.create({
   routeLinkBtn: { paddingVertical: 6, paddingHorizontal: 8 },
   routeLinkText: { fontSize: 12, fontWeight: "900", color: THEME.orangeDark },
   routeMeta: { marginTop: 8, fontSize: 12, color: THEME.muted, fontWeight: "700" },
+
+  // -------------------------
+  // DateSection (오늘/내일 + 시간)
+  // -------------------------
+  dateRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    marginBottom: 10,
+  },
+
+  dateLabel: {
+    fontSize: 16,
+    fontWeight: "800",
+    color: THEME.text,
+  },
+
+  dateTimePressable: { flex: 1 },
+
+  dateTimeInput: {
+    height: 46,
+    backgroundColor: THEME.card,
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    fontSize: 15,
+    color: THEME.text,
+    minWidth: 90,
+    borderWidth: 1,
+    borderColor: THEME.border,
+  },
+
+  dateSegment: {
+    flexDirection: "row",
+    backgroundColor: THEME.orangeSoft,
+    borderRadius: 14,
+    padding: 3,
+    borderWidth: 1,
+    borderColor: THEME.orangeBorder,
+  },
+
+  dateSegmentBtn: {
+    paddingVertical: 9,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+  },
+
+  dateSegmentBtnActive: {
+    backgroundColor: THEME.orange,
+  },
+
+  dateSegmentText: {
+    fontSize: 13,
+    fontWeight: "900",
+    color: THEME.orangeDark,
+  },
+
+  dateSegmentTextActive: {
+    color: "#FFFFFF",
+  },
 });

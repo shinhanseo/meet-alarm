@@ -19,7 +19,7 @@ export default function TimerSection({
 }: Props) {
   return (
     <View style={styles.timerCard}>
-      <Text style={styles.sectionLabel}>출발 추천</Text>
+      <Text style={styles.sectionLabel}>출발 추천 시간</Text>
 
       {readyToShowResult ? (
         <>
