@@ -148,7 +148,7 @@ export const styles = StyleSheet.create({
   routeTitle: { fontSize: 14, fontWeight: "900", color: THEME.text },
   routeLinkBtn: { paddingVertical: 6, paddingHorizontal: 8 },
   routeLinkText: { fontSize: 12, fontWeight: "900", color: THEME.orangeDark },
-  routeMeta: { marginTop: 8, fontSize: 12, color: THEME.muted, fontWeight: "700" },
+  routeMeta: { fontSize: 12, color: THEME.muted, fontWeight: "700" },
 
   // -------------------------
   // DateSection (오늘/내일 + 시간)
