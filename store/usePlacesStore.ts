@@ -1,4 +1,6 @@
 import { create } from "zustand";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { persist, createJSONStorage } from "zustand/middleware";
 
 type Place = {
   name: string;
@@ -11,7 +13,7 @@ type Mode = "origin" | "dest";
 type DayOffset = 0 | 1; // 0=오늘, 1=내일
 
 // 경로 저장에 필요한 타입
-export type Segment = {
+type Segment = {
   type: "WALK" | "BUS" | "SUBWAY" | string;
   timeMin: number;
   timeText: string;
@@ -24,7 +26,7 @@ export type Segment = {
   color?: string;
 };
 
-export type RouteItem = {
+type RouteItem = {
   summary: {
     totalTimeMin: number;
     totalTimeText: string;

@@ -78,7 +78,7 @@ export default function SetTimeScreen() {
             return;
           }
           setMeetingTime(tempTime);
-          router.replace("/");
+          router.replace("/(tabs)/create-meeting");
         }}
       >
         <Text style={styles.confirmText}>확인</Text>

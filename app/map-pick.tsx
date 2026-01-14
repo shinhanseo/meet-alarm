@@ -68,7 +68,7 @@ export default function MapPickScreen() {
     }
 
     setPlace(mode, place);
-    router.replace("/");
+    router.replace("/(tabs)/create-meeting");
   };
 
   useEffect(() => {

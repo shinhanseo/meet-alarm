@@ -14,88 +14,43 @@ import { usePlacesStore } from "../store/usePlacesStore";
 import { API_BASE_URL } from "@/src/config/env";
 import { useRouter } from "expo-router";
 
+import { SegmentChip } from "@/src/components/SegmentChip";
+
 type Segment = {
   type: "WALK" | "BUS" | "SUBWAY" | string;
   timeMin: number;
   timeText: string;
   from?: string; // 출발지
-  to?: string;  // 목적지
-  distanceM : number; // WALK일 때 미터 표시용
-  route?: string; // 버스 번호 ex) 광역 8106, 일반 52
-  line?: string;  // 지하철 노선 ex) 7호선, 서해선, 2호선
+  to?: string; // 목적지
+  distanceM: number; // WALK일 때 미터 표시용
+  route?: string; // 버스 번호
+  line?: string; // 지하철 노선
   stops?: number; // 지나가는 정거장
-  color?: string; // 노선에 맞는 색상
+  color?: string; // 노선 색상 (hex string without #)
 };
 
 type RouteItem = {
-  summary: {  // 경로 전체 정보
-    totalTimeMin: number; // 전체 시간(분)
-    totalTimeText: string; // 텍스트 출력용 ex) 1시간 27분
-    totalWalkTimeMin: number; // 전체 도보 시간
-    totalWalkTimeText: string; // 텍스트 출력용
-    totalFare: number;  // 총 요금
-    transferCount: number; // 환승 횟수
+  summary: {
+    totalTimeMin: number;
+    totalTimeText: string;
+    totalWalkTimeMin: number;
+    totalWalkTimeText: string;
+    totalFare: number;
+    transferCount: number;
   };
-  segments: Segment[]; // 경로 ex) 도보 10분(703m) -> 수도권 7호선 5분 -> 도본 5분(387m)
+  segments: Segment[];
 };
 
-const formatWon = (n: number) => `${Number(n || 0).toLocaleString("ko-KR")}원`; // ex) 1870 -> 1,870원 
-
-const formatDistance = (m?: number) => { // km -> m로 변환
-  if (m == null) return "";
-  if (m < 1000) return `${m}m`;
-  const km = m / 1000;
-  return `${km.toFixed(km < 10 ? 1 : 0)}km`; // 1.2km / 12km
-};
-
-function SegmentChip({ seg }: { seg: Segment }) {
-  const dist = formatDistance(seg.distanceM);
-  const walkSuffix = dist ? `(${dist})` : "";
-
-  const mainLabel =
-    seg.type === "WALK"
-      ? `🚶 도보 ${seg.timeText}${walkSuffix}`
-      : seg.type === "BUS"
-      ? `🚌 ${seg.route ?? "버스"} ${seg.timeText}`
-      : seg.type === "SUBWAY"
-      ? `🚇 ${seg.line ?? "지하철"} ${seg.timeText}`
-      : `${seg.type} ${seg.timeText}`;
-
-  const subLabel = seg.from && seg.to 
-      ? seg.type === "SUBWAY"
-      ? `${seg.from}역 → ${seg.to}역`
-      : `${seg.from} → ${seg.to}` 
-      : "";
-
-  const backgroundColor = seg.type === "WALK" ? "#FAFAFA" : seg.color ? `#${seg.color}` : "#E5E7EB";
-
-  const textColor = seg.type === "WALK" ? "#111827" : "#FFFFFF";
-
-  return (
-    <View style={{ gap: 4 }}>
-      {/* 경로 표시(각 노선에 맞는 배경색) */}
-      <View style={[styles.chip, { backgroundColor, alignSelf: "flex-start" }]}>
-        <Text style={[styles.chipText, { color: textColor }]}>
-          {mainLabel}
-        </Text>
-      </View>
-
-      {/* 출발/도착 */}
-      {!!subLabel && (
-        <Text style={styles.chipSubText} numberOfLines={1}>
-          {subLabel}
-        </Text>
-      )}
-    </View>
-  );
-}
+const formatWon = (n: number) =>
+  `${Number(n || 0).toLocaleString("ko-KR")}원`;
 
 export default function DirectionSearchScreen() {
   const router = useRouter();
   const { originPlace, destPlace, setSelectedRoute } = usePlacesStore();
+
   const [loading, setLoading] = useState(true);
-  const [routes, setRoutes] = useState<RouteItem[]>([]); // 경로에 대한 정보
-  const [selectedIndex, setSelectedIndex] = useState(0); // 선택된 라우터 기본으로 1번 경로로 지정
+  const [routes, setRoutes] = useState<RouteItem[]>([]);
+  const [selectedIndex, setSelectedIndex] = useState(0);
 
   useEffect(() => {
     const directionSearch = async () => {
@@ -109,17 +64,21 @@ export default function DirectionSearchScreen() {
 
         setRoutes(res.data.routes ?? []);
         setSelectedIndex(0);
-      } catch (e : any) {
-        if (e.response.status === 404) {
+      } catch (e: any) {
+        // 404(경로 없음) 처리
+        if (e?.response?.status === 404) {
           Alert.alert(
             "경로를 찾을 수 없어요",
             "출발지와 목적지가 너무 가까워서 경로가 제공되지 않을 수 있어요.\n도보로 이동해보세요.",
             [{ text: "확인" }]
           );
           setRoutes([]);
-          setSelectedIndex(0); // 너 타입이 number면 -1로
+          setSelectedIndex(0);
           return;
         }
+
+        // 그 외 에러는 기본 알림(원하면 빼도 됨)
+        Alert.alert("오류", "경로 탐색 중 문제가 발생했어요.", [{ text: "확인" }]);
       } finally {
         setLoading(false);
       }
@@ -129,13 +88,18 @@ export default function DirectionSearchScreen() {
     else setLoading(false);
   }, [originPlace, destPlace]);
 
-  const selectedRoute = useMemo(() => routes[selectedIndex], [routes, selectedIndex]);
+  const selectedRoute = useMemo(
+    () => routes[selectedIndex],
+    [routes, selectedIndex]
+  );
 
   if (loading) {
     return (
       <View style={styles.center}>
         <ActivityIndicator />
-        <Text style={{ marginTop: 10, backgroundColor : "#fff" }}>경로 탐색 중...</Text>
+        <Text style={{ marginTop: 10, backgroundColor: "#fff" }}>
+          경로 탐색 중...
+        </Text>
       </View>
     );
   }
@@ -159,15 +123,20 @@ export default function DirectionSearchScreen() {
         {selectedRoute ? (
           <>
             <View style={styles.headerRow}>
-              <Text style={styles.bigTime}>{selectedRoute.summary.totalTimeText}</Text>
+              <Text style={styles.bigTime}>
+                {selectedRoute.summary.totalTimeText}
+              </Text>
               <Text style={styles.meta}>
-                · {formatWon(selectedRoute.summary.totalFare)} · 환승 {selectedRoute.summary.transferCount}회
+                · {formatWon(selectedRoute.summary.totalFare)} · 환승{" "}
+                {selectedRoute.summary.transferCount}회
               </Text>
             </View>
 
             <View style={styles.badgeRow}>
               <View style={styles.badge}>
-                <Text style={styles.badgeText}>도보 {selectedRoute.summary.totalWalkTimeText}</Text>
+                <Text style={styles.badgeText}>
+                  도보 {selectedRoute.summary.totalWalkTimeText}
+                </Text>
               </View>
               <View style={styles.badge}>
                 <Text style={styles.badgeText}>경로 {routes.length}개</Text>
@@ -199,7 +168,9 @@ export default function DirectionSearchScreen() {
             >
               {/* 카드 헤더 */}
               <View style={styles.cardTop}>
-                <Text style={[styles.cardTitle, active && styles.cardTitleActive]}>
+                <Text
+                  style={[styles.cardTitle, active && styles.cardTitleActive]}
+                >
                   {index + 1}번 경로
                 </Text>
                 <Text style={[styles.cardTime, active && styles.cardTimeActive]}>
@@ -209,7 +180,9 @@ export default function DirectionSearchScreen() {
 
               {/* 메타 */}
               <Text style={styles.cardMeta}>
-                {formatWon(item.summary.totalFare)} · 환승 {item.summary.transferCount}회 · 도보 {item.summary.totalWalkTimeText}
+                {formatWon(item.summary.totalFare)} · 환승{" "}
+                {item.summary.transferCount}회 · 도보{" "}
+                {item.summary.totalWalkTimeText}
               </Text>
 
               {/* 구간 칩들 */}
@@ -229,7 +202,7 @@ export default function DirectionSearchScreen() {
           style={[styles.primaryBtn, !selectedRoute && { opacity: 0.5 }]}
           disabled={!selectedRoute}
           onPress={() => {
-            setSelectedRoute(routes[selectedIndex])
+            setSelectedRoute(routes[selectedIndex]);
             router.replace("/");
           }}
         >
@@ -241,7 +214,7 @@ export default function DirectionSearchScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff"},
+  container: { flex: 1, backgroundColor: "#fff" },
 
   header: {
     paddingHorizontal: 16,
@@ -274,7 +247,11 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   cardActive: { borderColor: "#75B06F", backgroundColor: "#EEF6EE" },
-  cardTop: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  cardTop: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
   cardTitle: { fontSize: 15, fontWeight: "800", color: "#111827" },
   cardTitleActive: { color: "#2F6B2F" },
   cardTime: { fontSize: 15, fontWeight: "800", color: "#111827" },
@@ -283,13 +260,6 @@ const styles = StyleSheet.create({
   cardMeta: { marginTop: 6, fontSize: 13, color: "#6B7280" },
 
   chipsWrap: { flexDirection: "column", gap: 8, marginTop: 12 },
-  chip: {
-    backgroundColor: "#F3F4F6",
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 999,
-  },
-  chipText: { fontSize: 15, color: "#111827" },
 
   bottomBar: {
     position: "absolute",
@@ -307,15 +277,14 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     alignItems: "center",
   },
-  primaryBtnText: { color: "#000", fontSize: 15, fontWeight: "800"},
+  primaryBtnText: { color: "#000", fontSize: 15, fontWeight: "800" },
 
-  center: { flex: 1, alignItems: "center", justifyContent: "center", padding: 16, backgroundColor : "#fff"},
-  centerTitle: { fontSize: 16, fontWeight: "800", color: "#111827" },
-
-  chipSubText: {
-    fontSize: 12,
-    color: "#6B7280",
-    marginLeft: 6,
+  center: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 16,
+    backgroundColor: "#fff",
   },
-  
+  centerTitle: { fontSize: 16, fontWeight: "800", color: "#111827" },
 });

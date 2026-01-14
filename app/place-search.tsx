@@ -68,7 +68,7 @@ export default function PlaceSearchScreen() {
     }
 
     setPlace(mode, place);
-    router.back();
+    router.replace("/(tabs)/create-meeting");
   };
 
   const goMapPick = () => {
