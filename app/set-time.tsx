@@ -4,11 +4,31 @@ import { useMemo, useState } from "react";
 import { useRouter } from "expo-router";
 import { usePlacesStore } from "../store/usePlacesStore";
 
+// "YYYY-MM-DD" + (tempTime의 시/분) => 실제 약속 Date 만들기
+function buildMeetingAt(meetingDate: string, time: Date) {
+  const [y, m, d] = meetingDate.split("-").map(Number);
+  return new Date(y, m - 1, d, time.getHours(), time.getMinutes(), 0, 0);
+}
+
+function toHHmm(time: Date) {
+  const hh = String(time.getHours()).padStart(2, "0");
+  const mm = String(time.getMinutes()).padStart(2, "0");
+  return `${hh}:${mm}`;
+}
+
+function parseInitialTime(meetingTime: string | null) {
+  if (!meetingTime) return new Date();
+  const d = new Date(meetingTime);
+  if (Number.isNaN(d.getTime())) return new Date();
+  return d;
+}
+
 export default function SetTimeScreen() {
   const router = useRouter();
-  const { meetingTime, setMeetingTime, meetingDayOffset } = usePlacesStore();
 
-  const [tempTime, setTempTime] = useState<Date>(meetingTime ?? new Date());
+  const { meetingTime, setMeetingTime, meetingDate } = usePlacesStore();
+
+  const [tempTime, setTempTime] = useState<Date>(() => parseInitialTime(meetingTime));
   const [showAndroidPicker, setShowAndroidPicker] = useState(false);
 
   const formattedTime = useMemo(() => {
@@ -61,23 +81,24 @@ export default function SetTimeScreen() {
       <Pressable
         style={styles.confirmBtn}
         onPress={() => {
-          const base = new Date();
-          base.setDate(base.getDate() + meetingDayOffset);
-
-          base.setHours(
-            tempTime.getHours(),
-            tempTime.getMinutes(),
-            0,
-            0
-          );
-
-          const meetingMs = base.getTime();
-
-          if (meetingMs < Date.now()) {
-            Alert.alert("이미 지난 시간입니다", "약속 시간을 다시 설정해주세요", [{ text: "확인" }]);
+          if (!meetingDate) {
+            Alert.alert("날짜가 필요해요", "먼저 약속 날짜를 선택해주세요.", [
+              { text: "확인", onPress: () => router.replace("/(tabs)/create-meeting") },
+            ]);
             return;
           }
-          setMeetingTime(tempTime);
+
+          const meetingAt = buildMeetingAt(meetingDate, tempTime);
+
+          if (meetingAt.getTime() < Date.now()) {
+            Alert.alert("이미 지난 시간입니다", "약속 시간을 다시 설정해주세요", [
+              { text: "확인" },
+            ]);
+            return;
+          }
+
+          setMeetingTime(toHHmm(tempTime));
+
           router.replace("/(tabs)/create-meeting");
         }}
       >
