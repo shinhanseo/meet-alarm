@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useRef } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { View, Alert, ScrollView } from "react-native";
 import { useRouter } from "expo-router";
 import axios from "axios";
@@ -25,42 +25,47 @@ type WeatherDto = {
   dt: number;
 };
 
+// "YYYY-MM-DD" + "HH:mm" => Date
+function buildMeetingAt(meetingDate: string, meetingTimeHHmm: string) {
+  const [y, m, d] = meetingDate.split("-").map(Number);
+  const [hh, mm] = meetingTimeHHmm.split(":").map(Number);
+
+  // 방어: 파싱 실패 시 Invalid Date 방지
+  if ([y, m, d, hh, mm].some((n) => Number.isNaN(n))) return null;
+
+  return new Date(y, m - 1, d, hh, mm, 0, 0);
+}
+
 export default function HomeScreen() {
   const router = useRouter();
 
   const {
     originPlace,
     destPlace,
-    meetingTime: meetingTimeStr,     // string | null
-    meetingDayOffset,
-    selectedRoute,
-    departureAt: departureAtStr,     // string | null
-    setDepartureAt,                 // (iso: string | null) => void
-  } = usePlacesStore();
 
-  const meetingTime = meetingTimeStr ? new Date(meetingTimeStr) : null;
-  const departureAt = departureAtStr ? new Date(departureAtStr) : null;
+    meetingDate,                // string | null
+    meetingTime: meetingTimeStr,// string | null ("HH:mm")
+
+    selectedRoute,
+
+    departureAt: departureAtStr,// string | null (ISO)
+    setDepartureAt,
+  } = usePlacesStore();
 
   const bufferMin = 10;
 
-  // 내일->오늘 전환 감지
-  const prevOffsetRef = useRef(meetingDayOffset);
+  const departureAt = departureAtStr ? new Date(departureAtStr) : null;
 
-  // 타이머 seconds
-  const [seconds, setSeconds] = useState<number>(0);
+  // 실제 약속 시간(Date)
+  const meetingAt = useMemo(() => {
+    if (!meetingDate || !meetingTimeStr) return null;
+    return buildMeetingAt(meetingDate, meetingTimeStr);
+  }, [meetingDate, meetingTimeStr]);
 
   // 목적지 날씨 상태
   const [destWeather, setDestWeather] = useState<WeatherDto | null>(null);
   const [weatherLoading, setWeatherLoading] = useState(false);
   const [weatherError, setWeatherError] = useState<string | null>(null);
-
-  // "오늘/내일 + 시/분"을 실제 Date로 합치는 함수
-  function buildMeetingDateTime(mt: Date, dayOffset: 0 | 1) {
-    const d = new Date();
-    d.setHours(mt.getHours(), mt.getMinutes(), 0, 0);
-    d.setDate(d.getDate() + dayOffset);
-    return d;
-  }
 
   // 목적지 현재 날씨 가져오기 (destPlace 바뀔 때)
   useEffect(() => {
@@ -78,12 +83,11 @@ export default function HomeScreen() {
         const res = await axios.get(`${API_BASE_URL}/api/weather`, {
           params: {
             lat: destPlace.lat,
-            lon: destPlace.lng, // 프론트 lng -> 서버 lon
+            lon: destPlace.lng,
           },
           timeout: 8000,
         });
 
-        // 서버 응답: { weather: WeatherDto }
         setDestWeather(res.data.weather);
       } catch (e: any) {
         console.error(e);
@@ -97,21 +101,18 @@ export default function HomeScreen() {
     fetchDestWeather();
   }, [destPlace]);
 
-  // 출발 추천 시각(ms)
+  // 출발 추천 시각(ms) = meetingAt - travel - buffer
   const departAtMs = useMemo(() => {
-    if (!selectedRoute || !meetingTime) return null;
+    if (!selectedRoute || !meetingAt) return null;
 
-    const meetingAt = buildMeetingDateTime(
-      meetingTime,
-      meetingDayOffset as 0 | 1
-    ).getTime();
-
+    const meetingMs = meetingAt.getTime();
     const travelMs = selectedRoute.summary.totalTimeMin * 60 * 1000;
     const bufferMs = bufferMin * 60 * 1000;
 
-    return meetingAt - travelMs - bufferMs;
-  }, [selectedRoute, meetingTime, meetingDayOffset, bufferMin]);
+    return meetingMs - travelMs - bufferMs;
+  }, [selectedRoute, meetingAt, bufferMin]);
 
+  // departureAt(ISO) store 업데이트
   useEffect(() => {
     if (!departAtMs) {
       if (departureAtStr !== null) setDepartureAt(null);
@@ -120,7 +121,6 @@ export default function HomeScreen() {
 
     const nextISO = new Date(departAtMs).toISOString();
 
-    // 불필요한 set 방지
     if (departureAtStr !== nextISO) {
       setDepartureAt(nextISO);
     }
@@ -136,6 +136,9 @@ export default function HomeScreen() {
     });
   }, [departureAt]);
 
+  // 타이머 seconds
+  const [seconds, setSeconds] = useState<number>(0);
+
   // 타이머 표시 텍스트 (hh:mm:ss)
   const timerText = useMemo(() => {
     const hh = Math.floor(seconds / 3600);
@@ -150,32 +153,6 @@ export default function HomeScreen() {
     const restHour = hh % 24;
     return `${day}일 ${two(restHour)}:${two(mm)}:${two(ss)}`;
   }, [seconds]);
-
-  // 내일->오늘 바꿀 때, 오늘 시간이 이미 지났으면 경고 + 시간설정 화면 이동
-  useEffect(() => {
-    const prev = prevOffsetRef.current;
-    const curr = meetingDayOffset;
-
-    if (prev === 1 && curr === 0 && meetingTime) {
-      const now = new Date();
-      const todayAt = new Date(
-        now.getFullYear(),
-        now.getMonth(),
-        now.getDate(),
-        meetingTime.getHours(),
-        meetingTime.getMinutes(),
-        0,
-        0
-      );
-
-      if (todayAt.getTime() < Date.now()) {
-        Alert.alert("이미 지난 시간이에요", "시간을 다시 설정해주세요.");
-        router.push("/set-time");
-      }
-    }
-
-    prevOffsetRef.current = curr;
-  }, [meetingDayOffset, meetingTime, router]);
 
   // 출발까지 남은 시간 타이머
   useEffect(() => {
@@ -195,11 +172,20 @@ export default function HomeScreen() {
     return () => clearInterval(id);
   }, [departureAt]);
 
+  // 입력 체크도 meetingDate 포함
   const directionSearch = () => {
-    if (!originPlace || !destPlace || !meetingTimeStr) {
+    if (!originPlace || !destPlace || !meetingDate || !meetingTimeStr) {
       Alert.alert(
         "입력이 필요해요",
-        `${!originPlace ? "출발지" : !destPlace ? "도착지" : "약속 시간"}를 먼저 설정해주세요.`,
+        `${
+          !originPlace
+            ? "출발지"
+            : !destPlace
+            ? "도착지"
+            : !meetingDate
+            ? "약속 날짜"
+            : "약속 시간"
+        }를 먼저 설정해주세요.`,
         [{ text: "확인" }]
       );
       return;
@@ -211,6 +197,7 @@ export default function HomeScreen() {
   const readyToShowResult = !!(
     originPlace &&
     destPlace &&
+    meetingDate &&
     meetingTimeStr &&
     selectedRoute &&
     departAtMs
@@ -227,21 +214,23 @@ export default function HomeScreen() {
         <MeetingSection
           originPlace={originPlace}
           destPlace={destPlace}
-          meetingTime={meetingTime} // ✅ MeetingSection이 Date를 기대한다면 이대로
-          meetingDayOffset={meetingDayOffset}
+          meetingDate={meetingDate}
+          meetingTime={meetingTimeStr}
           selectedRoute={selectedRoute}
           onPressCreate={() => router.push("/create-meeting")}
           onPressEdit={() => router.push("/create-meeting")}
           onPressSearchRoute={directionSearch}
         />
 
+
         <TimerSection
           readyToShowResult={readyToShowResult}
-          meetingDayOffset={meetingDayOffset}
+          departureAtISO={departureAtStr} 
           departTimeText={departTimeText}
           seconds={seconds}
           timerText={timerText}
         />
+
 
         <WeatherSection
           destPlaceName={destPlace?.name ?? null}

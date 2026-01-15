@@ -4,8 +4,10 @@ import { styles } from "../styles";
 type Props = {
   originPlace: any;
   destPlace: any;
-  meetingTime: Date | null;
-  meetingDayOffset: number;
+
+  meetingDate: string | null; // "YYYY-MM-DD"
+  meetingTime: string | null; // "HH:mm"
+
   selectedRoute: any;
 
   onPressCreate: () => void;
@@ -13,23 +15,40 @@ type Props = {
   onPressSearchRoute: () => void;
 };
 
+function relativeDayLabel(ymd: string) {
+  const [y, m, d] = ymd.split("-").map(Number);
+  const target = new Date(y, m - 1, d, 0, 0, 0, 0);
+
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+
+  const diffDays = Math.round((target.getTime() - today.getTime()) / (24 * 60 * 60 * 1000));
+  if (diffDays === 0) return "오늘";
+  if (diffDays === 1) return "내일";
+
+  const day = target.toLocaleDateString("ko-KR", { weekday: "short" as const });
+  const mm = String(m).padStart(2, "0");
+  const dd = String(d).padStart(2, "0");
+  return `${y}.${mm}.${dd} (${day})`;
+}
+
 export default function MeetingSection({
   originPlace,
   destPlace,
+  meetingDate,
   meetingTime,
-  meetingDayOffset,
   selectedRoute,
   onPressCreate,
   onPressEdit,
   onPressSearchRoute,
 }: Props) {
-  const hasMeeting = !!(originPlace && destPlace && meetingTime);
+  const hasMeeting = !!(originPlace && destPlace && meetingDate && meetingTime);
 
   return !hasMeeting ? (
     <View style={styles.emptyCard}>
       <Text style={styles.emptyTitle}>아직 약속이 없어요</Text>
       <Text style={styles.emptySub}>
-        출발지·도착지·시간을 설정하면 출발 추천 시간과 타이머가 보여요.
+        출발지·도착지·날짜·시간을 설정하면 출발 추천 시간과 타이머가 보여요.
       </Text>
 
       <Pressable onPress={onPressCreate} style={styles.primaryBtn}>
@@ -51,12 +70,7 @@ export default function MeetingSection({
       </View>
 
       <Text style={styles.meetingMeta}>
-        {meetingDayOffset === 0 ? "오늘" : "내일"} ·{" "}
-        {meetingTime?.toLocaleTimeString("ko-KR", {
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: false,
-        })}
+        {meetingDate ? relativeDayLabel(meetingDate) : ""} · {meetingTime ?? ""}
       </Text>
 
       <View style={styles.meetingActions}>

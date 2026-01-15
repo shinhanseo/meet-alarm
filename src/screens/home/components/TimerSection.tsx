@@ -4,19 +4,44 @@ import { THEME } from "../theme";
 
 type Props = {
   readyToShowResult: boolean;
-  meetingDayOffset: number;
+  departureAtISO: string | null;
   departTimeText: string;
   seconds: number;
   timerText: string;
 };
 
+// "오늘/내일/날짜" 라벨 만들기 (출발 시각 기준)
+function departDayLabel(departureAtISO: string) {
+  const depart = new Date(departureAtISO);
+  if (Number.isNaN(depart.getTime())) return "";
+
+  const now = new Date();
+  const today0 = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+  const depart0 = new Date(depart.getFullYear(), depart.getMonth(), depart.getDate(), 0, 0, 0, 0);
+
+  const diffDays = Math.round((depart0.getTime() - today0.getTime()) / (24 * 60 * 60 * 1000));
+
+  if (diffDays === 0) return "오늘";
+  if (diffDays === 1) return "내일";
+
+  // 그 외는 날짜로 표시
+  const day = depart.toLocaleDateString("ko-KR", { weekday: "short" as const });
+  const y = depart.getFullYear();
+  const m = String(depart.getMonth() + 1).padStart(2, "0");
+  const d = String(depart.getDate()).padStart(2, "0");
+  return `${y}.${m}.${d} (${day})`;
+}
+
 export default function TimerSection({
   readyToShowResult,
-  meetingDayOffset,
+  departureAtISO,
   departTimeText,
   seconds,
   timerText,
 }: Props) {
+  const dayPrefix =
+    readyToShowResult && departureAtISO ? `${departDayLabel(departureAtISO)} ` : "";
+
   return (
     <View style={styles.timerCard}>
       <Text style={styles.sectionLabel}>출발 추천 시간</Text>
@@ -25,24 +50,27 @@ export default function TimerSection({
         <>
           <View style={styles.departRow}>
             <Text style={styles.departTime}>
-              {meetingDayOffset === 0 ? "오늘 " : "내일 "}
+              {dayPrefix}
               {departTimeText}
             </Text>
 
             <View
               style={[
                 styles.badge,
-                seconds <= 300 && { backgroundColor: THEME.dangerSoft, borderColor: "#FECACA" },
+                seconds <= 300 && {
+                  backgroundColor: THEME.dangerSoft,
+                  borderColor: "#FECACA",
+                },
               ]}
             >
               <Text style={[styles.badgeText, seconds <= 300 && styles.badgeDanger]}>
-              {seconds <= 0
-                ? "지금 출발하세요!"
-                : seconds <= 300
-                ? "서둘러야 해요!"
-                : seconds <= 600
-                ? "슬슬 나갈 준비하세요"
-                : "아직 여유 있어요"}
+                {seconds <= 0
+                  ? "지금 출발하세요!"
+                  : seconds <= 300
+                  ? "서둘러야 해요!"
+                  : seconds <= 600
+                  ? "슬슬 나갈 준비하세요"
+                  : "아직 여유 있어요"}
               </Text>
             </View>
           </View>
@@ -56,7 +84,9 @@ export default function TimerSection({
         </>
       ) : (
         <View style={styles.hintBox}>
-          <Text style={styles.hintText}>경로를 선택하면 출발 추천 시간과 타이머가 보여요.</Text>
+          <Text style={styles.hintText}>
+            경로를 선택하면 출발 추천 시간과 타이머가 보여요.
+          </Text>
         </View>
       )}
     </View>
