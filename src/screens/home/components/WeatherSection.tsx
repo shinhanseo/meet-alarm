@@ -53,42 +53,67 @@ export default function WeatherSection({
         )}
 
         {hasDest && !loading && !error && weather && (
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}
-          >
-            <View style={{ flex: 1, paddingRight: 10 }}>
-              <Text style={styles.routeTitle}>
-                {destPlaceName} · {weather.description}
-              </Text>
-
-              <Text style={[styles.departTime, { marginTop: 8 }]}>
-                {Math.round(weather.temp)}°C{" "}
-                <Text style={{ fontSize: 12, fontWeight: "800", color: THEME.muted }}>
-                  체감 {Math.round(weather.feelsLike)}°C
+          <View>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
+            >
+              <View style={{ flex: 1, paddingRight: 10 }}>
+                <Text style={styles.routeTitle}>
+                  {destPlaceName} · {weather.description}
                 </Text>
-              </Text>
 
-              <Text style={styles.routeMeta}>
-                습도 {weather.humidity}% · 바람 {weather.windSpeed}m/s
-              </Text>
+                <Text style={[styles.departTime, { marginTop: 8 }]}>
+                  {Math.round(weather.temp)}°C{" "}
+                  <Text
+                    style={{
+                      fontSize: 12,
+                      fontWeight: "800",
+                      color: THEME.muted,
+                    }}
+                  >
+                    체감 {Math.round(weather.feelsLike)}°C
+                  </Text>
+                </Text>
 
-              {isBadWeather && (
-                <View style={[styles.badge, { marginTop: 10, alignSelf: "flex-start" }]}>
-                  <Text style={[styles.badgeText, styles.badgeDanger]}>우산 챙기기 추천</Text>
-                </View>
+                <Text style={styles.routeMeta}>
+                  습도 {weather.humidity}% · 바람 {weather.windSpeed}m/s
+                </Text>
+
+                {isBadWeather && (
+                  <View
+                    style={[
+                      styles.badge,
+                      { marginTop: 10, alignSelf: "flex-start" },
+                    ]}
+                  >
+                    <Text style={[styles.badgeText, styles.badgeDanger]}>
+                      우산 챙기기 추천
+                    </Text>
+                  </View>
+                )}
+                <Text
+                  style={[
+                    styles.ghostBtnText,
+                    { marginTop: 8, fontWeight: "600", fontSize : 12 },
+                  ]}
+                >
+                  출발 시간이 가까워지면 날씨를 다시 확인해요.
+                </Text>
+              </View>
+
+              {!!weather.icon && (
+                <Image
+                  source={{
+                    uri: `https://openweathermap.org/img/wn/${weather.icon}@2x.png`,
+                  }}
+                  style={{ width: 56, height: 56 }}
+                />
               )}
             </View>
-
-            {!!weather.icon && (
-              <Image
-                source={{ uri: `https://openweathermap.org/img/wn/${weather.icon}@2x.png` }}
-                style={{ width: 56, height: 56 }}
-              />
-            )}
           </View>
         )}
       </View>

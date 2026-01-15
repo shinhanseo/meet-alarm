@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { View, Alert, ScrollView } from "react-native";
 import { useRouter } from "expo-router";
 import axios from "axios";
@@ -50,6 +50,8 @@ export default function HomeScreen() {
 
     departureAt: departureAtStr,// string | null (ISO)
     setDepartureAt,
+
+    reset
   } = usePlacesStore();
 
   const bufferMin = 10;
@@ -66,6 +68,7 @@ export default function HomeScreen() {
   const [destWeather, setDestWeather] = useState<WeatherDto | null>(null);
   const [weatherLoading, setWeatherLoading] = useState(false);
   const [weatherError, setWeatherError] = useState<string | null>(null);
+  const [weatherRefreshKey, setWeatherRefreshKey] = useState(0); // 30분, 2시간 이내 갱신용
 
   // 목적지 현재 날씨 가져오기 (destPlace 바뀔 때)
   useEffect(() => {
@@ -81,10 +84,7 @@ export default function HomeScreen() {
         setWeatherError(null);
 
         const res = await axios.get(`${API_BASE_URL}/api/weather`, {
-          params: {
-            lat: destPlace.lat,
-            lon: destPlace.lng,
-          },
+          params: { lat: destPlace.lat, lon: destPlace.lng },
           timeout: 8000,
         });
 
@@ -99,7 +99,41 @@ export default function HomeScreen() {
     };
 
     fetchDestWeather();
-  }, [destPlace]);
+  }, [destPlace, weatherRefreshKey]);
+
+  const didRefresh2hRef = useRef(false);
+  const didRefresh30mRef = useRef(false);
+
+  useEffect(() => {
+    if (!destPlace) return;
+    if (!departureAt) return;
+
+    // departureAt 또는 destPlace가 바뀌면 플래그 리셋
+    didRefresh2hRef.current = false;
+    didRefresh30mRef.current = false;
+
+    const tick = () => {
+      const now = Date.now();
+      const diffMs = departureAt.getTime() - now;
+      const diffMin = Math.floor(diffMs / 60000);
+
+      if (diffMs <= 0) return;
+
+      if (diffMin <= 120 && !didRefresh2hRef.current) {
+        didRefresh2hRef.current = true;
+        setWeatherRefreshKey((k) => k + 1);
+      }
+
+      if (diffMin <= 30 && !didRefresh30mRef.current) {
+        didRefresh30mRef.current = true;
+        setWeatherRefreshKey((k) => k + 1);
+      }
+    };
+
+    tick(); 
+    const id = setInterval(tick, 60_000);
+    return () => clearInterval(id);
+  }, [destPlace, departureAt]);
 
   // 출발 추천 시각(ms) = meetingAt - travel - buffer
   const departAtMs = useMemo(() => {
@@ -209,7 +243,7 @@ export default function HomeScreen() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        <HeaderBar onPressCreate={() => router.push("/create-meeting")} />
+        <HeaderBar onPressCreate={() => reset()} />
 
         <MeetingSection
           originPlace={originPlace}
