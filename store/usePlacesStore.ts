@@ -10,7 +10,6 @@ type Place = {
 };
 
 type Mode = "origin" | "dest";
-type DayOffset = 0 | 1; // 0=오늘, 1=내일
 
 // 경로 저장에 필요한 타입
 type Segment = {
@@ -42,17 +41,16 @@ type PlacesState = {
   originPlace: Place | null;
   destPlace: Place | null;
 
-  meetingTime: string | null;
-  meetingDayOffset: DayOffset;
+  meetingDate: string | null; // "YYYY-MM-DD"
+  meetingTime: string | null; // 예: "19:30"
 
   selectedRoute: RouteItem | null;
-   
   departureAt: string | null;
 
   setPlace: (mode: Mode, place: Place) => void;
 
-  setMeetingTime: (time: string) => void;
-  setMeetingDayOffset: (offset: DayOffset) => void;
+  setMeetingDate: (date: string | null) => void;
+  setMeetingTime: (time: string | null) => void;
 
   setSelectedRoute: (route: RouteItem | null) => void;
   clearSelectedRoute: () => void;
@@ -68,8 +66,8 @@ export const usePlacesStore = create<PlacesState>()(
       originPlace: null,
       destPlace: null,
 
+      meetingDate: new Date().toISOString().slice(0, 10), 
       meetingTime: null,
-      meetingDayOffset: 0,
 
       selectedRoute: null,
       departureAt: null,
@@ -81,9 +79,8 @@ export const usePlacesStore = create<PlacesState>()(
           destPlace: mode === "dest" ? place : state.destPlace,
         })),
 
+      setMeetingDate: (date) => set((state) => ({ ...state, meetingDate: date })),
       setMeetingTime: (time) => set((state) => ({ ...state, meetingTime: time })),
-      setMeetingDayOffset: (offset) =>
-        set((state) => ({ ...state, meetingDayOffset: offset })),
 
       setSelectedRoute: (route) =>
         set((state) => ({ ...state, selectedRoute: route })),
@@ -95,22 +92,21 @@ export const usePlacesStore = create<PlacesState>()(
         set({
           originPlace: null,
           destPlace: null,
+          meetingDate: new Date().toISOString().slice(0, 10),
           meetingTime: null,
-          meetingDayOffset: 0,
           selectedRoute: null,
           departureAt: null,
         }),
     }),
     {
-      name: "places-store-v1", // AsyncStorage key 이름
+      name: "places-store-v2",
       storage: createJSONStorage(() => AsyncStorage),
 
-      // 스토어에 있는 변수 모두 asyncStorage에 저장
       partialize: (state) => ({
         originPlace: state.originPlace,
         destPlace: state.destPlace,
+        meetingDate: state.meetingDate,
         meetingTime: state.meetingTime,
-        meetingDayOffset: state.meetingDayOffset,
         selectedRoute: state.selectedRoute,
         departureAt: state.departureAt,
       }),
