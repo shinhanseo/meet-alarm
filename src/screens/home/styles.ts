@@ -208,4 +208,18 @@ export const styles = StyleSheet.create({
   dateSegmentTextActive: {
     color: "#FFFFFF",
   },
+
+  resetBtnTop: {
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    backgroundColor: THEME.card,
+    borderWidth: 1,
+    borderColor: THEME.orangeBorder,
+  },
+  resetTextTop: {
+    fontSize: 13,
+    fontWeight: "900",
+    color: THEME.orangeDark,
+  },
 });

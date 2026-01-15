@@ -43,15 +43,15 @@ export default function HomeScreen() {
     originPlace,
     destPlace,
 
-    meetingDate,                // string | null
-    meetingTime: meetingTimeStr,// string | null ("HH:mm")
+    meetingDate, // string | null
+    meetingTime: meetingTimeStr, // string | null ("HH:mm")
 
     selectedRoute,
 
-    departureAt: departureAtStr,// string | null (ISO)
+    departureAt: departureAtStr, // string | null (ISO)
     setDepartureAt,
 
-    reset
+    reset,
   } = usePlacesStore();
 
   const bufferMin = 10;
@@ -70,7 +70,19 @@ export default function HomeScreen() {
   const [weatherError, setWeatherError] = useState<string | null>(null);
   const [weatherRefreshKey, setWeatherRefreshKey] = useState(0); // 30분, 2시간 이내 갱신용
 
-  // 목적지 현재 날씨 가져오기 (destPlace 바뀔 때)
+  const weatherInFlightRef = useRef(false);
+  const lastWeatherBumpAtRef = useRef(0);
+  const weatherTickIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const bumpWeatherRefreshKey = () => {
+    const now = Date.now();
+    // 30초 이내 연속 갱신 방지 (원하면 60_000으로)
+    if (now - lastWeatherBumpAtRef.current < 30_000) return;
+    lastWeatherBumpAtRef.current = now;
+    setWeatherRefreshKey((k) => k + 1);
+  };
+
+  // 목적지 현재 날씨 가져오기 (destPlace 바뀔 때 + refreshKey 바뀔 때)
   useEffect(() => {
     const fetchDestWeather = async () => {
       if (!destPlace) {
@@ -78,6 +90,10 @@ export default function HomeScreen() {
         setWeatherError(null);
         return;
       }
+
+      // 이미 요청 중이면 추가 요청 막기
+      if (weatherInFlightRef.current) return;
+      weatherInFlightRef.current = true;
 
       try {
         setWeatherLoading(true);
@@ -94,6 +110,7 @@ export default function HomeScreen() {
         setDestWeather(null);
         setWeatherError("날씨 정보를 불러오지 못했어요.");
       } finally {
+        weatherInFlightRef.current = false;
         setWeatherLoading(false);
       }
     };
@@ -112,6 +129,12 @@ export default function HomeScreen() {
     didRefresh2hRef.current = false;
     didRefresh30mRef.current = false;
 
+    // interval 중복 방지
+    if (weatherTickIntervalRef.current) {
+      clearInterval(weatherTickIntervalRef.current);
+      weatherTickIntervalRef.current = null;
+    }
+
     const tick = () => {
       const now = Date.now();
       const diffMs = departureAt.getTime() - now;
@@ -121,18 +144,24 @@ export default function HomeScreen() {
 
       if (diffMin <= 120 && !didRefresh2hRef.current) {
         didRefresh2hRef.current = true;
-        setWeatherRefreshKey((k) => k + 1);
+        bumpWeatherRefreshKey(); // setWeatherRefreshKey 대신(쿨다운 적용)
       }
 
       if (diffMin <= 30 && !didRefresh30mRef.current) {
         didRefresh30mRef.current = true;
-        setWeatherRefreshKey((k) => k + 1);
+        bumpWeatherRefreshKey(); // setWeatherRefreshKey 대신(쿨다운 적용)
       }
     };
 
-    tick(); 
-    const id = setInterval(tick, 60_000);
-    return () => clearInterval(id);
+    tick();
+    weatherTickIntervalRef.current = setInterval(tick, 60_000);
+
+    return () => {
+      if (weatherTickIntervalRef.current) {
+        clearInterval(weatherTickIntervalRef.current);
+        weatherTickIntervalRef.current = null;
+      }
+    };
   }, [destPlace, departureAt]);
 
   // 출발 추천 시각(ms) = meetingAt - travel - buffer
@@ -243,7 +272,7 @@ export default function HomeScreen() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        <HeaderBar onPressCreate={() => reset()} />
+        <HeaderBar onPressReset={reset} />
 
         <MeetingSection
           originPlace={originPlace}
@@ -256,15 +285,13 @@ export default function HomeScreen() {
           onPressSearchRoute={directionSearch}
         />
 
-
         <TimerSection
           readyToShowResult={readyToShowResult}
-          departureAtISO={departureAtStr} 
+          departureAtISO={departureAtStr}
           departTimeText={departTimeText}
           seconds={seconds}
           timerText={timerText}
         />
-
 
         <WeatherSection
           destPlaceName={destPlace?.name ?? null}

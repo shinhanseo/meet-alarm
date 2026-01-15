@@ -8,10 +8,15 @@ type Props = {
 };
 
 export default function RouteSection({ selectedRoute, onPressChangeRoute }: Props) {
-  if (!selectedRoute) return null;
-
-  return (
+  return !selectedRoute ? ( 
+    <View style={styles.emptyCard}>
+      <Text style={styles.emptySub}>
+        출발지·도착지·날짜·시간을 설정하면 경로가 보여요.
+      </Text>
+    </View>
+  ) : (
     <View style={styles.routeCard}>
+
       <View style={styles.routeHeader}>
         <Text style={styles.routeTitle}>선택한 경로</Text>
         <Pressable onPress={onPressChangeRoute} style={styles.routeLinkBtn}>

@@ -48,7 +48,7 @@ export default function MeetingSection({
     <View style={styles.emptyCard}>
       <Text style={styles.emptyTitle}>아직 약속이 없어요</Text>
       <Text style={styles.emptySub}>
-        출발지·도착지·날짜·시간을 설정하면 출발 추천 시간과 타이머가 보여요.
+        약속 탭에서 출발지·도착지·날짜·시간을 설정해보세요!
       </Text>
 
       <Pressable onPress={onPressCreate} style={styles.primaryBtn}>
