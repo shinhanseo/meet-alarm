@@ -13,25 +13,56 @@ import { Region } from "react-native-maps";
 import * as Location from "expo-location";
 import { useRouter } from "expo-router";
 import { usePlacesStore } from "../../store/usePlacesStore";
+import DateTimePickerModal from "react-native-modal-datetime-picker";
+
+// ---------- helpers ----------
+function getLocalYYYYMMDD(d = new Date()) {
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+function ymdToDate(ymd: string) {
+  const [y, m, d] = ymd.split("-").map(Number);
+  return new Date(y, m - 1, d);
+}
+
+function formatDateLabel(yyyyMMdd: string) {
+  const [y, m, d] = yyyyMMdd.split("-").map(Number);
+  const date = new Date(y, m - 1, d);
+  const day = date.toLocaleDateString("ko-KR", { weekday: "short" as const });
+  const mm = String(m).padStart(2, "0");
+  const dd = String(d).padStart(2, "0");
+  return `${y}.${mm}.${dd} (${day})`;
+}
+// ----------------------------
 
 export default function CreateMeetingScreen() {
   const router = useRouter();
 
-  // ✅ store는 string 기반(meetingTime/departureAt는 ISO string | null)
   const {
     originPlace,
     destPlace,
     setPlace,
     reset,
-    meetingTime: meetingTimeStr, // string | null
-    meetingDayOffset,
-    setMeetingDayOffset,
+    meetingDate,
+    setMeetingDate,
+    meetingTime: meetingTimeStr, // string | null (ISO string 유지)
   } = usePlacesStore();
 
-  // ✅ 화면/로직에서는 Date로 변환해서 사용
-  const meetingTime = meetingTimeStr ? new Date(meetingTimeStr) : null;
+  // 화면에서만 Date로 변환해서 표시
+  const meetingTime = meetingTimeStr ?? "";
 
   const [region, setRegion] = useState<Region | null>(null);
+
+  // DateTimePickerModal 상태
+  const [showDateModal, setShowDateModal] = useState(false);
+
+  // 날짜 기본값 (null이면 오늘로)
+  useEffect(() => {
+    if (!meetingDate) setMeetingDate(getLocalYYYYMMDD());
+  }, [meetingDate, setMeetingDate]);
 
   // 위치 가져오기
   useEffect(() => {
@@ -71,11 +102,18 @@ export default function CreateMeetingScreen() {
   };
 
   const directionSearch = () => {
-    // ✅ 체크는 원본 string 기준이 안전
-    if (!originPlace || !destPlace || !meetingTimeStr) {
+    if (!originPlace || !destPlace || !meetingDate || !meetingTimeStr) {
       Alert.alert(
         "입력이 필요해요",
-        `${!originPlace ? "출발지" : !destPlace ? "도착지" : "약속 시간"}를 먼저 설정해주세요.`,
+        `${
+          !originPlace
+            ? "출발지"
+            : !destPlace
+            ? "도착지"
+            : !meetingDate
+            ? "약속 날짜"
+            : "약속 시간"
+        }를 먼저 설정해주세요.`,
         [{ text: "확인" }]
       );
       return;
@@ -84,25 +122,25 @@ export default function CreateMeetingScreen() {
     router.push({ pathname: "/direction-search" });
   };
 
-  const timeText = useMemo(() => {
-    if (!meetingTime) return "";
-    return meetingTime.toLocaleTimeString("ko-KR", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    });
-  }, [meetingTime]);
+  const timeText = useMemo(() => meetingTime ?? "", [meetingTime]);
+
+  const dateText = useMemo(() => {
+    if (!meetingDate) return "";
+    return formatDateLabel(meetingDate);
+  }, [meetingDate]);
 
   const progressText = useMemo(() => {
-    const done = [!!originPlace, !!destPlace, !!meetingTimeStr].filter(Boolean)
+    const done = [!!originPlace, !!destPlace, !!meetingDate, !!meetingTimeStr].filter(Boolean)
       .length;
+
     if (done === 0) return "아직 아무것도 설정되지 않았어요.";
     if (done === 1) return "좋아요. 하나만 더 설정해봐요.";
-    if (done === 2) return "거의 다 됐어요. 마지막으로 시간만 설정하면 돼요.";
+    if (done === 2) return "좋아요. 두 가지만 더 하면 돼요.";
+    if (done === 3) return "거의 다 됐어요. 마지막만 설정하면 돼요.";
     return "완료! 이제 경로를 탐색할 수 있어요.";
-  }, [originPlace, destPlace, meetingTimeStr]);
+  }, [originPlace, destPlace, meetingDate, meetingTimeStr]);
 
-  const ready = !!(originPlace && destPlace && meetingTimeStr);
+  const ready = !!(originPlace && destPlace && meetingDate && meetingTimeStr);
 
   if (!region) {
     return (
@@ -158,7 +196,24 @@ export default function CreateMeetingScreen() {
               />
             </Pressable>
 
-            {/* 시간 + 오늘/내일 */}
+            {/* 날짜 */}
+            <View style={styles.row}>
+              <Text style={styles.label}>날짜</Text>
+
+              <Pressable onPress={() => setShowDateModal(true)} style={{ flex: 1 }}>
+                <View style={styles.fakeInput}>
+                  <Text style={styles.fakeInputText}>
+                    {meetingDate ? dateText : "약속 날짜"}
+                  </Text>
+                </View>
+              </Pressable>
+
+              <Pressable onPress={() => setShowDateModal(true)} style={styles.calendarBtn}>
+                <Text style={styles.calendarText}>📅</Text>
+              </Pressable>
+            </View>
+
+            {/* 시간 */}
             <View style={styles.row}>
               <Text style={styles.label}>시간</Text>
 
@@ -172,42 +227,6 @@ export default function CreateMeetingScreen() {
                   pointerEvents="none"
                 />
               </Pressable>
-
-              <View style={styles.segment}>
-                <Pressable
-                  onPress={() => setMeetingDayOffset(0)}
-                  style={[
-                    styles.segmentBtn,
-                    meetingDayOffset === 0 && styles.segmentBtnActive,
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.segmentText,
-                      meetingDayOffset === 0 && styles.segmentTextActive,
-                    ]}
-                  >
-                    오늘
-                  </Text>
-                </Pressable>
-
-                <Pressable
-                  onPress={() => setMeetingDayOffset(1)}
-                  style={[
-                    styles.segmentBtn,
-                    meetingDayOffset === 1 && styles.segmentBtnActive,
-                  ]}
-                >
-                  <Text
-                    style={[
-                      styles.segmentText,
-                      meetingDayOffset === 1 && styles.segmentTextActive,
-                    ]}
-                  >
-                    내일
-                  </Text>
-                </Pressable>
-              </View>
             </View>
           </View>
         </View>
@@ -222,6 +241,9 @@ export default function CreateMeetingScreen() {
 
             <View style={[styles.dot, destPlace && styles.dotOn]} />
             <Text style={styles.progressText}>도착지</Text>
+
+            <View style={[styles.dot, meetingDate && styles.dotOn]} />
+            <Text style={styles.progressText}>날짜</Text>
 
             <View style={[styles.dot, meetingTimeStr && styles.dotOn]} />
             <Text style={styles.progressText}>시간</Text>
@@ -257,6 +279,21 @@ export default function CreateMeetingScreen() {
             : "필수 입력을 먼저 설정해주세요."}
         </Text>
       </View>
+
+      {/* 날짜 모달 */}
+      <DateTimePickerModal
+        isVisible={showDateModal}
+        mode="date"
+        date={meetingDate ? ymdToDate(meetingDate) : new Date()}
+        onConfirm={(picked) => {
+          setMeetingDate(getLocalYYYYMMDD(picked));
+          setShowDateModal(false);
+        }}
+        onCancel={() => setShowDateModal(false)}
+        locale="ko_KR"
+        confirmTextIOS="확인"
+        cancelTextIOS="취소"
+      />
     </View>
   );
 }
@@ -366,6 +403,34 @@ const styles = StyleSheet.create({
     borderColor: THEME.border,
   },
 
+  // 날짜 표시용 "인풋처럼 보이는 박스"
+  fakeInput: {
+    height: 46,
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    justifyContent: "center",
+    backgroundColor: THEME.inputBg,
+    borderWidth: 1,
+    borderColor: THEME.border,
+  },
+  fakeInputText: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: THEME.text,
+  },
+
+  calendarBtn: {
+    width: 46,
+    height: 46,
+    borderRadius: 14,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: THEME.orangeSoft,
+    borderWidth: 1,
+    borderColor: THEME.orangeBorder,
+  },
+  calendarText: { fontSize: 18 },
+
   timePressable: { flex: 1 },
 
   timeinput: {
@@ -378,35 +443,6 @@ const styles = StyleSheet.create({
     minWidth: 90,
     borderWidth: 1,
     borderColor: THEME.border,
-  },
-
-  segment: {
-    flexDirection: "row",
-    backgroundColor: THEME.orangeSoft,
-    borderRadius: 14,
-    padding: 3,
-    borderWidth: 1,
-    borderColor: THEME.orangeBorder,
-  },
-
-  segmentBtn: {
-    paddingVertical: 9,
-    paddingHorizontal: 12,
-    borderRadius: 12,
-  },
-
-  segmentBtnActive: {
-    backgroundColor: THEME.orange,
-  },
-
-  segmentText: {
-    fontSize: 13,
-    fontWeight: "900",
-    color: THEME.orangeDark,
-  },
-
-  segmentTextActive: {
-    color: "#FFFFFF",
   },
 
   infoCard: {
