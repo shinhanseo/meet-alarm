@@ -5,13 +5,14 @@ import { SegmentChip } from "@/src/components/SegmentChip";
 type Props = {
   selectedRoute: any;
   onPressChangeRoute: () => void;
+  isConfirmed: boolean;
 };
 
-export default function RouteSection({ selectedRoute, onPressChangeRoute }: Props) {
-  return !selectedRoute ? ( 
+export default function RouteSection({ selectedRoute, onPressChangeRoute, isConfirmed }: Props) {
+  return !isConfirmed ? ( 
     <View style={styles.emptyCard}>
       <Text style={styles.emptySub}>
-        출발지·도착지·날짜·시간을 설정하면 경로가 보여요.
+        경로 선택 시 자세한 경로가 보여요.
       </Text>
     </View>
   ) : (

@@ -57,6 +57,7 @@ export default function HomeScreen() {
     scheduledDepartureNotifId,
     setScheduledDepartureNotifId,
 
+    isConfirmed,
     reset,
   } = usePlacesStore();
 
@@ -94,6 +95,12 @@ export default function HomeScreen() {
   useEffect(() => {
     const autoSchedule = async () => {
       if(!departureAt) return;
+
+      const now = Date.now();
+      const target = departureAt.getTime();
+      if(target <= now + 3000){
+        return;
+      }
 
       try{
         if(scheduledDepartureNotifId) {
@@ -357,6 +364,7 @@ export default function HomeScreen() {
           departTimeText={departTimeText}
           seconds={seconds}
           timerText={timerText}
+          isConfirmed={isConfirmed}
         />
 
         <WeatherSection
@@ -364,11 +372,13 @@ export default function HomeScreen() {
           loading={weatherLoading}
           error={weatherError}
           weather={destWeather}
+          isConfirmed={isConfirmed}
         />
 
         <RouteSection
           selectedRoute={selectedRoute}
           onPressChangeRoute={directionSearch}
+          isConfirmed={isConfirmed}
         />
 
         <View style={{ height: 12 }} />

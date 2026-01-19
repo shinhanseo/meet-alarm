@@ -202,7 +202,7 @@ export default function DirectionSearchScreen() {
           disabled={!selectedRoute}
           onPress={() => {
             setSelectedRoute(routes[selectedIndex]);
-            router.replace("/");
+            router.replace("/create-meeting");
           }}
         >
           <Text style={styles.primaryBtnText}>이 경로 선택</Text>

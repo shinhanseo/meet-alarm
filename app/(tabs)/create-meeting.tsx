@@ -12,8 +12,10 @@ import {
 import { Region } from "react-native-maps";
 import * as Location from "expo-location";
 import { useRouter } from "expo-router";
-import { usePlacesStore } from "../../store/usePlacesStore";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
+
+import { usePlacesStore } from "../../store/usePlacesStore";
+import { SegmentChip } from "@/src/components/SegmentChip";
 
 // ---------- helpers ----------
 function getLocalYYYYMMDD(d = new Date()) {
@@ -45,21 +47,25 @@ export default function CreateMeetingScreen() {
     originPlace,
     destPlace,
     setPlace,
-    reset,
+
     meetingDate,
     setMeetingDate,
-    meetingTime: meetingTimeStr, // string | null (ISO string 유지)
+    meetingTime: meetingTimeStr,
+
+    selectedRoute,
+    setSelectedRoute,
+    setDepartureAt,
+
+    isConfirmed,
+    confirmMeeting,
   } = usePlacesStore();
 
-  // 화면에서만 Date로 변환해서 표시
   const meetingTime = meetingTimeStr ?? "";
 
   const [region, setRegion] = useState<Region | null>(null);
-
-  // DateTimePickerModal 상태
   const [showDateModal, setShowDateModal] = useState(false);
 
-  // 날짜 기본값 (null이면 오늘로)
+  // 날짜 기본값 (null이면 오늘)
   useEffect(() => {
     if (!meetingDate) setMeetingDate(getLocalYYYYMMDD());
   }, [meetingDate, setMeetingDate]);
@@ -118,11 +124,8 @@ export default function CreateMeetingScreen() {
       );
       return;
     }
-
     router.push({ pathname: "/direction-search" });
   };
-
-  const timeText = useMemo(() => meetingTime ?? "", [meetingTime]);
 
   const dateText = useMemo(() => {
     if (!meetingDate) return "";
@@ -130,17 +133,44 @@ export default function CreateMeetingScreen() {
   }, [meetingDate]);
 
   const progressText = useMemo(() => {
-    const done = [!!originPlace, !!destPlace, !!meetingDate, !!meetingTimeStr].filter(Boolean)
-      .length;
+    const done = [
+      !!originPlace,
+      !!destPlace,
+      !!meetingDate,
+      !!meetingTimeStr,
+      !!selectedRoute
+    ].filter(Boolean).length;
 
     if (done === 0) return "아직 아무것도 설정되지 않았어요.";
     if (done === 1) return "좋아요. 하나만 더 설정해봐요.";
-    if (done === 2) return "좋아요. 두 가지만 더 하면 돼요.";
-    if (done === 3) return "거의 다 됐어요. 마지막만 설정하면 돼요.";
-    return "완료! 이제 경로를 탐색할 수 있어요.";
-  }, [originPlace, destPlace, meetingDate, meetingTimeStr]);
+    if (done === 2) return "좋아요. 세 가지만 더 하면 돼요.";
+    if (done === 3) return "거의 다 됐어요. 시간만 설정하면 경로를 선택할 수 있어요!";
+    if (done === 4) return "정말 다 왔어요. 이제 경로를 선택해 주세요.";
+    return "완료! 이제 약속을 저장해주세요";
+  }, [originPlace, destPlace, meetingDate, meetingTimeStr, selectedRoute]);
 
-  const ready = !!(originPlace && destPlace && meetingDate && meetingTimeStr);
+  // 필수 입력 완료(경로 탐색 가능)
+  const readyInput = !!(originPlace && destPlace && meetingDate && meetingTimeStr);
+
+  // 저장(확정) 가능 조건: 경로까지 선택
+  const readyToSave = !!(readyInput && selectedRoute);
+
+  const routeSummaryText = useMemo(() => {
+    if (!selectedRoute) return "";
+    const s = selectedRoute.summary;
+    return `총 ${s.totalTimeText} · 도보 ${s.totalWalkTimeText} · 환승 ${s.transferCount} · ${s.totalFare.toLocaleString()}원`;
+  }, [selectedRoute]);
+
+  const previewSegments = useMemo(() => {
+    if (!selectedRoute) return [];
+    return selectedRoute.segments.slice(0, 3);
+  }, [selectedRoute]);
+
+  const onPressSave = () => {
+    if (!readyToSave) return;
+    confirmMeeting();
+    router.replace("/"); 
+  };
 
   if (!region) {
     return (
@@ -153,7 +183,7 @@ export default function CreateMeetingScreen() {
 
   return (
     <View style={styles.container}>
-      {/* 상단 헤더 */}
+      {/* 헤더 */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>약속 설정</Text>
       </View>
@@ -216,7 +246,7 @@ export default function CreateMeetingScreen() {
 
               <Pressable onPress={openTimer} style={styles.timePressable}>
                 <TextInput
-                  value={timeText}
+                  value={meetingTime}
                   placeholder="약속 시간"
                   placeholderTextColor={THEME.placeholder}
                   style={styles.timeinput}
@@ -228,7 +258,52 @@ export default function CreateMeetingScreen() {
           </View>
         </View>
 
-        {/* 상태/가이드 섹션 */}
+        {/* 경로 선택 카드 */}
+        <View style={styles.routeCard}>
+          <Text style={styles.routeTitle}>경로 선택</Text>
+
+          {!selectedRoute ? (
+            <Pressable
+              onPress={directionSearch}
+              disabled={!readyInput}
+              style={[styles.routeBtn, !readyInput && { opacity: 0.55 }]}
+            >
+              <Text style={styles.routeBtnText}>
+                {readyInput ? "경로 탐색하기" : "필수 입력을 먼저 설정해주세요"}
+              </Text>
+            </Pressable>
+          ) : (
+            <>
+              <Text style={styles.routeSummaryText}>{routeSummaryText}</Text>
+
+              <View style={{ gap: 10, marginTop: 10 }}>
+                {previewSegments.map((seg, idx) => (
+                  <SegmentChip key={idx} seg={seg as any} />
+                ))}
+              </View>
+
+              <View style={styles.routeActions}>
+                <Pressable onPress={directionSearch} style={styles.smallBtn}>
+                  <Text style={styles.smallBtnText}>경로 변경</Text>
+                </Pressable>
+
+                <Pressable
+                  onPress={() => {
+                    setSelectedRoute(null);
+                    setDepartureAt(null);
+                  }}
+                  style={[styles.smallBtn, styles.smallBtnDanger]}
+                >
+                  <Text style={[styles.smallBtnText, styles.smallBtnDangerText]}>
+                    경로 지우기
+                  </Text>
+                </Pressable>
+              </View>
+            </>
+          )}
+        </View>
+
+        {/* 진행 상태/가이드 */}
         <View style={styles.infoCard}>
           <Text style={styles.infoTitle}>진행 상태</Text>
 
@@ -244,19 +319,22 @@ export default function CreateMeetingScreen() {
 
             <View style={[styles.dot, meetingTimeStr && styles.dotOn]} />
             <Text style={styles.progressText}>시간</Text>
+
+            <View style={[styles.dot, selectedRoute && styles.dotOn]} />
+            <Text style={styles.progressText}>경로</Text>
           </View>
 
           <Text style={styles.infoDesc}>{progressText}</Text>
 
-          {!ready && (
+          {!readyInput && (
             <View>
               <View style={styles.tipBox}>
                 <Text style={styles.tipTitle}>팁</Text>
                 <Text style={styles.tipText}>
-                  출발/도착이 가까우면 경로가 안 뜰 수 있어요. 그럴 땐 도보 이동을
-                  고려해보세요.
+                  출발/도착이 가까우면 경로가 안 뜰 수 있어요. 그럴 땐 도보 이동을 고려해보세요.
                 </Text>
               </View>
+
               <View style={[styles.tipBox, { marginTop: 10 }]}>
                 <Text style={styles.tipTitle}>팁</Text>
                 <Text style={styles.tipText}>
@@ -267,21 +345,27 @@ export default function CreateMeetingScreen() {
           )}
         </View>
 
-        <View style={{ height: 90 }} />
+        <View style={{ height: 110 }} />
       </ScrollView>
 
-      {/* 하단 고정 버튼 */}
+      {/* 약속 저장하기 */}
       <View style={styles.bottomBar}>
         <Pressable
-          onPress={directionSearch}
-          style={[styles.routeSearchBtn, !ready && { opacity: 0.55 }]}
+          onPress={onPressSave}
+          disabled={!readyToSave}
+          style={[styles.saveBtn, !readyToSave && { opacity: 0.55 }]}
         >
-          <Text style={styles.directionText}>경로 탐색하기</Text>
+          <Text style={styles.saveBtnText}>
+            {readyToSave ? "약속 저장하기" : "경로까지 선택하면 저장할 수 있어요"}
+          </Text>
         </Pressable>
+
         <Text style={styles.bottomHint}>
-          {ready
-            ? "경로를 선택하면 홈에서 타이머가 보여요."
-            : "필수 입력을 먼저 설정해주세요."}
+          {readyToSave
+            ? "저장하면 홈에서 출발 타이머와 알림이 자동으로 설정돼요."
+            : selectedRoute
+            ? "필수 입력을 확인해 주세요."
+            : "경로를 선택하면 저장 버튼이 활성화돼요."}
         </Text>
       </View>
 
@@ -319,10 +403,7 @@ const THEME = {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: THEME.bg,
-  },
+  container: { flex: 1, backgroundColor: THEME.bg },
 
   loading: {
     flex: 1,
@@ -341,20 +422,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   headerTitle: { fontSize: 22, fontWeight: "900", color: THEME.text },
-
-  resetBtnTop: {
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderRadius: 12,
-    backgroundColor: THEME.card,
-    borderWidth: 1,
-    borderColor: THEME.orangeBorder,
-  },
-  resetTextTop: {
-    fontSize: 13,
-    fontWeight: "900",
-    color: THEME.orangeDark,
-  },
 
   content: {
     paddingHorizontal: 14,
@@ -375,26 +442,19 @@ const styles = StyleSheet.create({
     shadowRadius: 14,
     shadowOffset: { width: 0, height: 8 },
   },
-
   accent: {
     width: 7,
     borderRadius: 10,
     backgroundColor: THEME.orange,
     marginRight: 14,
   },
-
   row: {
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
     marginBottom: 10,
   },
-
-  label: {
-    fontSize: 16,
-    fontWeight: "800",
-    color: THEME.text,
-  },
+  label: { fontSize: 16, fontWeight: "800", color: THEME.text },
 
   input: {
     flex: 1,
@@ -408,7 +468,6 @@ const styles = StyleSheet.create({
     borderColor: THEME.border,
   },
 
-  // 날짜 표시용 "인풋처럼 보이는 박스"
   fakeInput: {
     height: 46,
     borderRadius: 14,
@@ -450,6 +509,41 @@ const styles = StyleSheet.create({
     borderColor: THEME.border,
   },
 
+  // route card
+  routeCard: {
+    backgroundColor: THEME.card,
+    borderRadius: 20,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: THEME.border,
+    gap: 10,
+  },
+  routeTitle: { fontSize: 14, fontWeight: "900", color: THEME.text },
+  routeBtn: {
+    paddingVertical: 12,
+    borderRadius: 16,
+    backgroundColor: THEME.orangeSoft,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: THEME.orangeBorder,
+  },
+  routeBtnText: { fontSize: 14, fontWeight: "900", color: THEME.orangeDark },
+  routeSummaryText: { fontSize: 13, fontWeight: "900", color: THEME.text },
+  routeActions: { flexDirection: "row", gap: 10, marginTop: 12 },
+  smallBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 14,
+    alignItems: "center",
+    backgroundColor: THEME.card,
+    borderWidth: 1,
+    borderColor: THEME.border,
+  },
+  smallBtnText: { fontSize: 13, fontWeight: "900", color: THEME.text },
+  smallBtnDanger: { borderColor: "#FCA5A5", backgroundColor: "#FEF2F2" },
+  smallBtnDangerText: { color: "#B91C1C" },
+
+  // info card
   infoCard: {
     backgroundColor: THEME.card,
     borderRadius: 20,
@@ -465,7 +559,6 @@ const styles = StyleSheet.create({
     color: THEME.muted,
     lineHeight: 18,
   },
-
   progressRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -504,6 +597,7 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
 
+  // bottom bar
   bottomBar: {
     position: "absolute",
     left: 0,
@@ -516,8 +610,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: THEME.border,
   },
-
-  routeSearchBtn: {
+  saveBtn: {
     paddingVertical: 14,
     borderRadius: 16,
     backgroundColor: THEME.orange,
@@ -528,13 +621,7 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 8 },
   },
-
-  directionText: {
-    fontSize: 15,
-    fontWeight: "900",
-    color: "#fff",
-  },
-
+  saveBtnText: { fontSize: 15, fontWeight: "900", color: "#fff" },
   bottomHint: {
     marginTop: 10,
     fontSize: 12,

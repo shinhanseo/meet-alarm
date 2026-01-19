@@ -19,6 +19,7 @@ type Props = {
   loading: boolean;
   error: string | null;
   weather: WeatherDto | null;
+  isConfirmed: boolean;
 };
 
 export default function WeatherSection({
@@ -26,8 +27,8 @@ export default function WeatherSection({
   loading,
   error,
   weather,
+  isConfirmed,
 }: Props) {
-  const hasDest = !!destPlaceName;
 
   const isBadWeather =
     weather?.main === "Rain" ||
@@ -37,22 +38,22 @@ export default function WeatherSection({
   return (
     <>
       <View style={styles.routeCard}>
-        {!hasDest && (
+        {!isConfirmed && (
           <Text style={styles.routeMeta}>목적지를 설정하면 날씨를 보여요.</Text>
         )}
 
-        {hasDest && loading && (
+        {isConfirmed && loading && (
           <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
             <ActivityIndicator />
             <Text style={styles.routeMeta}>불러오는 중...</Text>
           </View>
         )}
 
-        {hasDest && !loading && error && (
+        {isConfirmed && !loading && error && (
           <Text style={styles.routeMeta}>{error}</Text>
         )}
 
-        {hasDest && !loading && !error && weather && (
+        {isConfirmed && !loading && !error && weather && (
           <View>
             <View
               style={{

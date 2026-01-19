@@ -8,6 +8,7 @@ type Props = {
   departTimeText: string;
   seconds: number;
   timerText: string;
+  isConfirmed: boolean;
 };
 
 // "오늘/내일/날짜" 라벨 만들기 (출발 시각 기준)
@@ -38,6 +39,7 @@ export default function TimerSection({
   departTimeText,
   seconds,
   timerText,
+  isConfirmed,
 }: Props) {
   const dayPrefix =
     readyToShowResult && departureAtISO ? `${departDayLabel(departureAtISO)} ` : "";
@@ -46,7 +48,7 @@ export default function TimerSection({
     <View style={styles.timerCard}>
       <Text style={styles.sectionLabel}>출발 추천 시간</Text>
 
-      {readyToShowResult ? (
+      {readyToShowResult && isConfirmed ? (
         <>
           <View style={styles.departRow}>
             <Text style={styles.departTime}>
@@ -85,7 +87,7 @@ export default function TimerSection({
       ) : (
         <View style={styles.hintBox}>
           <Text style={styles.hintText}>
-            경로를 선택하면 출발 추천 시간과 타이머가 보여요.
+            약속을 저장하면 출발 추천 시간과 타이머가 보여요.
           </Text>
         </View>
       )}

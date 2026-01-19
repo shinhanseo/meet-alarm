@@ -13,6 +13,8 @@ type Props = {
   onPressCreate: () => void;
   onPressEdit: () => void;
   onPressSearchRoute: () => void;
+
+  isConfirmed: boolean;
 };
 
 function relativeDayLabel(ymd: string) {
@@ -41,10 +43,10 @@ export default function MeetingSection({
   onPressCreate,
   onPressEdit,
   onPressSearchRoute,
+  isConfirmed,
 }: Props) {
-  const hasMeeting = !!(originPlace && destPlace && meetingDate && meetingTime);
 
-  return !hasMeeting ? (
+  return !isConfirmed ? (
     <View style={styles.emptyCard}>
       <Text style={styles.emptyTitle}>아직 약속이 없어요</Text>
       <Text style={styles.emptySub}>

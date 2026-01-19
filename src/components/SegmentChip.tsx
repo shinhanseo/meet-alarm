@@ -38,7 +38,6 @@ export function SegmentChip({ seg }: { seg: Segment }) {
         : `${seg.from} → ${seg.to}`
       : "";
 
-  // 🔥 여기 핵심
   const isWalk = seg.type === "WALK";
 
   const backgroundColor = isWalk
