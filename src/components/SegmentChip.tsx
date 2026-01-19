@@ -19,6 +19,9 @@ const formatDistance = (m?: number) => {
 };
 
 export function SegmentChip({ seg }: { seg: Segment }) {
+  const mins = parseInt(seg.timeText.replace(/[^0-9]/g, "")) || 0;
+  if(mins == 0) return;
+
   const dist = formatDistance(seg.distanceM);
   const walkSuffix = dist ? `(${dist})` : "";
 

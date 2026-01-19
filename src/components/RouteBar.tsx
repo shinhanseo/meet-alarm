@@ -19,10 +19,11 @@ function SegmentBar({
   totalMinutes: number;
 }) {
   const mins = parseInt(seg.timeText.replace(/[^0-9]/g, "")) || 0;
+  if(mins == 0) return;
 
   const ratio = totalMinutes > 0 ? mins / totalMinutes : 0;
 
-  const minFlex = 0.18;
+  const minFlex = 0.08;
   const flexValue = totalMinutes > 0 ? Math.max(ratio, minFlex) : minFlex;
 
   const isWalk = seg.type === "WALK";
@@ -31,11 +32,13 @@ function SegmentBar({
     : seg.color
     ? (seg.color.startsWith("#") ? seg.color : `#${seg.color}`)
     : "#3B82F6";
-
+  
+  const textColor = isWalk ? "#111827" : "#FFFFFF";
+  
   return (
       <View style={[styles.barSegment, { flex: flexValue, backgroundColor: bgColor }]}>
-        <Text style={styles.barText} numberOfLines={1}>
-          {isWalk ? `🚶${mins}분` : `${mins}분`}
+        <Text style={[styles.barText,  { color: textColor }]} numberOfLines={1}>
+          {`${mins}분`}
         </Text>
       </View>
   );
@@ -52,7 +55,7 @@ function SegmentLabel({ seg }: { seg: Segment }) {
   if (!mainLabel) return null;
 
   const backgroundColor = seg.type == "WALK"
-    ? "#FFFFFF"                    // 도보: 화이트
+    ? "#E2E2E2"                    // 도보: 화이트
     : seg.color
     ? `#${seg.color}`              // 버스/지하철: 원래 색 유지
     : "#E5E7EB";
@@ -61,6 +64,16 @@ function SegmentLabel({ seg }: { seg: Segment }) {
     <View style={[styles.labelChip, { backgroundColor }]}>
       <Text style={styles.labelText} numberOfLines={1}>
         {mainLabel}
+      </Text>
+    </View>
+  );
+}
+
+function WalkLabel() {
+  return (
+    <View style={[styles.labelChip, { backgroundColor: "#E2E2E2" }]}>
+      <Text style={[styles.labelText, { color: "#111827" }]} numberOfLines={1}>
+        🚶 도보
       </Text>
     </View>
   );
@@ -78,6 +91,8 @@ export function RouteBar({
     return sum + mins;
   }, 0);
 
+  const hasWalk = segments.some((seg) => seg.type === "WALK");
+  
   return (
     <View style={styles.container}>
       <View style={styles.barContainer}>
@@ -91,6 +106,8 @@ export function RouteBar({
           {segments.map((seg, idx) => (
             <SegmentLabel key={`label-${idx}`} seg={seg} />
           ))}
+
+          {hasWalk && <WalkLabel />}
         </View>
       )}
     </View>
@@ -112,6 +129,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 4,
+    borderRadius: 13,
   },
   barText: {
     fontSize: 11,
@@ -136,6 +154,5 @@ const styles = StyleSheet.create({
   labelText: {
     fontSize: 12,
     fontWeight: "800",
-    color: "#fff",
   },
 });
