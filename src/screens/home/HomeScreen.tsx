@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, useRef } from "react";
-import { View, Alert, ScrollView } from "react-native";
+import { View, Alert, ScrollView, Pressable, Text } from "react-native";
 import { useRouter } from "expo-router";
 import axios from "axios";
 
@@ -12,6 +12,8 @@ import MeetingSection from "./components/MeetingSection";
 import TimerSection from "./components/TimerSection";
 import RouteSection from "./components/RouteSection";
 import WeatherSection from "./components/WeatherSection";
+
+import { scheduleAlarmAt } from "@/src/lib/notifications";
 
 type WeatherDto = {
   name: string;
@@ -74,6 +76,9 @@ export default function HomeScreen() {
   const lastWeatherBumpAtRef = useRef(0);
   const weatherTickIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
+  const didAutoResetRef = useRef(false);
+
+
   const bumpWeatherRefreshKey = () => {
     const now = Date.now();
     // 30초 이내 연속 갱신 방지 (원하면 60_000으로)
@@ -81,6 +86,39 @@ export default function HomeScreen() {
     lastWeatherBumpAtRef.current = now;
     setWeatherRefreshKey((k) => k + 1);
   };
+
+  useEffect(() => {
+    // 약속이 없으면 플래그도 리셋
+    if (!meetingAt) {
+      didAutoResetRef.current = false;
+      return;
+    }
+
+    didAutoResetRef.current = false;
+
+    const checkAndReset = () => {
+      if (didAutoResetRef.current) return;
+
+      const now = Date.now();
+      const meetingMs = meetingAt.getTime();
+
+      // 약속 시간이 "지금보다 과거"면 초기화
+      if (meetingMs <= now) {
+        didAutoResetRef.current = true;
+
+        Alert.alert(
+          "약속 시간이 지났어요",
+          "이전 약속을 초기화할게요.",
+          [{ text: "확인", onPress: () => reset() }]
+        );
+      } 
+    };
+
+    // 즉시 1회 체크 + 이후 주기 체크(앱 켜져있는 동안)
+    checkAndReset();
+    const id = setInterval(checkAndReset, 30_000); 
+    return () => clearInterval(id);
+  }, [meetingAt, reset]);
 
   // 목적지 현재 날씨 가져오기 (destPlace 바뀔 때 + refreshKey 바뀔 때)
   useEffect(() => {
@@ -198,6 +236,25 @@ export default function HomeScreen() {
       hour12: false,
     });
   }, [departureAt]);
+
+  // 출발 알람 예약 버튼 핸들러
+  const onPressScheduleDepartureAlarm = async () => {
+    try {
+      if (!departureAt) {
+        Alert.alert("아직 출발 시간이 없어요", "경로를 선택하면 출발 시간이 계산돼요.");
+        return;
+      }
+
+      const id = await scheduleAlarmAt(departureAt, {
+        title: "출발 알람",
+        body: `지금 출발하세요! (${departTimeText})`,
+      });
+
+      Alert.alert("알람 예약 완료", `출발 시각: ${departTimeText}\n알림 ID: ${id}`);
+    } catch (e: any) {
+      Alert.alert("알람 예약 실패", e?.message ?? String(e));
+    }
+  };
 
   // 타이머 seconds
   const [seconds, setSeconds] = useState<number>(0);

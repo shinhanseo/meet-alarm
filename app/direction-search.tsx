@@ -77,7 +77,6 @@ export default function DirectionSearchScreen() {
           return;
         }
 
-        // 그 외 에러는 기본 알림(원하면 빼도 됨)
         Alert.alert("오류", "경로 탐색 중 문제가 발생했어요.", [{ text: "확인" }]);
       } finally {
         setLoading(false);

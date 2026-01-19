@@ -156,9 +156,6 @@ export default function CreateMeetingScreen() {
       {/* 상단 헤더 */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>약속 설정</Text>
-        <Pressable onPress={reset} style={styles.resetBtnTop}>
-          <Text style={styles.resetTextTop}>초기화</Text>
-        </Pressable>
       </View>
 
       <ScrollView
