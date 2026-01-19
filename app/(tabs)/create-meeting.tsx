@@ -249,12 +249,20 @@ export default function CreateMeetingScreen() {
           <Text style={styles.infoDesc}>{progressText}</Text>
 
           {!ready && (
-            <View style={styles.tipBox}>
-              <Text style={styles.tipTitle}>팁</Text>
-              <Text style={styles.tipText}>
-                출발/도착이 가까우면 경로가 안 뜰 수 있어요. 그럴 땐 도보 이동을
-                고려해보세요.
-              </Text>
+            <View>
+              <View style={styles.tipBox}>
+                <Text style={styles.tipTitle}>팁</Text>
+                <Text style={styles.tipText}>
+                  출발/도착이 가까우면 경로가 안 뜰 수 있어요. 그럴 땐 도보 이동을
+                  고려해보세요.
+                </Text>
+              </View>
+              <View style={[styles.tipBox, { marginTop: 10 }]}>
+                <Text style={styles.tipTitle}>팁</Text>
+                <Text style={styles.tipText}>
+                  심야 시간에는 대중교통 운행이 제한될 수 있어요. 택시나 자가용 이동을 추천해요.
+                </Text>
+              </View>
             </View>
           )}
         </View>
