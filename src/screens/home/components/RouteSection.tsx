@@ -1,6 +1,7 @@
 import { View, Text, Pressable } from "react-native";
 import { styles } from "../styles";
 import { SegmentChip } from "@/src/components/SegmentChip";
+import { RouteBar } from "@/src/components/RouteBar";
 
 type Props = {
   selectedRoute: any;
@@ -31,6 +32,11 @@ export default function RouteSection({ selectedRoute, onPressChangeRoute, isConf
       </Text>
 
       <View style={{ marginTop: 12, gap: 10 }}>
+        <RouteBar
+          segments={selectedRoute.segments ?? []}
+          routeOnly
+        />
+
         {selectedRoute.segments?.map((seg: any, i: number) => (
           <SegmentChip key={`seg-${i}`} seg={seg} />
         ))}

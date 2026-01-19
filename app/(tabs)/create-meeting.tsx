@@ -15,7 +15,7 @@ import { useRouter } from "expo-router";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 
 import { usePlacesStore } from "../../store/usePlacesStore";
-import { SegmentChipSimple } from "@/src/components/SegmentChipSimple";
+import { RouteBar } from "@/src/components/RouteBar"; 
 
 // ---------- helpers ----------
 function getLocalYYYYMMDD(d = new Date()) {
@@ -149,16 +149,14 @@ export default function CreateMeetingScreen() {
     return "완료! 이제 약속을 저장해주세요";
   }, [originPlace, destPlace, meetingDate, meetingTimeStr, selectedRoute]);
 
-  // 필수 입력 완료(경로 탐색 가능)
   const readyInput = !!(originPlace && destPlace && meetingDate && meetingTimeStr);
 
-  // 저장(확정) 가능 조건: 경로까지 선택
   const readyToSave = !!(readyInput && selectedRoute);
 
   const routeSummaryText = useMemo(() => {
     if (!selectedRoute) return "";
     const s = selectedRoute.summary;
-    return `총 ${s.totalTimeText} · 도보 ${s.totalWalkTimeText} · 환승 ${s.transferCount} · ${s.totalFare.toLocaleString()}원`;
+    return `총 ${s.totalTimeText} · 도보 ${s.totalWalkTimeText} · 환승 ${s.transferCount}회 · ${s.totalFare.toLocaleString()}원`;
   }, [selectedRoute]);
 
   const previewSegments = useMemo(() => {
@@ -275,17 +273,10 @@ export default function CreateMeetingScreen() {
           ) : (
             <>
               <Text style={styles.routeSummaryText}>{routeSummaryText}</Text>
-
-              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 10 }}>
-                {selectedRoute.segments?.map((seg: any, i: number) => (
-                  <>
-                    <SegmentChipSimple key={`seg-${i}`} seg={seg} />
-                    {i < selectedRoute.segments.length - 1 && (
-                      <Text style={{ marginHorizontal: 4, fontSize: 12 }}>→</Text>
-                    )}
-                  </>
-                ))}
+              <View style={{ marginTop: 10 }}>
+                <RouteBar segments={selectedRoute.segments ?? []} />
               </View>
+
 
               <View style={styles.routeActions}>
                 <Pressable onPress={directionSearch} style={styles.smallBtn}>
