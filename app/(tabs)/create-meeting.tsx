@@ -15,7 +15,7 @@ import { useRouter } from "expo-router";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 
 import { usePlacesStore } from "../../store/usePlacesStore";
-import { SegmentChip } from "@/src/components/SegmentChip";
+import { SegmentChipSimple } from "@/src/components/SegmentChipSimple";
 
 // ---------- helpers ----------
 function getLocalYYYYMMDD(d = new Date()) {
@@ -276,9 +276,14 @@ export default function CreateMeetingScreen() {
             <>
               <Text style={styles.routeSummaryText}>{routeSummaryText}</Text>
 
-              <View style={{ gap: 10, marginTop: 10 }}>
-                {previewSegments.map((seg, idx) => (
-                  <SegmentChip key={idx} seg={seg as any} />
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 10 }}>
+                {selectedRoute.segments?.map((seg: any, i: number) => (
+                  <>
+                    <SegmentChipSimple key={`seg-${i}`} seg={seg} />
+                    {i < selectedRoute.segments.length - 1 && (
+                      <Text style={{ marginHorizontal: 4, fontSize: 12 }}>→</Text>
+                    )}
+                  </>
                 ))}
               </View>
 
