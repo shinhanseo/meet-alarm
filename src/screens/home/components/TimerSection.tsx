@@ -83,6 +83,14 @@ export default function TimerSection({
             </Text>
             <Text style={styles.countdownSub}>출발까지 남은 시간</Text>
           </View>
+          <Text
+            style={[
+              styles.ghostBtnText,
+              { marginTop: 8, fontWeight: "600", fontSize : 12 },
+            ]}
+          >
+            도착 10분 전 기준으로 안내해요
+          </Text>
         </>
       ) : (
         <View style={styles.hintBox}>
