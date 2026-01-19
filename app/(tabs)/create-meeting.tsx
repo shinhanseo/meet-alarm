@@ -47,6 +47,7 @@ export default function CreateMeetingScreen() {
     originPlace,
     destPlace,
     setPlace,
+    setPlaceSilent,
 
     meetingDate,
     setMeetingDate,
@@ -56,7 +57,6 @@ export default function CreateMeetingScreen() {
     setSelectedRoute,
     setDepartureAt,
 
-    isConfirmed,
     confirmMeeting,
   } = usePlacesStore();
 
@@ -89,7 +89,7 @@ export default function CreateMeetingScreen() {
       setRegion(r);
 
       if (!originPlace) {
-        setPlace("origin", {
+        setPlaceSilent("origin", {
           name: "현재 위치",
           address: "내 위치",
           lat: r.latitude,

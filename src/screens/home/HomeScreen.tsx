@@ -353,6 +353,7 @@ export default function HomeScreen() {
           meetingDate={meetingDate}
           meetingTime={meetingTimeStr}
           selectedRoute={selectedRoute}
+          isConfirmed={isConfirmed}
           onPressCreate={() => router.push("/create-meeting")}
           onPressEdit={() => router.push("/create-meeting")}
           onPressSearchRoute={directionSearch}

@@ -55,6 +55,8 @@ type PlacesState = {
   setScheduledDepartureNotifId: (id: string | null) => void;
 
   setPlace: (mode: Mode, place: Place) => void;
+  setPlaceSilent: (mode: Mode, place: Place) => void;
+
   setMeetingDate: (date: string | null) => void;
   setMeetingTime: (time: string | null) => void;
 
@@ -101,6 +103,13 @@ export const usePlacesStore = create<PlacesState>()(
           scheduledDepartureNotifId: null,
         })),
 
+      setPlaceSilent: (mode, place) =>
+        set((state) => ({
+          ...state,
+          originPlace: mode === "origin" ? place : state.originPlace,
+          destPlace: mode === "dest" ? place : state.destPlace,
+      })),
+
       setMeetingDate: (date) =>
         set((state) => ({
           ...state,
@@ -125,7 +134,6 @@ export const usePlacesStore = create<PlacesState>()(
         set((state) => ({
           ...state,
           selectedRoute: route,
-          // 경로 바꾸면 확정은 풀고 “저장” 다시 누르게 하는 게 완성도 좋음
           isConfirmed: false,
         })),
 
