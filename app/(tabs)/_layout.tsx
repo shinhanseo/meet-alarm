@@ -13,7 +13,7 @@ export default function TabLayout() {
       try {
         await initNotifications();
       } catch (e) {
-        console.warn("Notifications init failed:", e);
+        console.warn("알람 권한 요청 실패:", e);
       }
     })();
 
@@ -22,7 +22,7 @@ export default function TabLayout() {
       (res) => {
         const data = res.notification.request.content.data as any;
         if (data?.type === "ALARM") {
-          router.push("/alarm");
+          router.push("/");
         }
       }
     );

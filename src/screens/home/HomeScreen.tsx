@@ -14,6 +14,7 @@ import RouteSection from "./components/RouteSection";
 import WeatherSection from "./components/WeatherSection";
 
 import { scheduleAlarmAt } from "@/src/lib/notifications";
+import { cancelAlarm } from "@/src/lib/notifications";
 
 type WeatherDto = {
   name: string;
@@ -53,6 +54,9 @@ export default function HomeScreen() {
     departureAt: departureAtStr, // string | null (ISO)
     setDepartureAt,
 
+    scheduledDepartureNotifId,
+    setScheduledDepartureNotifId,
+
     reset,
   } = usePlacesStore();
 
@@ -86,6 +90,30 @@ export default function HomeScreen() {
     lastWeatherBumpAtRef.current = now;
     setWeatherRefreshKey((k) => k + 1);
   };
+
+  useEffect(() => {
+    const autoSchedule = async () => {
+      if(!departureAt) return;
+
+      try{
+        if(scheduledDepartureNotifId) {
+          await cancelAlarm(scheduledDepartureNotifId);
+          setScheduledDepartureNotifId(null);
+        }
+
+        const id = await scheduleAlarmAt(departureAt, {
+          title : "지금 출발!",
+          body : `지금 출발하세요! (${departTimeText})`
+        });
+
+        setScheduledDepartureNotifId(id);
+      }catch(e){
+        console.error("알림 예약 실패", e);
+      }
+    }
+
+    autoSchedule();
+  }, [departureAtStr]);
 
   useEffect(() => {
     // 약속이 없으면 플래그도 리셋
@@ -236,25 +264,6 @@ export default function HomeScreen() {
       hour12: false,
     });
   }, [departureAt]);
-
-  // 출발 알람 예약 버튼 핸들러
-  const onPressScheduleDepartureAlarm = async () => {
-    try {
-      if (!departureAt) {
-        Alert.alert("아직 출발 시간이 없어요", "경로를 선택하면 출발 시간이 계산돼요.");
-        return;
-      }
-
-      const id = await scheduleAlarmAt(departureAt, {
-        title: "출발 알람",
-        body: `지금 출발하세요! (${departTimeText})`,
-      });
-
-      Alert.alert("알람 예약 완료", `출발 시각: ${departTimeText}\n알림 ID: ${id}`);
-    } catch (e: any) {
-      Alert.alert("알람 예약 실패", e?.message ?? String(e));
-    }
-  };
 
   // 타이머 seconds
   const [seconds, setSeconds] = useState<number>(0);

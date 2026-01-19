@@ -2,6 +2,8 @@ import { create } from "zustand";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { persist, createJSONStorage } from "zustand/middleware";
 
+import { cancelAlarm } from "@/src/lib/notifications";
+
 type Place = {
   name: string;
   address: string;
@@ -11,7 +13,6 @@ type Place = {
 
 type Mode = "origin" | "dest";
 
-// 경로 저장에 필요한 타입
 type Segment = {
   type: "WALK" | "BUS" | "SUBWAY" | string;
   timeMin: number;
@@ -47,6 +48,9 @@ type PlacesState = {
   selectedRoute: RouteItem | null;
   departureAt: string | null;
 
+  scheduledDepartureNotifId: string | null;
+  setScheduledDepartureNotifId: (id: string | null) => void;
+
   setPlace: (mode: Mode, place: Place) => void;
 
   setMeetingDate: (date: string | null) => void;
@@ -62,15 +66,19 @@ type PlacesState = {
 
 export const usePlacesStore = create<PlacesState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       originPlace: null,
       destPlace: null,
 
-      meetingDate: new Date().toISOString().slice(0, 10), 
+      meetingDate: new Date().toISOString().slice(0, 10),
       meetingTime: null,
 
       selectedRoute: null,
       departureAt: null,
+
+      scheduledDepartureNotifId: null,
+      setScheduledDepartureNotifId: (id) =>
+        set((state) => ({ ...state, scheduledDepartureNotifId: id })),
 
       setPlace: (mode, place) =>
         set((state) => ({
@@ -82,13 +90,20 @@ export const usePlacesStore = create<PlacesState>()(
       setMeetingDate: (date) => set((state) => ({ ...state, meetingDate: date })),
       setMeetingTime: (time) => set((state) => ({ ...state, meetingTime: time })),
 
-      setSelectedRoute: (route) =>
-        set((state) => ({ ...state, selectedRoute: route })),
+      setSelectedRoute: (route) => set((state) => ({ ...state, selectedRoute: route })),
       clearSelectedRoute: () => set((state) => ({ ...state, selectedRoute: null })),
 
       setDepartureAt: (d) => set((state) => ({ ...state, departureAt: d })),
 
-      reset: () =>
+      reset: () => {
+        const { scheduledDepartureNotifId } = get();
+
+        if (scheduledDepartureNotifId) {
+          cancelAlarm(scheduledDepartureNotifId).catch((e) =>
+            console.error("cancelScheduledAlarm failed", e)
+          );
+        }
+
         set({
           originPlace: null,
           destPlace: null,
@@ -96,7 +111,9 @@ export const usePlacesStore = create<PlacesState>()(
           meetingTime: null,
           selectedRoute: null,
           departureAt: null,
-        }),
+          scheduledDepartureNotifId: null, 
+        });
+      },
     }),
     {
       name: "places-store-v2",
@@ -109,6 +126,7 @@ export const usePlacesStore = create<PlacesState>()(
         meetingTime: state.meetingTime,
         selectedRoute: state.selectedRoute,
         departureAt: state.departureAt,
+        scheduledDepartureNotifId: state.scheduledDepartureNotifId,
       }),
     }
   )
