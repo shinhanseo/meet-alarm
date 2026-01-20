@@ -15,7 +15,9 @@ import { useRouter } from "expo-router";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 
 import { usePlacesStore } from "../../store/usePlacesStore";
-import { RouteBar } from "@/src/components/RouteBar"; 
+import { RouteBar } from "@/src/components/RouteBar";
+
+import { MaterialIcons } from '@expo/vector-icons';
 
 // ---------- helpers ----------
 function getLocalYYYYMMDD(d = new Date()) {
@@ -111,14 +113,13 @@ export default function CreateMeetingScreen() {
     if (!originPlace || !destPlace || !meetingDate || !meetingTimeStr) {
       Alert.alert(
         "입력이 필요해요",
-        `${
-          !originPlace
-            ? "출발지"
-            : !destPlace
+        `${!originPlace
+          ? "출발지"
+          : !destPlace
             ? "도착지"
             : !meetingDate
-            ? "약속 날짜"
-            : "약속 시간"
+              ? "약속 날짜"
+              : "약속 시간"
         }를 먼저 설정해주세요.`,
         [{ text: "확인" }]
       );
@@ -132,15 +133,15 @@ export default function CreateMeetingScreen() {
     return formatDateLabel(meetingDate);
   }, [meetingDate]);
 
-  const progressText = useMemo(() => {
-    const done = [
-      !!originPlace,
-      !!destPlace,
-      !!meetingDate,
-      !!meetingTimeStr,
-      !!selectedRoute
-    ].filter(Boolean).length;
+  const done = [
+    !!originPlace,
+    !!destPlace,
+    !!meetingDate,
+    !!meetingTimeStr,
+    !!selectedRoute
+  ].filter(Boolean).length;
 
+  const progressText = useMemo(() => {
     if (done === 0) return "아직 아무것도 설정되지 않았어요.";
     if (done === 1) return "좋아요. 하나만 더 설정해봐요.";
     if (done === 2) return "좋아요. 세 가지만 더 하면 돼요.";
@@ -167,7 +168,7 @@ export default function CreateMeetingScreen() {
   const onPressSave = () => {
     if (!readyToSave) return;
     confirmMeeting();
-    router.replace("/"); 
+    router.replace("/");
   };
 
   if (!region) {
@@ -184,6 +185,7 @@ export default function CreateMeetingScreen() {
       {/* 헤더 */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>약속 설정</Text>
+        <MaterialIcons name="alarm" size={26} color="#F97316" />
       </View>
 
       <ScrollView
@@ -258,8 +260,10 @@ export default function CreateMeetingScreen() {
 
         {/* 경로 선택 카드 */}
         <View style={styles.routeCard}>
-          <Text style={styles.routeTitle}>경로 선택</Text>
-
+          <View style={styles.routeHeader}>
+            <Text style={styles.routeTitle}>경로 선택</Text>
+            <MaterialIcons name="directions" size={20} color="#F97316" />
+          </View>
           {!selectedRoute ? (
             <Pressable
               onPress={directionSearch}
@@ -301,8 +305,10 @@ export default function CreateMeetingScreen() {
 
         {/* 진행 상태/가이드 */}
         <View style={styles.infoCard}>
-          <Text style={styles.infoTitle}>진행 상태</Text>
-
+          <View style={styles.routeHeader}>
+            <Text style={styles.infoTitle}>진행 상태</Text>
+            {done <= 4 ? <MaterialIcons name="autorenew" size={20} color="#F97316" /> : <MaterialIcons name="check-circle" size={20} color="#F97316" />}
+          </View>
           <View style={styles.progressRow}>
             <View style={[styles.dot, originPlace && styles.dotOn]} />
             <Text style={styles.progressText}>출발지</Text>
@@ -360,8 +366,8 @@ export default function CreateMeetingScreen() {
           {readyToSave
             ? "저장하면 홈에서 출발 타이머와 알림이 자동으로 설정돼요."
             : selectedRoute
-            ? "필수 입력을 확인해 주세요."
-            : "경로를 선택하면 저장 버튼이 활성화돼요."}
+              ? "필수 입력을 확인해 주세요."
+              : "경로를 선택하면 저장 버튼이 활성화돼요."}
         </Text>
       </View>
 
@@ -415,7 +421,7 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    gap: 6,
   },
   headerTitle: { fontSize: 22, fontWeight: "900", color: THEME.text },
 
@@ -625,4 +631,11 @@ const styles = StyleSheet.create({
     color: THEME.muted,
     textAlign: "center",
   },
+
+  routeHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8, // 아이콘이랑 텍스트 사이 간격
+  },
+
 });
