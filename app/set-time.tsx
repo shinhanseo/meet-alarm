@@ -56,7 +56,7 @@ export default function SetTimeScreen() {
             display="spinner"
             onChange={onChange}
             style={styles.iosPicker}
-            textColor="#FFFFFF"
+            textColor="#000"
           />
         </View>
       ) : (
@@ -101,7 +101,7 @@ export default function SetTimeScreen() {
 
           const isNight = hour >= 23 || hour <= 6;
 
-          if(isNight) {
+          if (isNight) {
             Alert.alert("심야 시간에는 대중교통 운행이 제한될 수 있어요.", "다른 이동 수단을 고려해 보세요", [
               { text: "확인" },
             ])
@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
   // iOS 전용
   iosTimeWrapper: {
     width: "100%",
-    backgroundColor: THEME.orange,
+    backgroundColor: THEME.orangeSoft,
     borderRadius: 20,
     paddingVertical: 10,
     paddingHorizontal: 10,
@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
     marginTop: 40,
     width: "100%",
     height: 52,
-    backgroundColor: THEME.orangeSoft,
+    backgroundColor: THEME.orange,
     borderRadius: 16,
     alignItems: "center",
     justifyContent: "center",
@@ -225,7 +225,7 @@ const styles = StyleSheet.create({
   confirmText: {
     fontSize: 16,
     fontWeight: "800",
-    color: THEME.orangeDark,
+    color: "#fff",
     letterSpacing: 0.3,
   },
 });
