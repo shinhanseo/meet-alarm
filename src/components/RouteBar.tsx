@@ -134,7 +134,7 @@ export function RouteBar({
 
   return (
     <View style={styles.container}>
-      <View style={styles.barContainer}>
+      <View style={[styles.barContainer, { height: routeOnly ? 18 : 26 }]}>
         {segments.map((seg, idx) => (
           <SegmentBar key={`bar-${idx}`} seg={seg} totalMinutes={totalMinutes} />
         ))}
@@ -158,7 +158,6 @@ const styles = StyleSheet.create({
 
   barContainer: {
     flexDirection: "row",
-    height: 32,
     borderRadius: 8,
     overflow: "hidden",
     backgroundColor: "#F3F4F6",
