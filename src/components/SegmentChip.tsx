@@ -18,9 +18,30 @@ const formatDistance = (m?: number) => {
   return `${km.toFixed(km < 10 ? 1 : 0)}km`;
 };
 
+function formatBusRoute(route?: string) {
+  if (!route) return "버스";
+
+  // 숫자만 추출 (버스 번호)
+  const number = route.match(/\d+/)?.[0] ?? "";
+
+  if (route.includes("직행") || route.includes("광역")) {
+    return `광역버스 ${number}`;
+  }
+
+  if (route.includes("마을")) {
+    return `마을버스 ${number}`;
+  }
+
+  if (route.includes("일반")) {
+    return `시내버스 ${number}`;
+  }
+
+  return `버스 ${number}`;
+}
+
 export function SegmentChip({ seg }: { seg: Segment }) {
   const mins = parseInt(seg.timeText.replace(/[^0-9]/g, "")) || 0;
-  if(mins == 0) return;
+  if (mins == 0) return;
 
   const dist = formatDistance(seg.distanceM);
   const walkSuffix = dist ? `(${dist})` : "";
@@ -29,10 +50,14 @@ export function SegmentChip({ seg }: { seg: Segment }) {
     seg.type === "WALK"
       ? `🚶 도보 ${seg.timeText}${walkSuffix}`
       : seg.type === "BUS"
-      ? `🚌 ${seg.route ?? "버스"} ${seg.timeText}`
-      : seg.type === "SUBWAY"
-      ? `🚇 ${seg.line ?? "지하철"} ${seg.timeText}`
-      : `${seg.type} ${seg.timeText}`;
+        ? `🚌 ${formatBusRoute(seg.route)} ${seg.timeText}`
+        : seg.type === "SUBWAY"
+          ? `🚇 ${seg.line ?? "지하철"} ${seg.timeText}`
+          : seg.type === "AIRPLANE"
+            ? `✈️ 비행기 ${seg.timeText}`
+            : seg.type === "EXPRESSBUS"
+              ? `🚎 고속/시외 버스 ${seg.timeText}`
+              : `${seg.type} ${seg.timeText}`
 
   const subLabel =
     seg.from && seg.to
@@ -46,8 +71,8 @@ export function SegmentChip({ seg }: { seg: Segment }) {
   const backgroundColor = isWalk
     ? "#E2E2E2"                    // 도보: 화이트
     : seg.color
-    ? `#${seg.color}`              // 버스/지하철: 원래 색 유지
-    : "#E5E7EB";
+      ? `#${seg.color}`              // 버스/지하철: 원래 색 유지
+      : "#3B82F6";
 
   const borderColor = isWalk ? "#E7E5E4" : "transparent";
   const textColor = isWalk ? "#111827" : "#FFFFFF";

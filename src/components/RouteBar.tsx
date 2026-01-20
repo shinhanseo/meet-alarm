@@ -11,6 +11,18 @@ export type Segment = {
   color?: string; // 예: "3B82F6" (샵 없이 오는 값)
 };
 
+function parseKoreanTime(text: string) {
+  let total = 0;
+
+  const hourMatch = text.match(/(\d+)\s*시간/);
+  const minMatch = text.match(/(\d+)\s*분/);
+
+  if (hourMatch) total += parseInt(hourMatch[1]) * 60;
+  if (minMatch) total += parseInt(minMatch[1]);
+
+  return total;
+}
+
 function SegmentBar({
   seg,
   totalMinutes,
@@ -18,7 +30,7 @@ function SegmentBar({
   seg: Segment;
   totalMinutes: number;
 }) {
-  const mins = parseInt(seg.timeText.replace(/[^0-9]/g, "")) || 0;
+  const mins = parseKoreanTime(seg.timeText);
   if (mins == 0) return;
 
   const ratio = totalMinutes > 0 ? mins / totalMinutes : 0;
@@ -38,27 +50,52 @@ function SegmentBar({
   return (
     <View style={[styles.barSegment, { flex: flexValue, backgroundColor: bgColor }]}>
       <Text style={[styles.barText, { color: textColor }]} numberOfLines={1}>
-        {`${mins}분`}
+        {seg.timeText}
       </Text>
     </View>
   );
 }
 
+function formatBusRoute(route?: string) {
+  if (!route) return "버스";
+
+  // 숫자만 추출 (버스 번호)
+  const number = route.match(/\d+/)?.[0] ?? "";
+
+  if (route.includes("직행") || route.includes("광역")) {
+    return `광역버스 ${number}`;
+  }
+
+  if (route.includes("마을")) {
+    return `마을버스 ${number}`;
+  }
+
+  if (route.includes("일반")) {
+    return `시내버스 ${number}`;
+  }
+
+  return `버스 ${number}`;
+}
+
 function SegmentLabel({ seg }: { seg: Segment }) {
   const mainLabel =
     seg.type === "BUS"
-      ? `🚌 ${seg.route ?? "버스"}`
+      ? `🚌 ${formatBusRoute(seg.route) ?? "버스"}`
       : seg.type === "SUBWAY"
         ? `🚇 ${seg.line ?? "지하철"}`
-        : "";
+        : seg.type === "AIRPLANE"
+          ? `✈️ 비행기`
+          : seg.type === "EXPRESSBUS"
+            ? `🚎 고속/시외 버스`
+            : "";
 
   if (!mainLabel) return null;
 
-  const backgroundColor = seg.type == "WALK"
+  const backgroundColor = seg.type === "WALK"
     ? "#E2E2E2"                    // 도보: 화이트
     : seg.color
       ? `#${seg.color}`              // 버스/지하철: 원래 색 유지
-      : "#E5E7EB";
+      : "#3B82F6";
 
   const textColor = seg.type == "WALK" ? "#111827" : "#FFFFFF";
 
