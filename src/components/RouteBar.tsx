@@ -19,7 +19,7 @@ function SegmentBar({
   totalMinutes: number;
 }) {
   const mins = parseInt(seg.timeText.replace(/[^0-9]/g, "")) || 0;
-  if(mins == 0) return;
+  if (mins == 0) return;
 
   const ratio = totalMinutes > 0 ? mins / totalMinutes : 0;
 
@@ -30,17 +30,17 @@ function SegmentBar({
   const bgColor = isWalk
     ? "#E2E2E2"
     : seg.color
-    ? (seg.color.startsWith("#") ? seg.color : `#${seg.color}`)
-    : "#3B82F6";
-  
+      ? (seg.color.startsWith("#") ? seg.color : `#${seg.color}`)
+      : "#3B82F6";
+
   const textColor = isWalk ? "#111827" : "#FFFFFF";
-  
+
   return (
-      <View style={[styles.barSegment, { flex: flexValue, backgroundColor: bgColor }]}>
-        <Text style={[styles.barText,  { color: textColor }]} numberOfLines={1}>
-          {`${mins}분`}
-        </Text>
-      </View>
+    <View style={[styles.barSegment, { flex: flexValue, backgroundColor: bgColor }]}>
+      <Text style={[styles.barText, { color: textColor }]} numberOfLines={1}>
+        {`${mins}분`}
+      </Text>
+    </View>
   );
 }
 
@@ -49,20 +49,22 @@ function SegmentLabel({ seg }: { seg: Segment }) {
     seg.type === "BUS"
       ? `🚌 ${seg.route ?? "버스"}`
       : seg.type === "SUBWAY"
-      ? `🚇 ${seg.line ?? "지하철"}`
-      : "";
+        ? `🚇 ${seg.line ?? "지하철"}`
+        : "";
 
   if (!mainLabel) return null;
 
   const backgroundColor = seg.type == "WALK"
     ? "#E2E2E2"                    // 도보: 화이트
     : seg.color
-    ? `#${seg.color}`              // 버스/지하철: 원래 색 유지
-    : "#E5E7EB";
+      ? `#${seg.color}`              // 버스/지하철: 원래 색 유지
+      : "#E5E7EB";
+
+  const textColor = seg.type == "WALK" ? "#111827" : "#FFFFFF";
 
   return (
     <View style={[styles.labelChip, { backgroundColor }]}>
-      <Text style={styles.labelText} numberOfLines={1}>
+      <Text style={[styles.labelText, { color: textColor }]} numberOfLines={1}>
         {mainLabel}
       </Text>
     </View>
@@ -92,7 +94,7 @@ export function RouteBar({
   }, 0);
 
   const hasWalk = segments.some((seg) => seg.type === "WALK");
-  
+
   return (
     <View style={styles.container}>
       <View style={styles.barContainer}>
@@ -123,7 +125,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     overflow: "hidden",
     backgroundColor: "#F3F4F6",
-    marginBottom : 8,
+    marginBottom: 8,
   },
   barSegment: {
     justifyContent: "center",
