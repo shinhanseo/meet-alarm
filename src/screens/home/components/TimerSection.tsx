@@ -69,10 +69,10 @@ export default function TimerSection({
                 {seconds <= 0
                   ? "지금 출발하세요!"
                   : seconds <= 300
-                  ? "서둘러야 해요!"
-                  : seconds <= 600
-                  ? "슬슬 나갈 준비하세요"
-                  : "아직 여유 있어요"}
+                    ? "늦지 않게 서두르세요!"
+                    : seconds <= 600
+                      ? "이제 소지품을 챙겨볼까요?"
+                      : "아직은 마음 놓으셔도 돼요."}
               </Text>
             </View>
           </View>
@@ -86,7 +86,7 @@ export default function TimerSection({
           <Text
             style={[
               styles.ghostBtnText,
-              { fontWeight: "600", fontSize : 12 },
+              { fontWeight: "600", fontSize: 12 },
             ]}
           >
             도착 10분 전 기준으로 안내해요

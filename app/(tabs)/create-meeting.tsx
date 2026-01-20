@@ -147,7 +147,7 @@ export default function CreateMeetingScreen() {
     if (done === 2) return "좋아요. 세 가지만 더 하면 돼요.";
     if (done === 3) return "거의 다 됐어요. 시간만 설정하면 경로를 선택할 수 있어요!";
     if (done === 4) return "정말 다 왔어요. 이제 경로를 선택해 주세요.";
-    return "완료! 이제 약속을 저장해주세요";
+    return "준비 완료! 이제 저장만 하면 약속을 늦지 않게 알려드릴게요";
   }, [originPlace, destPlace, meetingDate, meetingTimeStr, selectedRoute]);
 
   const readyInput = !!(originPlace && destPlace && meetingDate && meetingTimeStr);
@@ -215,7 +215,7 @@ export default function CreateMeetingScreen() {
               <Text style={styles.label}>도착</Text>
               <TextInput
                 value={destPlace ? destPlace.name : ""}
-                placeholder="목적지를 입력하세요"
+                placeholder="도착지는 어디인가요?"
                 placeholderTextColor={THEME.placeholder}
                 style={styles.input}
                 editable={false}
@@ -247,7 +247,7 @@ export default function CreateMeetingScreen() {
               <Pressable onPress={openTimer} style={styles.timePressable}>
                 <TextInput
                   value={meetingTime}
-                  placeholder="약속 시간"
+                  placeholder="언제 만나기로 하셨나요?"
                   placeholderTextColor={THEME.placeholder}
                   style={styles.timeinput}
                   editable={false}

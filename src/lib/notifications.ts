@@ -41,7 +41,7 @@ export async function initNotifications() {
     }
   }
 
-  // Android는 "알림 채널"을 반드시 만들어야 함
+  // Android용 알람 채널 설정
   if (Platform.OS === "android") {
     await Notifications.setNotificationChannelAsync("alarm", {
       name: "Alarm", // 채널 이름
