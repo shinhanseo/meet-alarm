@@ -55,8 +55,6 @@ export async function initNotifications() {
 
 /**
  * 특정 시각에 울리는 알람(로컬 알림) 예약 함수
- * @param date 알람이 울릴 Date 객체
- * @param opts 알림 제목/본문 옵션
  */
 export async function scheduleAlarmAt(
   date: Date,
@@ -89,7 +87,6 @@ export async function scheduleAlarmAt(
 
 /**
  * 예약된 알람 취소 함수
- * @param id scheduleAlarmAt에서 받은 알림 ID
  */
 export async function cancelAlarm(id: string) {
   await Notifications.cancelScheduledNotificationAsync(id);

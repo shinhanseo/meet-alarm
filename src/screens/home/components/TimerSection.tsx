@@ -86,7 +86,7 @@ export default function TimerSection({
           <Text
             style={[
               styles.ghostBtnText,
-              { marginTop: 8, fontWeight: "600", fontSize : 12 },
+              { fontWeight: "600", fontSize : 12 },
             ]}
           >
             도착 10분 전 기준으로 안내해요

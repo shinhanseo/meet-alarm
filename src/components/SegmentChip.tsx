@@ -44,7 +44,7 @@ export function SegmentChip({ seg }: { seg: Segment }) {
   const isWalk = seg.type === "WALK";
 
   const backgroundColor = isWalk
-    ? "#FFFFFF"                    // 도보: 화이트
+    ? "#E2E2E2"                    // 도보: 화이트
     : seg.color
     ? `#${seg.color}`              // 버스/지하철: 원래 색 유지
     : "#E5E7EB";
