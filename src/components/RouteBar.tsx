@@ -8,7 +8,7 @@ export type Segment = {
   to?: string;
   route?: string;
   line?: string;
-  color?: string; // 예: "3B82F6" (샵 없이 오는 값)
+  color?: string;
 };
 
 function parseKoreanTime(text: string) {
