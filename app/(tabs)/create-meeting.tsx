@@ -128,11 +128,13 @@ export default function CreateMeetingScreen() {
     router.push({ pathname: "/direction-search" });
   };
 
+  // 날짜 선택택
   const dateText = useMemo(() => {
     if (!meetingDate) return "";
     return formatDateLabel(meetingDate);
   }, [meetingDate]);
 
+  // 진행현황 섹션 변수
   const done = [
     !!originPlace,
     !!destPlace,
@@ -154,22 +156,29 @@ export default function CreateMeetingScreen() {
 
   const readyToSave = !!(readyInput && selectedRoute);
 
+  // 경로 최상단에 보여줄 정보
   const routeSummaryText = useMemo(() => {
     if (!selectedRoute) return "";
     const s = selectedRoute.summary;
     return `총 ${s.totalTimeText} · 도보 ${s.totalWalkTimeText} · 환승 ${s.transferCount}회 · ${s.totalFare.toLocaleString()}원`;
   }, [selectedRoute]);
 
-  const previewSegments = useMemo(() => {
-    if (!selectedRoute) return [];
-    return selectedRoute.segments.slice(0, 3);
-  }, [selectedRoute]);
 
+  // 약속 저장 버튼
   const onPressSave = () => {
     if (!readyToSave) return;
     confirmMeeting();
     router.replace("/");
   };
+
+  // 오늘 / 내일 활성화 버튼 관련 변수
+  const today = getLocalYYYYMMDD(new Date());
+
+  const tomorrowDate = (() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    return getLocalYYYYMMDD(d);
+  })();
 
   if (!region) {
     return (
@@ -230,10 +239,50 @@ export default function CreateMeetingScreen() {
               <Pressable onPress={() => setShowDateModal(true)} style={{ flex: 1 }}>
                 <View style={styles.fakeInput}>
                   <Text style={styles.fakeInputText}>
-                    {meetingDate ? dateText : "약속 날짜"}
+                    {meetingDate == today ? "오늘" : meetingDate == tomorrowDate ? "내일" : meetingDate ? dateText : "약속 날짜"}
                   </Text>
                 </View>
               </Pressable>
+
+              <View style={styles.segment}>
+                <Pressable
+                  onPress={() => setMeetingDate(today)}
+                  style={[
+                    styles.segmentBtn,
+                    meetingDate == today && styles.segmenttodayBtnActive,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.segmentText,
+                      meetingDate == today && styles.segmentTextActive,
+                    ]}
+                  >
+                    오늘
+                  </Text>
+                </Pressable>
+
+                <View style={styles.segmentDivider} />
+
+                <Pressable
+                  onPress={() => {
+                    setMeetingDate(tomorrowDate)
+                  }}
+                  style={[
+                    styles.segmentBtn,
+                    meetingDate == tomorrowDate && styles.segmenttomorrowBtnActive,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.segmentText,
+                      meetingDate == tomorrowDate && styles.segmentTextActive,
+                    ]}
+                  >
+                    내일
+                  </Text>
+                </Pressable>
+              </View>
 
               <Pressable onPress={() => setShowDateModal(true)} style={styles.calendarBtn}>
                 <Text style={styles.calendarText}>📅</Text>
@@ -307,7 +356,7 @@ export default function CreateMeetingScreen() {
         <View style={styles.infoCard}>
           <View style={styles.routeHeader}>
             <Text style={styles.infoTitle}>진행 상태</Text>
-            {done <= 4 ? <MaterialIcons name="autorenew" size={20} color="#F97316" /> : <MaterialIcons name="check-circle" size={20} color="#F97316" />}
+            {done <= 4 ? <MaterialIcons name="autorenew" size={18} color="#F97316" /> : <MaterialIcons name="check-circle" size={18} color="#F97316" />}
           </View>
           <View style={styles.progressRow}>
             <View style={[styles.dot, originPlace && styles.dotOn]} />
@@ -638,4 +687,35 @@ const styles = StyleSheet.create({
     gap: 8, // 아이콘이랑 텍스트 사이 간격
   },
 
+  segmentBtn: {
+    paddingVertical: 9,
+    paddingHorizontal: 12,
+  },
+  segmenttodayBtnActive: {
+    borderTopLeftRadius: 12,
+    borderBottomLeftRadius: 12,
+    backgroundColor: THEME.orange,
+  },
+  segmenttomorrowBtnActive: {
+    borderTopRightRadius: 12,
+    borderBottomRightRadius: 12,
+    backgroundColor: THEME.orange,
+  },
+  segmentText: {
+    fontSize: 13,
+    fontWeight: "900",
+    color: THEME.orangeDark,
+  },
+  segment: {
+    flexDirection: "row",
+    backgroundColor: THEME.orangeSoft,
+    borderRadius: 12,
+  },
+  segmentTextActive: {
+    color: "#FFFFFF"
+  },
+  segmentDivider: {
+    width: 1,
+    backgroundColor: THEME.orangeBorder,
+  },
 });
