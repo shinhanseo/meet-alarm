@@ -10,7 +10,7 @@ import { styles } from "./styles";
 import HeaderBar from "./components/HeaderBar";
 import MeetingSection from "./components/MeetingSection";
 import TimerSection from "./components/TimerSection";
-import RouteSection from "./components/RouteSection";
+import HomeRouteSection from "./components/HomeRouteSection";
 import WeatherSection from "./components/WeatherSection";
 
 type WeatherDto = {
@@ -234,7 +234,7 @@ export default function HomeScreen() {
           isConfirmed={isConfirmed}
         />
 
-        <RouteSection
+        <HomeRouteSection
           selectedRoute={selectedRoute}
           onPressChangeRoute={directionSearch}
           isConfirmed={isConfirmed}

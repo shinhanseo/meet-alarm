@@ -9,8 +9,8 @@ type Props = {
   isConfirmed: boolean;
 };
 
-export default function RouteSection({ selectedRoute, onPressChangeRoute, isConfirmed }: Props) {
-  return !isConfirmed ? ( 
+export default function HomeRouteSection({ selectedRoute, onPressChangeRoute, isConfirmed }: Props) {
+  return !isConfirmed ? (
     <View style={styles.emptyCard}>
       <Text style={styles.emptySub}>
         경로 선택 시 자세한 경로가 보여요.

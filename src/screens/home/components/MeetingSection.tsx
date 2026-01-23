@@ -45,6 +45,7 @@ export default function MeetingSection({
   onPressEdit,
   onPressSearchRoute,
 }: Props) {
+
   const hasMeetingData = !!(originPlace && destPlace && meetingDate && meetingTime);
   const showCard = isConfirmed && hasMeetingData;
 

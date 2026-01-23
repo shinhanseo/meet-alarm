@@ -1,6 +1,6 @@
 import { View, Text } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import { styles } from "@/src/screens/create-meeting/styles";
+import { styles } from "../styles";
 import { THEME } from "@/src/styles/theme";
 
 export function HeaderBar({ title }: { title: string }) {

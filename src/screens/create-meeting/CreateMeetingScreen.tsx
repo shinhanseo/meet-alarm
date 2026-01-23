@@ -9,12 +9,15 @@ import { styles } from "./styles";
 
 import { HeaderBar } from "./components/HeaderBar";
 import { InputCard } from "./components/InputCard";
-import { RouteSection } from "./components/RouteSection";
+import { CreateMeetingRouteSection } from "./components/CreateMeetingRouteSection";
 import { ProgressSection } from "./components/ProgressSection";
 import { BottomBar } from "./components/BottomBar";
 import { DatePickerModal } from "./components/DatePickerModal";
 
 // ---------- helpers ----------
+// ---------------------------------------------------------
+// 1. ex) 2025-12-31 string형태로 변환
+// ---------------------------------------------------------
 function getLocalYYYYMMDD(d = new Date()) {
   const yyyy = d.getFullYear();
   const mm = String(d.getMonth() + 1).padStart(2, "0");
@@ -22,11 +25,17 @@ function getLocalYYYYMMDD(d = new Date()) {
   return `${yyyy}-${mm}-${dd}`;
 }
 
+// ---------------------------------------------------------
+// 2. ex) 2025-12-31을 Date 객체로 변환 
+// ---------------------------------------------------------
 function ymdToDate(ymd: string) {
   const [y, m, d] = ymd.split("-").map(Number);
   return new Date(y, m - 1, d);
 }
 
+// ---------------------------------------------------------
+// 3. Date 객체를 요일을 포함한 보기 좋은 형식으로 변환 2025.12.31 (금)
+// ---------------------------------------------------------
 function formatDateLabel(yyyyMMdd: string) {
   const [y, m, d] = yyyyMMdd.split("-").map(Number);
   const date = new Date(y, m - 1, d);
@@ -41,15 +50,16 @@ export default function CreateMeetingScreen() {
   const router = useRouter();
 
   const {
-    originPlace,
-    destPlace,
-    setPlaceSilent,
+    originPlace,  // 출발지
+    destPlace,    // 도착지
+    setPlaceSilent, // 현재위치를 참조할 경우 useEffect가 중복되서 렌더되는 오류를 잡기 위해 추가
 
-    meetingDate,
+    // 약속 일 및 시간은 String
+    meetingDate,  // 약속일
     setMeetingDate,
-    meetingTime: meetingTimeStr,
+    meetingTime: meetingTimeStr, // 약속 시간
 
-    selectedRoute,
+    selectedRoute, // 내가 선택한 경로
     setSelectedRoute,
     setDepartureAt,
 
@@ -61,6 +71,7 @@ export default function CreateMeetingScreen() {
   const [region, setRegion] = useState<Region | null>(null);
   const [showDateModal, setShowDateModal] = useState(false);
 
+  // 오늘 및 내일 토글 버튼을 위한 변수 설정
   const today = getLocalYYYYMMDD(new Date());
   const tomorrowDate = useMemo(() => {
     const d = new Date();
@@ -68,10 +79,12 @@ export default function CreateMeetingScreen() {
     return getLocalYYYYMMDD(d);
   }, []);
 
+  // meetingDate 변수 string으로 변환
   useEffect(() => {
     if (!meetingDate) setMeetingDate(getLocalYYYYMMDD());
   }, [meetingDate, setMeetingDate]);
 
+  // 출발지를 현재 위치로 설정
   useEffect(() => {
     (async () => {
       const { status } = await Location.requestForegroundPermissionsAsync();
@@ -100,14 +113,17 @@ export default function CreateMeetingScreen() {
     })();
   }, [originPlace, setPlaceSilent]);
 
+  // 출발지 및 목적지 장소 설정
   const openSearch = (mode: "origin" | "dest") => {
     router.push({ pathname: "/place-search", params: { mode } });
   };
 
+  // 시간 설정
   const openTimer = () => {
     router.push({ pathname: "/set-time" });
   };
 
+  // 경로 선택 설정 시 그 전에 체크 여부 확인
   const directionSearch = () => {
     if (!originPlace || !destPlace || !meetingDate || !meetingTimeStr) {
       Alert.alert(
@@ -127,9 +143,11 @@ export default function CreateMeetingScreen() {
     router.push({ pathname: "/direction-search" });
   };
 
+  // 경로 선택 및 저장 가능 여부 판단
   const readyInput = !!(originPlace && destPlace && meetingDate && meetingTimeStr);
   const readyToSave = !!(readyInput && selectedRoute);
 
+  // 진행상태 섹션에서 사용할 변수로 doneCount 변화에 따라 ux 문구 변화
   const doneCount = [
     !!originPlace,
     !!destPlace,
@@ -138,6 +156,7 @@ export default function CreateMeetingScreen() {
     !!selectedRoute,
   ].filter(Boolean).length;
 
+  // doneCount에 따른 ux 문구 변화 
   const progressText = useMemo(() => {
     if (doneCount === 0) return "아직 아무것도 설정되지 않았어요.";
     if (doneCount === 1) return "좋아요. 하나만 더 설정해봐요.";
@@ -147,11 +166,13 @@ export default function CreateMeetingScreen() {
     return "준비 완료! 이제 저장만 하면 약속을 늦지 않게 알려드릴게요";
   }, [doneCount]);
 
+  // 약속일을 보기 좋은 형태(요일 포함)으로 변환
   const dateText = useMemo(() => {
     if (!meetingDate) return "";
     return formatDateLabel(meetingDate);
   }, [meetingDate]);
 
+  // 만약 약속일이 당일 또는 내일일 시 날짜로 표현 대신 오늘 및 내일로 표시
   const meetingDateLabel = useMemo(() => {
     if (!meetingDate) return "";
     if (meetingDate === today) return "오늘";
@@ -159,18 +180,21 @@ export default function CreateMeetingScreen() {
     return dateText;
   }, [meetingDate, today, tomorrowDate, dateText]);
 
+  // 내가 선택한 경로 요약 문구
   const routeSummaryText = useMemo(() => {
     if (!selectedRoute) return "";
     const s = selectedRoute.summary;
     return `총 ${s.totalTimeText} · 도보 ${s.totalWalkTimeText} · 환승 ${s.transferCount}회 · ${s.totalFare.toLocaleString()}원`;
   }, [selectedRoute]);
 
+  // 약속 저장
   const onPressSave = () => {
     if (!readyToSave) return;
     confirmMeeting();
     router.replace("/");
   };
 
+  // 현재 위치 불러오기 전까지 나올 로딩 화면
   if (!region) {
     return (
       <View style={styles.loading}>
@@ -200,7 +224,7 @@ export default function CreateMeetingScreen() {
           onPressTime={openTimer}
         />
 
-        <RouteSection
+        <CreateMeetingRouteSection
           selectedRoute={selectedRoute}
           readyInput={readyInput}
           routeSummaryText={routeSummaryText}
