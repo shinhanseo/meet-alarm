@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import axios from "axios";
-import { usePlacesStore } from "../store/usePlacesStore";
+import { usePlacesStore } from "@/store/usePlacesStore";
 import { API_BASE_URL } from "@/src/config/env";
 import { useRouter } from "expo-router";
 
@@ -20,13 +20,13 @@ type Segment = {
   type: "WALK" | "BUS" | "SUBWAY" | string;
   timeMin: number;
   timeText: string;
-  from?: string; // 출발지
-  to?: string; // 목적지
-  distanceM: number; // WALK일 때 미터 표시용
-  route?: string; // 버스 번호
-  line?: string; // 지하철 노선
-  stops?: number; // 지나가는 정거장
-  color?: string; // 노선 색상 (hex string without #)
+  from?: string;
+  to?: string;
+  distanceM: number;
+  route?: string;
+  line?: string;
+  stops?: number;
+  color?: string;
 };
 
 type RouteItem = {
@@ -41,12 +41,14 @@ type RouteItem = {
   segments: Segment[];
 };
 
-const formatWon = (n: number) =>
-  `${Number(n || 0).toLocaleString("ko-KR")}원`;
+const formatWon = (n: number) => `${Number(n || 0).toLocaleString("ko-KR")}원`;
 
 export default function DirectionSearchScreen() {
   const router = useRouter();
-  const { originPlace, destPlace, setSelectedRoute } = usePlacesStore();
+
+  const { draft, setDraftSelectedRoute } = usePlacesStore();
+  const originPlace = draft?.originPlace ?? null;
+  const destPlace = draft?.destPlace ?? null;
 
   const [loading, setLoading] = useState(true);
   const [routes, setRoutes] = useState<RouteItem[]>([]);
@@ -65,7 +67,6 @@ export default function DirectionSearchScreen() {
         setRoutes(res.data.routes ?? []);
         setSelectedIndex(0);
       } catch (e: any) {
-        // 404(경로 없음) 처리
         if (e?.response?.status === 404) {
           Alert.alert(
             "경로를 찾을 수 없어요",
@@ -87,18 +88,13 @@ export default function DirectionSearchScreen() {
     else setLoading(false);
   }, [originPlace, destPlace]);
 
-  const selectedRoute = useMemo(
-    () => routes[selectedIndex],
-    [routes, selectedIndex]
-  );
+  const selectedRoute = useMemo(() => routes[selectedIndex], [routes, selectedIndex]);
 
   if (loading) {
     return (
       <View style={styles.center}>
         <ActivityIndicator />
-        <Text style={{ marginTop: 10, backgroundColor: "#fff" }}>
-          경로 탐색 중...
-        </Text>
+        <Text style={{ marginTop: 10, backgroundColor: "#fff" }}>경로 탐색 중...</Text>
       </View>
     );
   }
@@ -113,7 +109,6 @@ export default function DirectionSearchScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* 상단 요약 */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>
           {originPlace.name ?? "출발"} → {destPlace.name ?? "도착"}
@@ -122,9 +117,7 @@ export default function DirectionSearchScreen() {
         {selectedRoute ? (
           <>
             <View style={styles.headerRow}>
-              <Text style={styles.bigTime}>
-                {selectedRoute.summary.totalTimeText}
-              </Text>
+              <Text style={styles.bigTime}>{selectedRoute.summary.totalTimeText}</Text>
               <Text style={styles.meta}>
                 · {formatWon(selectedRoute.summary.totalFare)} · 환승{" "}
                 {selectedRoute.summary.transferCount}회
@@ -147,7 +140,6 @@ export default function DirectionSearchScreen() {
         )}
       </View>
 
-      {/* 경로 리스트 */}
       <FlatList
         data={routes}
         keyExtractor={(_, idx) => String(idx)}
@@ -165,11 +157,8 @@ export default function DirectionSearchScreen() {
               onPress={() => setSelectedIndex(index)}
               style={[styles.card, active && styles.cardActive]}
             >
-              {/* 카드 헤더 */}
               <View style={styles.cardTop}>
-                <Text
-                  style={[styles.cardTitle, active && styles.cardTitleActive]}
-                >
+                <Text style={[styles.cardTitle, active && styles.cardTitleActive]}>
                   {index + 1}번 경로
                 </Text>
                 <Text style={[styles.cardTime, active && styles.cardTimeActive]}>
@@ -177,14 +166,11 @@ export default function DirectionSearchScreen() {
                 </Text>
               </View>
 
-              {/* 메타 */}
               <Text style={styles.cardMeta}>
-                {formatWon(item.summary.totalFare)} · 환승{" "}
-                {item.summary.transferCount}회 · 도보{" "}
-                {item.summary.totalWalkTimeText}
+                {formatWon(item.summary.totalFare)} · 환승 {item.summary.transferCount}회 ·
+                도보 {item.summary.totalWalkTimeText}
               </Text>
 
-              {/* 구간 칩들 */}
               <View style={styles.chipsWrap}>
                 {item.segments?.map((seg, i) => (
                   <SegmentChip key={`${index}-${i}`} seg={seg} />
@@ -195,13 +181,13 @@ export default function DirectionSearchScreen() {
         }}
       />
 
-      {/* 하단 버튼 */}
       <View style={styles.bottomBar}>
         <Pressable
           style={[styles.primaryBtn, !selectedRoute && { opacity: 0.5 }]}
           disabled={!selectedRoute}
           onPress={() => {
-            setSelectedRoute(routes[selectedIndex]);
+            if (!selectedRoute) return;
+            setDraftSelectedRoute(selectedRoute);
             router.replace("/create-meeting");
           }}
         >

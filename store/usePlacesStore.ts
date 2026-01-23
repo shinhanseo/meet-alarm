@@ -2,191 +2,267 @@ import { create } from "zustand";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { cancelAlarm, scheduleAlarmAt } from "@/src/lib/notifications";
+import { calculateDepartureAt } from "@/src/utils/calculateDepartureAt";
 
 type Place = { name: string; address: string; lat: number; lng: number };
 type Mode = "origin" | "dest";
 
-// 기존 타입 정의들 (Segment, RouteItem 등)은 그대로 사용하시면 됩니다.
+export type Appointment = {
+  id: string;
+  originPlace: Place | null;
+  destPlace: Place | null;
+  meetingDate: string | null;   // YYYY-MM-DD
+  meetingTime: string | null;   // HH:mm
+  selectedRoute: any | null;
+  isConfirmed: boolean;
+  scheduledDepartureNotifId: string | null;
+};
 
-type PlacesState = {
+export type AppointmentDraft = {
   originPlace: Place | null;
   destPlace: Place | null;
   meetingDate: string | null;
   meetingTime: string | null;
   selectedRoute: any | null;
-  departureAt: string | null;
-  isConfirmed: boolean;
-  scheduledDepartureNotifId: string | null;
-  isScheduling: boolean; // 중복 예약 방지 잠금 플래그
+};
 
-  // 액션들
-  confirmMeeting: () => void;
-  unconfirm: () => void;
-  setScheduledDepartureNotifId: (id: string | null) => void;
-  setPlace: (mode: Mode, place: Place) => void;
-  setPlaceSilent: (mode: Mode, place: Place) => void;
-  setMeetingDate: (date: string | null) => void;
-  setMeetingTime: (time: string | null) => void;
-  setSelectedRoute: (route: any | null) => void;
-  clearSelectedRoute: () => void;
-  setDepartureAt: (d: string | null) => void;
-  scheduleDepartureAlarm: () => Promise<void>;
-  reset: () => void;
+type PlacesState = {
+  appointments: Appointment[];
+  draft: AppointmentDraft | null;
+  isScheduling: boolean;
+
+  // draft
+  startDraft: () => void;
+  resetDraft: () => void;
+
+  setDraftPlace: (mode: Mode, place: Place) => void;
+  setDraftPlaceSilent: (mode: Mode, place: Place) => void;
+  setDraftMeetingDate: (date: string | null) => void;
+  setDraftMeetingTime: (time: string | null) => void;
+  setDraftSelectedRoute: (route: any | null) => void;
+  clearDraftSelectedRoute: () => void;
+
+  // save
+  saveDraft: () => string | null;
+
+  // alarm
+  scheduleDepartureAlarm: (id: string) => Promise<void>;
+  cancelDepartureAlarm: (id: string) => Promise<void>;
+
+  // delete
+  deleteAppointment: (id: string) => Promise<void>;
+
+  resetAll: () => Promise<void>;
 };
 
 const todayYMD = () => new Date().toISOString().slice(0, 10);
 
+const makeNewId = () => {
+  // @ts-ignore
+  if (typeof crypto !== "undefined" && crypto?.randomUUID) return crypto.randomUUID();
+  return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+};
+
+const emptyDraft = (): AppointmentDraft => ({
+  originPlace: null,
+  destPlace: null,
+  meetingDate: todayYMD(),
+  meetingTime: null,
+  selectedRoute: null,
+});
+
 export const usePlacesStore = create<PlacesState>()(
   persist(
     (set, get) => {
-      // 내부 헬퍼: 실제 알람 취소 기능 (상태값 변경은 호출한 곳에서 처리)
-      const internalCancel = async () => {
-        const { scheduledDepartureNotifId } = get();
-        if (scheduledDepartureNotifId) {
-          try {
-            await cancelAlarm(scheduledDepartureNotifId);
-            console.log("기존 예약 취소 : ", scheduledDepartureNotifId);
-          } catch (e) {
-            console.error("알람 취소 실패:", e);
-          }
-        }
+      const internalCancel = async (id: string) => {
+        const app = get().appointments.find((a) => a.id === id);
+        if (!app?.scheduledDepartureNotifId) return;
+        try {
+          await cancelAlarm(app.scheduledDepartureNotifId);
+        } catch { }
       };
 
       return {
-        originPlace: null,
-        destPlace: null,
-        meetingDate: todayYMD(),
-        meetingTime: null,
-        selectedRoute: null,
-        departureAt: null,
-        isConfirmed: false,
-        scheduledDepartureNotifId: null,
+        appointments: [],
+        draft: null,
         isScheduling: false,
 
-        confirmMeeting: () => set({ isConfirmed: true }),
-        unconfirm: () => set({ isConfirmed: false }),
+        // --------------------
+        // draft
+        // --------------------
+        startDraft: () => set({ draft: emptyDraft() }),
+        resetDraft: () => set({ draft: null }),
 
-        setScheduledDepartureNotifId: (id) => set({ scheduledDepartureNotifId: id }),
+        setDraftPlace: (mode, place) =>
+          set((s) => {
+            if (!s.draft) return s;
+            return {
+              draft: {
+                ...s.draft,
+                originPlace: mode === "origin" ? place : s.draft.originPlace,
+                destPlace: mode === "dest" ? place : s.draft.destPlace,
+                selectedRoute: null,
+              },
+            };
+          }),
 
-        // 알람 예약 로직 
-        scheduleDepartureAlarm: async () => {
-          const { departureAt, scheduledDepartureNotifId, isScheduling } = get();
-          if (isScheduling || !departureAt) return;
+        setDraftPlaceSilent: (mode, place) =>
+          set((s) => {
+            if (!s.draft) return s;
+            return {
+              draft: {
+                ...s.draft,
+                originPlace: mode === "origin" ? place : s.draft.originPlace,
+                destPlace: mode === "dest" ? place : s.draft.destPlace,
+              },
+            };
+          }),
 
-          const departureDate = new Date(departureAt);
-          if (departureDate.getTime() <= Date.now() + 3000) return;
+        setDraftMeetingDate: (date) =>
+          set((s) => {
+            if (!s.draft) return s;
+            return {
+              draft: {
+                ...s.draft,
+                meetingDate: date,
+                selectedRoute: null,
+              },
+            };
+          }),
+
+        setDraftMeetingTime: (time) =>
+          set((s) => {
+            if (!s.draft) return s;
+            return {
+              draft: {
+                ...s.draft,
+                meetingTime: time,
+                selectedRoute: null,
+              },
+            };
+          }),
+
+        setDraftSelectedRoute: (route) =>
+          set((s) => {
+            if (!s.draft) return s;
+            return { draft: { ...s.draft, selectedRoute: route } };
+          }),
+
+        clearDraftSelectedRoute: () =>
+          set((s) => {
+            if (!s.draft) return s;
+            return {
+              draft: { ...s.draft, selectedRoute: null },
+            };
+          }),
+
+        // --------------------
+        // save
+        // --------------------
+        saveDraft: () => {
+          const { draft } = get();
+          if (!draft) return null;
+
+          const id = makeNewId();
+
+          const app: Appointment = {
+            id,
+            originPlace: draft.originPlace,
+            destPlace: draft.destPlace,
+            meetingDate: draft.meetingDate,
+            meetingTime: draft.meetingTime,
+            selectedRoute: draft.selectedRoute,
+            isConfirmed: true,
+            scheduledDepartureNotifId: null,
+          };
+
+          set((s) => ({
+            appointments: [...s.appointments, app],
+            draft: null,
+          }));
+
+          return id;
+        },
+
+        // --------------------
+        // alarm
+        // --------------------
+        scheduleDepartureAlarm: async (id) => {
+          const { appointments, isScheduling } = get();
+          const app = appointments.find((a) => a.id === id);
+          if (!app || !app.destPlace || isScheduling) return;
+
+          const departureAt = calculateDepartureAt(
+            app.meetingDate,
+            app.meetingTime,
+            app.selectedRoute,
+            10
+          );
+
+          if (!departureAt || departureAt.getTime() <= Date.now()) return;
 
           set({ isScheduling: true });
           try {
-            if (scheduledDepartureNotifId) {
-              await internalCancel();
-            }
-            const newId = await scheduleAlarmAt(departureDate, {
-              title: "지금 출발!",
-              body: "지각하지 않으려면 지금 출발해야 해요!",
+            await internalCancel(id);
+
+            const timeText = departureAt.toLocaleTimeString("ko-KR", {
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: false,
             });
-            console.log("알람 예약 성공:", newId);
-            set({ scheduledDepartureNotifId: newId });
-          } catch (error) {
-            console.error("알람 예약 오류:", error);
+
+            const notifId = await scheduleAlarmAt(departureAt, {
+              title: "지금 출발!",
+              body: `${app.destPlace.name}에 늦지 않으려면 지금 출발해야 해요! (${timeText})`,
+            });
+
+            set((s) => ({
+              appointments: s.appointments.map((a) =>
+                a.id === id ? { ...a, scheduledDepartureNotifId: notifId } : a
+              ),
+            }));
           } finally {
             set({ isScheduling: false });
           }
         },
 
-        setPlace: (mode, place) => {
-          internalCancel(); // 장소 바뀌면 기존 알람 취소
-          set((state) => ({
-            ...state,
-            originPlace: mode === "origin" ? place : state.originPlace,
-            destPlace: mode === "dest" ? place : state.destPlace,
-            selectedRoute: null,
-            departureAt: null,
-            isConfirmed: false,
-            scheduledDepartureNotifId: null,
+        cancelDepartureAlarm: async (id) => {
+          await internalCancel(id);
+          set((s) => ({
+            appointments: s.appointments.map((a) =>
+              a.id === id ? { ...a, scheduledDepartureNotifId: null } : a
+            ),
           }));
         },
 
-        setPlaceSilent: (mode, place) =>
-          set((state) => ({
-            ...state,
-            originPlace: mode === "origin" ? place : state.originPlace,
-            destPlace: mode === "dest" ? place : state.destPlace,
-          })),
-
-        setMeetingDate: (date) => {
-          internalCancel();
-          set({
-            meetingDate: date,
-            selectedRoute: null,
-            departureAt: null,
-            isConfirmed: false,
-            scheduledDepartureNotifId: null,
-          });
-        },
-
-        setMeetingTime: (time) => {
-          internalCancel();
-          set({
-            meetingTime: time,
-            selectedRoute: null,
-            departureAt: null,
-            isConfirmed: false,
-            scheduledDepartureNotifId: null,
-          });
-        },
-
-        setSelectedRoute: (route) =>
-          set({ selectedRoute: route, isConfirmed: false }),
-
-        clearSelectedRoute: () => {
-          internalCancel();
-          set({
-            selectedRoute: null,
-            departureAt: null,
-            isConfirmed: false,
-            scheduledDepartureNotifId: null,
-          });
-        },
-
-        setDepartureAt: (d) => {
-          if (!d) {
-            set({ departureAt: null });
-            return;
+        resetAll: async () => {
+          for (const a of get().appointments) {
+            if (a.scheduledDepartureNotifId) {
+              try {
+                await cancelAlarm(a.scheduledDepartureNotifId);
+              } catch { }
+            }
           }
-          const date = new Date(d);
-          date.setSeconds(0, 0); // 00초 000ms로 고정
-          set({ departureAt: date.toISOString() });
+          set({ appointments: [], draft: null });
         },
 
-        reset: () => {
-          internalCancel();
-          set({
-            originPlace: null,
-            destPlace: null,
-            meetingDate: todayYMD(),
-            meetingTime: null,
-            selectedRoute: null,
-            departureAt: null,
-            isConfirmed: false,
-            scheduledDepartureNotifId: null,
-          });
-        },
+        deleteAppointment: async (id) => {
+          // 알람 먼저 취소
+          await internalCancel(id);
+
+          // 배열에서 제거
+          set((s) => ({
+            appointments: s.appointments.filter((a) => a.id !== id),
+          }));
+        }
       };
     },
     {
-      name: "places-store-v4",
+      name: "places-store-v6",
       storage: createJSONStorage(() => AsyncStorage),
-      // 필요한 데이터만 저장하려면 partialize 유지
-      partialize: (state) => ({
-        originPlace: state.originPlace,
-        destPlace: state.destPlace,
-        meetingDate: state.meetingDate,
-        meetingTime: state.meetingTime,
-        selectedRoute: state.selectedRoute,
-        departureAt: state.departureAt,
-        isConfirmed: state.isConfirmed,
-        scheduledDepartureNotifId: state.scheduledDepartureNotifId,
+      partialize: (s) => ({
+        appointments: s.appointments,
+        draft: s.draft,
       }),
     }
   )

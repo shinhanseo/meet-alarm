@@ -12,7 +12,7 @@ import { useLocalSearchParams, useRouter, Stack } from "expo-router";
 import axios from "axios";
 import { Ionicons } from "@expo/vector-icons";
 
-import { usePlacesStore } from "../store/usePlacesStore";
+import { usePlacesStore } from "@/store/usePlacesStore";
 import { API_BASE_URL } from "@/src/config/env";
 
 type Place = {
@@ -25,7 +25,8 @@ type Place = {
 export default function PlaceSearchScreen() {
   const router = useRouter();
   const { mode } = useLocalSearchParams<{ mode: "origin" | "dest" }>();
-  const { setPlace } = usePlacesStore();
+
+  const { setDraftPlace } = usePlacesStore();
 
   const [q, setQ] = useState("");
   const [items, setItems] = useState<Place[]>([]);
@@ -67,8 +68,8 @@ export default function PlaceSearchScreen() {
       return;
     }
 
-    setPlace(mode, place);
-    router.replace("/(tabs)/create-meeting");
+    setDraftPlace(mode, place);
+    router.replace("/create-meeting");
   };
 
   const goMapPick = () => {
@@ -83,7 +84,6 @@ export default function PlaceSearchScreen() {
     <>
       <Stack.Screen options={{ headerShown: false }} />
       <View style={styles.container}>
-        {/* 헤더 + 지도 선택 아이콘 */}
         <View style={styles.headerRow}>
           <Text style={styles.header}>
             {mode === "origin" ? "출발지 검색" : "목적지 검색"}

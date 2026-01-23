@@ -4,7 +4,6 @@ import { useMemo, useState } from "react";
 import { useRouter } from "expo-router";
 import { usePlacesStore } from "../store/usePlacesStore";
 
-// "YYYY-MM-DD" + (tempTime의 시/분) => 실제 약속 Date 만들기
 function buildMeetingAt(meetingDate: string, time: Date) {
   const [y, m, d] = meetingDate.split("-").map(Number);
   return new Date(y, m - 1, d, time.getHours(), time.getMinutes(), 0, 0);
@@ -26,7 +25,9 @@ function parseInitialTime(meetingTime: string | null) {
 export default function SetTimeScreen() {
   const router = useRouter();
 
-  const { meetingTime, setMeetingTime, meetingDate } = usePlacesStore();
+  const { draft, setDraftMeetingTime } = usePlacesStore();
+  const meetingDate = draft?.meetingDate ?? null;
+  const meetingTime = draft?.meetingTime ?? null;
 
   const [tempTime, setTempTime] = useState<Date>(() => parseInitialTime(meetingTime));
   const [showAndroidPicker, setShowAndroidPicker] = useState(false);
@@ -68,12 +69,7 @@ export default function SetTimeScreen() {
           </Pressable>
 
           {showAndroidPicker && (
-            <DateTimePicker
-              value={tempTime}
-              mode="time"
-              display="default"
-              onChange={onChange}
-            />
+            <DateTimePicker value={tempTime} mode="time" display="default" onChange={onChange} />
           )}
         </>
       )}
@@ -83,7 +79,7 @@ export default function SetTimeScreen() {
         onPress={() => {
           if (!meetingDate) {
             Alert.alert("날짜가 필요해요", "먼저 약속 날짜를 선택해주세요.", [
-              { text: "확인", onPress: () => router.replace("/(tabs)/create-meeting") },
+              { text: "확인", onPress: () => router.replace("/create-meeting") },
             ]);
             return;
           }
@@ -91,26 +87,24 @@ export default function SetTimeScreen() {
           const meetingAt = buildMeetingAt(meetingDate, tempTime);
 
           if (meetingAt.getTime() < Date.now()) {
-            Alert.alert("이미 지난 시간입니다", "약속 시간을 다시 설정해주세요", [
-              { text: "확인" },
-            ]);
+            Alert.alert("이미 지난 시간입니다", "약속 시간을 다시 설정해주세요", [{ text: "확인" }]);
             return;
           }
 
           const hour = meetingAt.getHours();
-
           const isNight = hour >= 23 || hour <= 6;
 
           if (isNight) {
-            Alert.alert("심야 시간에는 대중교통 운행이 제한될 수 있어요.", "다른 이동 수단을 고려해 보세요", [
-              { text: "확인" },
-            ])
+            Alert.alert(
+              "심야 시간에는 대중교통 운행이 제한될 수 있어요.",
+              "다른 이동 수단을 고려해 보세요",
+              [{ text: "확인" }]
+            );
             return;
           }
 
-          setMeetingTime(toHHmm(tempTime));
-
-          router.replace("/(tabs)/create-meeting");
+          setDraftMeetingTime(toHHmm(tempTime));
+          router.replace("/create-meeting");
         }}
       >
         <Text style={styles.confirmText}>확인</Text>
@@ -147,7 +141,6 @@ const styles = StyleSheet.create({
     marginBottom: 30,
   },
 
-  // iOS 전용
   iosTimeWrapper: {
     width: "100%",
     backgroundColor: THEME.orangeSoft,
@@ -167,7 +160,6 @@ const styles = StyleSheet.create({
     transform: [{ scale: 1.1 }],
   },
 
-  // Android용 시간 표시 카드
   timeRow: {
     width: "100%",
     backgroundColor: THEME.orange,
