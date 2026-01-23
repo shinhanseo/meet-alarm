@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, useRef } from "react";
-import { View, Alert, ScrollView, Pressable, Text } from "react-native";
+import { View, Alert, ScrollView } from "react-native";
 import { useRouter } from "expo-router";
 import axios from "axios";
 
@@ -13,9 +13,6 @@ import TimerSection from "./components/TimerSection";
 import RouteSection from "./components/RouteSection";
 import WeatherSection from "./components/WeatherSection";
 
-import { scheduleAlarmAt } from "@/src/lib/notifications";
-import { cancelAlarm } from "@/src/lib/notifications";
-
 type WeatherDto = {
   name: string;
   temp: number;
@@ -28,14 +25,11 @@ type WeatherDto = {
   dt: number;
 };
 
-// "YYYY-MM-DD" + "HH:mm" => Date
+// 날짜/시간 조합 헬퍼
 function buildMeetingAt(meetingDate: string, meetingTimeHHmm: string) {
   const [y, m, d] = meetingDate.split("-").map(Number);
   const [hh, mm] = meetingTimeHHmm.split(":").map(Number);
-
-  // 방어: 파싱 실패 시 Invalid Date 방지
   if ([y, m, d, hh, mm].some((n) => Number.isNaN(n))) return null;
-
   return new Date(y, m - 1, d, hh, mm, 0, 0);
 }
 
@@ -45,306 +39,170 @@ export default function HomeScreen() {
   const {
     originPlace,
     destPlace,
-
-    meetingDate, // string | null
-    meetingTime: meetingTimeStr, // string | null ("HH:mm")
-
+    meetingDate,
+    meetingTime: meetingTimeStr,
     selectedRoute,
-
-    departureAt: departureAtStr, // string | null (ISO)
+    departureAt: departureAtStr,
     setDepartureAt,
-
-    scheduledDepartureNotifId,
-    setScheduledDepartureNotifId,
-
+    scheduleDepartureAlarm,
     isConfirmed,
     reset,
   } = usePlacesStore();
 
   const bufferMin = 10;
-
   const departureAt = departureAtStr ? new Date(departureAtStr) : null;
 
-  // 실제 약속 시간(Date)
+  // 1. 실제 약속 시간 계산
   const meetingAt = useMemo(() => {
     if (!meetingDate || !meetingTimeStr) return null;
     return buildMeetingAt(meetingDate, meetingTimeStr);
   }, [meetingDate, meetingTimeStr]);
 
-  // 목적지 날씨 상태
-  const [destWeather, setDestWeather] = useState<WeatherDto | null>(null);
-  const [weatherLoading, setWeatherLoading] = useState(false);
-  const [weatherError, setWeatherError] = useState<string | null>(null);
-  const [weatherRefreshKey, setWeatherRefreshKey] = useState(0); // 30분, 2시간 이내 갱신용
-
-  const weatherInFlightRef = useRef(false);
-  const lastWeatherBumpAtRef = useRef(0);
-  const weatherTickIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  const didAutoResetRef = useRef(false);
-
-
-  const bumpWeatherRefreshKey = () => {
-    const now = Date.now();
-    // 30초 이내 연속 갱신 방지 (원하면 60_000으로)
-    if (now - lastWeatherBumpAtRef.current < 30_000) return;
-    lastWeatherBumpAtRef.current = now;
-    setWeatherRefreshKey((k) => k + 1);
-  };
+  // ---------------------------------------------------------
+  // 2. 알람 예약 로직 (중복 방지 강화)
+  // ---------------------------------------------------------
+  const lastKeyRef = useRef<string | null>(null);
 
   useEffect(() => {
-    const autoSchedule = async () => {
-      if(!departureAt) return;
-
-      const now = Date.now();
-      const target = departureAt.getTime();
-      if(target <= now + 3000){
-        return;
-      }
-
-      try{
-        if(scheduledDepartureNotifId) {
-          await cancelAlarm(scheduledDepartureNotifId);
-          setScheduledDepartureNotifId(null);
-        }
-
-        const id = await scheduleAlarmAt(departureAt, {
-          title : "지금 출발!",
-          body : `지금 출발하세요! (${departTimeText})`
-        });
-
-        setScheduledDepartureNotifId(id);
-      }catch(e){
-        console.error("알림 예약 실패", e);
-      }
-    }
-
-    autoSchedule();
-  }, [departureAtStr]);
-
-  useEffect(() => {
-    // 약속이 없으면 플래그도 리셋
-    if (!meetingAt) {
-      didAutoResetRef.current = false;
+    // 확정 상태가 아니거나 시간이 없으면 예약하지 않음
+    if (!departureAtStr || !isConfirmed) {
+      lastKeyRef.current = null;
       return;
     }
 
-    didAutoResetRef.current = false;
+    // 동일한 시간(정규화됨)이면 중복 호출 차단
+    if (lastKeyRef.current === departureAtStr) return;
 
-    const checkAndReset = () => {
-      if (didAutoResetRef.current) return;
+    lastKeyRef.current = departureAtStr;
+    console.log("알람 예약 실행:", departureAtStr);
+    scheduleDepartureAlarm();
+  }, [departureAtStr, isConfirmed, scheduleDepartureAlarm]);
 
-      const now = Date.now();
-      const meetingMs = meetingAt.getTime();
+  // ---------------------------------------------------------
+  // 3. 날씨 로직 (단순화: 앱 진입 시 또는 목적지 변경 시 실행)
+  // ---------------------------------------------------------
+  const [destWeather, setDestWeather] = useState<WeatherDto | null>(null);
+  const [weatherLoading, setWeatherLoading] = useState(false);
+  const [weatherError, setWeatherError] = useState<string | null>(null);
 
-      // 약속 시간이 "지금보다 과거"면 초기화
-      if (meetingMs <= now) {
-        didAutoResetRef.current = true;
-
-        Alert.alert(
-          "약속 시간이 지났어요",
-          "이전 약속을 초기화할게요.",
-          [{ text: "확인", onPress: () => reset() }]
-        );
-      } 
-    };
-
-    // 즉시 1회 체크 + 이후 주기 체크(앱 켜져있는 동안)
-    checkAndReset();
-    const id = setInterval(checkAndReset, 30_000); 
-    return () => clearInterval(id);
-  }, [meetingAt, reset]);
-
-  // 목적지 현재 날씨 가져오기 (destPlace 바뀔 때 + refreshKey 바뀔 때)
   useEffect(() => {
     const fetchDestWeather = async () => {
       if (!destPlace) {
         setDestWeather(null);
-        setWeatherError(null);
         return;
       }
-
-      // 이미 요청 중이면 추가 요청 막기
-      if (weatherInFlightRef.current) return;
-      weatherInFlightRef.current = true;
-
       try {
         setWeatherLoading(true);
         setWeatherError(null);
-
         const res = await axios.get(`${API_BASE_URL}/api/weather`, {
           params: { lat: destPlace.lat, lon: destPlace.lng },
           timeout: 8000,
         });
-
         setDestWeather(res.data.weather);
-      } catch (e: any) {
-        console.error(e);
-        setDestWeather(null);
+      } catch (e) {
         setWeatherError("날씨 정보를 불러오지 못했어요.");
       } finally {
-        weatherInFlightRef.current = false;
         setWeatherLoading(false);
       }
     };
 
     fetchDestWeather();
-  }, [destPlace, weatherRefreshKey]);
+  }, [destPlace]); // 목적지가 바뀔 때만 새로 호출
 
-  const didRefresh2hRef = useRef(false);
-  const didRefresh30mRef = useRef(false);
-
-  useEffect(() => {
-    if (!destPlace) return;
-    if (!departureAt) return;
-
-    // departureAt 또는 destPlace가 바뀌면 플래그 리셋
-    didRefresh2hRef.current = false;
-    didRefresh30mRef.current = false;
-
-    // interval 중복 방지
-    if (weatherTickIntervalRef.current) {
-      clearInterval(weatherTickIntervalRef.current);
-      weatherTickIntervalRef.current = null;
-    }
-
-    const tick = () => {
-      const now = Date.now();
-      const diffMs = departureAt.getTime() - now;
-      const diffMin = Math.floor(diffMs / 60000);
-
-      if (diffMs <= 0) return;
-
-      if (diffMin <= 120 && !didRefresh2hRef.current) {
-        didRefresh2hRef.current = true;
-        bumpWeatherRefreshKey(); // setWeatherRefreshKey 대신(쿨다운 적용)
-      }
-
-      if (diffMin <= 30 && !didRefresh30mRef.current) {
-        didRefresh30mRef.current = true;
-        bumpWeatherRefreshKey(); // setWeatherRefreshKey 대신(쿨다운 적용)
-      }
-    };
-
-    tick();
-    weatherTickIntervalRef.current = setInterval(tick, 60_000);
-
-    return () => {
-      if (weatherTickIntervalRef.current) {
-        clearInterval(weatherTickIntervalRef.current);
-        weatherTickIntervalRef.current = null;
-      }
-    };
-  }, [destPlace, departureAt]);
-
-  // 출발 추천 시각(ms) = meetingAt - travel - buffer
+  // ---------------------------------------------------------
+  // 4. 출발 시각 계산 및 스토어 업데이트 (00초 정규화)
+  // ---------------------------------------------------------
   const departAtMs = useMemo(() => {
     if (!selectedRoute || !meetingAt) return null;
-
     const meetingMs = meetingAt.getTime();
     const travelMs = selectedRoute.summary.totalTimeMin * 60 * 1000;
     const bufferMs = bufferMin * 60 * 1000;
-
     return meetingMs - travelMs - bufferMs;
   }, [selectedRoute, meetingAt, bufferMin]);
 
-  // departureAt(ISO) store 업데이트
   useEffect(() => {
     if (!departAtMs) {
       if (departureAtStr !== null) setDepartureAt(null);
       return;
     }
 
-    const nextISO = new Date(departAtMs).toISOString();
+    const d = new Date(departAtMs);
+    d.setSeconds(0, 0); // 00초 정규화로 미세한 오차 방지
+    const nextISO = d.toISOString();
 
     if (departureAtStr !== nextISO) {
       setDepartureAt(nextISO);
     }
   }, [departAtMs, departureAtStr, setDepartureAt]);
 
-  // 출발 추천 시각 텍스트
-  const departTimeText = useMemo(() => {
-    if (!departureAt) return "";
-    return departureAt.toLocaleTimeString("ko-KR", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    });
-  }, [departureAt]);
-
-  // 타이머 seconds
+  // ---------------------------------------------------------
+  // 5. 타이머 및 자동 리셋
+  // ---------------------------------------------------------
   const [seconds, setSeconds] = useState<number>(0);
 
-  // 타이머 표시 텍스트 (hh:mm:ss)
-  const timerText = useMemo(() => {
-    const hh = Math.floor(seconds / 3600);
-    const mm = Math.floor((seconds % 3600) / 60);
-    const ss = seconds % 60;
-
-    const two = (n: number) => n.toString().padStart(2, "0");
-
-    if (hh < 24) return `${two(hh)}:${two(mm)}:${two(ss)}`;
-
-    const day = Math.floor(hh / 24);
-    const restHour = hh % 24;
-    return `${day}일 ${two(restHour)}:${two(mm)}:${two(ss)}`;
-  }, [seconds]);
-
-  // 출발까지 남은 시간 타이머
   useEffect(() => {
     const base = departureAt?.getTime();
-    if (!base) {
-      setSeconds(0);
-      return;
-    }
+    if (!base) { setSeconds(0); return; }
 
     const update = () => {
       const diff = Math.max(0, Math.floor((base - Date.now()) / 1000));
       setSeconds(diff);
     };
-
     update();
     const id = setInterval(update, 1000);
     return () => clearInterval(id);
   }, [departureAt]);
 
-  // 입력 체크도 meetingDate 포함
+  const timerText = useMemo(() => {
+    const hh = Math.floor(seconds / 3600);
+    const mm = Math.floor((seconds % 3600) / 60);
+    const ss = seconds % 60;
+    const two = (n: number) => n.toString().padStart(2, "0");
+    if (hh < 24) return `${two(hh)}:${two(mm)}:${two(ss)}`;
+    return `${Math.floor(hh / 24)}일 ${two(hh % 24)}:${two(mm)}:${two(ss)}`;
+  }, [seconds]);
+
+  const departTimeText = useMemo(() => {
+    if (!departureAt) return "";
+    return departureAt.toLocaleTimeString("ko-KR", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false
+    });
+  }, [departureAt]);
+
+  const didAutoResetRef = useRef(false);
+  useEffect(() => {
+    if (!meetingAt) { didAutoResetRef.current = false; return; }
+
+    const checkAndReset = () => {
+      if (didAutoResetRef.current) return;
+      if (meetingAt.getTime() <= Date.now()) {
+        didAutoResetRef.current = true;
+        Alert.alert("약속 시간이 지났어요", "이전 약속을 초기화할게요.", [
+          { text: "확인", onPress: () => reset() }
+        ]);
+      }
+    };
+
+    checkAndReset();
+    const id = setInterval(checkAndReset, 30_000);
+    return () => clearInterval(id);
+  }, [meetingAt, reset]);
+
   const directionSearch = () => {
     if (!originPlace || !destPlace || !meetingDate || !meetingTimeStr) {
-      Alert.alert(
-        "입력이 필요해요",
-        `${
-          !originPlace
-            ? "출발지"
-            : !destPlace
-            ? "도착지"
-            : !meetingDate
-            ? "약속 날짜"
-            : "약속 시간"
-        }를 먼저 설정해주세요.`,
-        [{ text: "확인" }]
-      );
+      Alert.alert("입력이 필요해요", "필수 정보를 먼저 설정해주세요.");
       return;
     }
-
     router.push({ pathname: "/direction-search" });
   };
 
-  const readyToShowResult = !!(
-    originPlace &&
-    destPlace &&
-    meetingDate &&
-    meetingTimeStr &&
-    selectedRoute &&
-    departAtMs
-  );
+  const readyToShowResult = !!(originPlace && destPlace && meetingDate && meetingTimeStr && selectedRoute && departAtMs);
 
   return (
     <View style={styles.container}>
-      <ScrollView
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <HeaderBar onPressReset={reset} />
 
         <MeetingSection
@@ -381,7 +239,6 @@ export default function HomeScreen() {
           onPressChangeRoute={directionSearch}
           isConfirmed={isConfirmed}
         />
-
         <View style={{ height: 12 }} />
       </ScrollView>
     </View>
