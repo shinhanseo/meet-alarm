@@ -1,6 +1,6 @@
 import { View, Text, ActivityIndicator, Image } from "react-native";
 import { styles } from "../styles";
-import { THEME } from "../theme";
+import { THEME } from "../../../styles/theme";
 
 type WeatherDto = {
   name: string;
@@ -99,7 +99,7 @@ export default function WeatherSection({
                 <Text
                   style={[
                     styles.ghostBtnText,
-                    { marginTop: 8, fontWeight: "600", fontSize : 12 },
+                    { marginTop: 8, fontWeight: "600", fontSize: 12 },
                   ]}
                 >
                   출발 시간이 가까워지면 날씨를 다시 확인해요.
