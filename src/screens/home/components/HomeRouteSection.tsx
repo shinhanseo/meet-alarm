@@ -5,11 +5,10 @@ import { RouteBar } from "@/src/components/RouteBar";
 
 type Props = {
   selectedRoute: any;
-  onPressChangeRoute: () => void;
   isConfirmed: boolean;
 };
 
-export default function HomeRouteSection({ selectedRoute, onPressChangeRoute, isConfirmed }: Props) {
+export default function HomeRouteSection({ selectedRoute, isConfirmed }: Props) {
   return !isConfirmed ? (
     <View style={styles.emptyCard}>
       <Text style={styles.emptySub}>
@@ -20,10 +19,7 @@ export default function HomeRouteSection({ selectedRoute, onPressChangeRoute, is
     <View style={styles.routeCard}>
 
       <View style={styles.routeHeader}>
-        <Text style={styles.routeTitle}>선택한 경로</Text>
-        <Pressable onPress={onPressChangeRoute} style={styles.routeLinkBtn}>
-          <Text style={styles.routeLinkText}>경로 변경</Text>
-        </Pressable>
+        <Text style={[styles.routeTitle, { marginBottom: 8, }]}>선택한 경로</Text>
       </View>
 
       <Text style={styles.routeMeta}>

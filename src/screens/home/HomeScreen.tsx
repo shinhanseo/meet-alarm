@@ -39,8 +39,7 @@ function pickNearestFuture(appointments: any[] = []) {
 
   const future = (appointments ?? [])
     .map((a) => {
-      const meetingAt =
-        a.meetingDate && a.meetingTime ? buildMeetingAt(a.meetingDate, a.meetingTime) : null;
+      const meetingAt = a.meetingDate && a.meetingTime ? buildMeetingAt(a.meetingDate, a.meetingTime) : null;
       const ms = meetingAt ? meetingAt.getTime() : null;
       return { app: a, meetingAt, ms };
     })
@@ -233,7 +232,6 @@ export default function HomeScreen() {
 
         <HomeRouteSection
           selectedRoute={selectedRoute}
-          onPressChangeRoute={() => router.push("/create-meeting")}
           isConfirmed={isConfirmed}
         />
 

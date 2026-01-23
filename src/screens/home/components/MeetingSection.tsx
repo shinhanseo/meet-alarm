@@ -78,7 +78,7 @@ export default function MeetingSection({
         {meetingDate ? relativeDayLabel(meetingDate) : ""} · {meetingTime ?? ""}
       </Text>
 
-      <View style={styles.meetingActions}>
+      {/* <View style={styles.meetingActions}>
         <Pressable onPress={onPressEdit} style={styles.ghostBtn}>
           <Text style={styles.ghostBtnText}>약속 수정</Text>
         </Pressable>
@@ -88,7 +88,7 @@ export default function MeetingSection({
             {selectedRoute ? "경로 다시 탐색" : "경로 탐색"}
           </Text>
         </Pressable>
-      </View>
+      </View> */}
     </View>
   );
 }

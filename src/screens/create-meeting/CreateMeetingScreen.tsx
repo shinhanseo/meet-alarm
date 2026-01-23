@@ -47,6 +47,9 @@ export default function CreateMeetingScreen() {
     setDraftSelectedRoute,
 
     saveDraft,
+
+    scheduleDepartureAlarm,
+
   } = usePlacesStore();
 
   const originPlace = draft?.originPlace ?? null;
@@ -66,8 +69,6 @@ export default function CreateMeetingScreen() {
     return getLocalYYYYMMDD(d);
   }, []);
 
-  // 초안이 없을 때만 생성하고, 화면을 떠나도 자동으로 draft를 지우지 않는다.
-  // (장소/시간 선택 화면 갔다가 돌아와도 값이 유지되도록)
   useEffect(() => {
     if (!draft) {
       startDraft();
@@ -172,10 +173,25 @@ export default function CreateMeetingScreen() {
     return `총 ${s.totalTimeText} · 도보 ${s.totalWalkTimeText} · 환승 ${s.transferCount}회 · ${s.totalFare.toLocaleString()}원`;
   }, [selectedRoute]);
 
-  const onPressSave = () => {
+  const onPressSave = async () => {
     if (!readyToSave) return;
+
+    // 1. 약속 저장
     const id = saveDraft();
-    if (!id) return;
+    if (!id) {
+      Alert.alert("오류", "약속 저장에 실패했습니다.");
+      return;
+    }
+
+    // 2. 알림 예약
+    try {
+      await scheduleDepartureAlarm(id);
+    } catch (err) {
+      console.error("알림 예약 실패:", err);
+      // 알림 실패해도 약속은 저장됨
+    }
+
+    // 3. 홈으로 이동
     router.replace("/");
   };
 
