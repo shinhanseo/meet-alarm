@@ -222,4 +222,29 @@ export const styles = StyleSheet.create({
     fontWeight: "900",
     color: THEME.orangeDark,
   },
+
+  sectionRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    flexWrap: "wrap",
+  },
+
+  titlePill: {
+    maxWidth: "80%",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: "#FED7AA",
+    backgroundColor: "#FFF7ED",
+  },
+
+  titlePillText: {
+    fontSize: 13,
+    fontWeight: "900",
+    letterSpacing: -0.2,
+    color: THEME.text,
+  },
+
 });

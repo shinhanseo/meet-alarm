@@ -70,6 +70,7 @@ export default function HomeScreen() {
   const meetingTimeStr = app?.meetingTime ?? null;
   const selectedRoute = app?.selectedRoute ?? null;
   const isConfirmed = app?.isConfirmed ?? false;
+  const meetingTitle = app?.meetingTitle ?? false;
 
   // 2) departureAt은 유틸 함수로 계산
   const departureAt = useMemo(() => {
@@ -180,6 +181,7 @@ export default function HomeScreen() {
             meetingTime={null}
             selectedRoute={null}
             isConfirmed={false}
+            meetingTitle={""}
             onPressCreate={() => router.push("/create-meeting")}
             onPressEdit={() => router.push("/create-meeting")}
             onPressSearchRoute={() => router.push("/create-meeting")}
@@ -193,11 +195,12 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <HeaderBar onPressReset={() => {
-          if (app?.id) {
-            deleteAppointment(app.id);
-          }
-        }} />
+        <HeaderBar
+          onPressReset={() => {
+            if (app?.id) {
+              deleteAppointment(app.id);
+            }
+          }} />
 
         <MeetingSection
           originPlace={originPlace}
@@ -206,6 +209,7 @@ export default function HomeScreen() {
           meetingTime={meetingTimeStr}
           selectedRoute={selectedRoute}
           isConfirmed={isConfirmed}
+          meetingTitle={meetingTitle}
           onPressCreate={() => router.push("/create-meeting")}
           onPressEdit={() => router.push("/create-meeting")}
           onPressSearchRoute={() => {

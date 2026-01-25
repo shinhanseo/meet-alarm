@@ -5,16 +5,16 @@ type Props = {
   originPlace: any;
   destPlace: any;
 
-  meetingDate: string | null; // "YYYY-MM-DD"
-  meetingTime: string | null; // "HH:mm"
+  meetingDate: string | null;
+  meetingTime: string | null;
 
   selectedRoute: any;
   isConfirmed: boolean;
+  meetingTitle: string;
 
   onPressCreate: () => void;
   onPressEdit: () => void;
   onPressSearchRoute: () => void;
-
 };
 
 function relativeDayLabel(ymd: string) {
@@ -22,9 +22,19 @@ function relativeDayLabel(ymd: string) {
   const target = new Date(y, m - 1, d, 0, 0, 0, 0);
 
   const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+  const today = new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate(),
+    0,
+    0,
+    0,
+    0
+  );
 
-  const diffDays = Math.round((target.getTime() - today.getTime()) / (24 * 60 * 60 * 1000));
+  const diffDays = Math.round(
+    (target.getTime() - today.getTime()) / (24 * 60 * 60 * 1000)
+  );
   if (diffDays === 0) return "오늘";
   if (diffDays === 1) return "내일";
 
@@ -41,13 +51,16 @@ export default function MeetingSection({
   meetingTime,
   selectedRoute,
   isConfirmed,
+  meetingTitle,
   onPressCreate,
   onPressEdit,
   onPressSearchRoute,
 }: Props) {
-
   const hasMeetingData = !!(originPlace && destPlace && meetingDate && meetingTime);
   const showCard = isConfirmed && hasMeetingData;
+
+  const title = (meetingTitle ?? "").trim();
+  const displayTitle = title.length > 0 ? title : `${destPlace?.name ?? "약속"}`;
 
   return !showCard ? (
     <View style={styles.emptyCard}>
@@ -62,7 +75,14 @@ export default function MeetingSection({
     </View>
   ) : (
     <View style={styles.meetingCard}>
-      <Text style={styles.sectionLabel}>다음 약속</Text>
+      <View style={styles.sectionRow}>
+        <Text style={styles.sectionLabel}>다음 약속</Text>
+        <View style={styles.titlePill}>
+          <Text style={styles.titlePillText} numberOfLines={1} ellipsizeMode="tail">
+            {displayTitle}
+          </Text>
+        </View>
+      </View>
 
       <View style={styles.placeRow}>
         <Text style={styles.placeText} numberOfLines={1}>
