@@ -8,11 +8,36 @@ import {
   Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
 
 import { usePlacesStore } from "@/store/usePlacesStore";
 import { RouteBar } from "@/src/components/RouteBar";
 import { SegmentChip } from "@/src/components/SegmentChip";
+
+export function getDday(meetingDate: string, meetingTime: string) {
+  const now = new Date();
+
+  const [y, m, d] = meetingDate.split("-").map(Number);
+  const [hh, mm] = meetingTime.split(":").map(Number);
+
+  const meetingDateTime = new Date(y, m - 1, d, hh, mm, 0, 0);
+  const diffMs = meetingDateTime.getTime() - now.getTime();
+
+  if (diffMs <= 0) return "이미 지남";
+
+  const totalHours = Math.ceil(diffMs / 3600000);
+
+  if (totalHours >= 24) {
+    const days = Math.ceil(totalHours / 24);
+    return `D-${days}`;
+  }
+
+  if (totalHours >= 1) {
+    return `${totalHours}시간 후`;
+  }
+
+  return "곧 출발";
+}
+
 
 function buildMeetingAt(meetingDate: string, meetingTimeHHmm: string) {
   if (!meetingDate || !meetingTimeHHmm) return null;
@@ -38,8 +63,6 @@ function formatTimeHHmm(meetingTimeHHmm: string) {
 }
 
 export default function AppointmentsListScreen() {
-  const router = useRouter();
-
   const { appointments, deleteAppointment } = usePlacesStore();
 
   // 펼친 카드 key (RouteBar 눌렀을 때만 토글)
@@ -69,6 +92,7 @@ export default function AppointmentsListScreen() {
           destName: a?.destPlace?.name ?? "목적지",
           ms,
           segments,
+          now,
         };
       })
       .filter((x) => x.meetingDate && x.meetingTime && x.ms != null)
@@ -101,10 +125,17 @@ export default function AppointmentsListScreen() {
             <View style={styles.cardShell}>
               <View style={styles.rowTop}>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.dateText}>
-                    {formatDateLabel(item.meetingDate!)} ·{" "}
-                    {formatTimeHHmm(item.meetingTime!)}
-                  </Text>
+                  <View style={styles.metaRow}>
+                    <Text style={styles.dateText}>
+                      {formatDateLabel(item.meetingDate!)} · {formatTimeHHmm(item.meetingTime!)}
+                    </Text>
+
+                    <View style={styles.ddayPill}>
+                      <Text style={styles.ddayText}>
+                        {getDday(item.meetingDate, item.meetingTime)}
+                      </Text>
+                    </View>
+                  </View>
 
                   <Text style={styles.routeText} numberOfLines={1}>
                     {item.originName} → {item.destName}
@@ -139,7 +170,6 @@ export default function AppointmentsListScreen() {
                 </Pressable>
               </View>
 
-              {/* RouteBar만 Pressable: 눌렀을 때만 펼침/접힘 */}
               {!!segments.length && (
                 <Pressable
                   style={({ pressed }) => [
@@ -148,7 +178,7 @@ export default function AppointmentsListScreen() {
                   ]}
                   onPress={() => setOpenKey(isOpen ? null : item.key)}
                 >
-                  <RouteBar segments={segments} routeOnly />
+                  <RouteBar segments={segments} />
                   <Text style={styles.toggleHint}>{isOpen ? "접기" : "자세히"}</Text>
                 </Pressable>
               )}
@@ -179,6 +209,8 @@ export const THEME = {
   placeholder: "#9AA0A6",
   border: "#E7E5E4",
 
+  orangeSoft: "#FFF7ED",
+  orangeBorder: "#FED7AA",
   danger: "#DC2626",
   dangerSoft: "#FEF2F2",
 };
@@ -196,12 +228,11 @@ const styles = StyleSheet.create({
 
   listContent: { paddingHorizontal: 20, paddingBottom: 30 },
 
-  // 카드 외형 (늘어나는 느낌은 이 shell이 담당)
   cardShell: {
     backgroundColor: THEME.card,
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: THEME.border,
+    borderColor: THEME.orangeBorder,
     overflow: "hidden",
 
     shadowColor: "#000",
@@ -235,6 +266,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: THEME.dangerSoft,
     borderWidth: 1,
+    marginBottom: 12,
     borderColor: "#FECACA",
   },
   deleteText: { color: THEME.danger, fontSize: 12, fontWeight: "900" },
@@ -279,5 +311,27 @@ const styles = StyleSheet.create({
     fontSize: 15,
     textAlign: "center",
     lineHeight: 22,
+  },
+
+  metaRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    flexWrap: "wrap",
+  },
+
+  ddayPill: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: THEME.border,
+    backgroundColor: THEME.orangeSoft,
+  },
+
+  ddayText: {
+    fontSize: 12,
+    fontWeight: "800",
+    color: THEME.text,
   },
 });

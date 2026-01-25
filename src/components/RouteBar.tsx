@@ -134,7 +134,7 @@ export function RouteBar({
 
   return (
     <View style={styles.container}>
-      <View style={[styles.barContainer, { height: routeOnly ? 18 : 26 }]}>
+      <View style={[styles.barContainer, { height: routeOnly ? 18 : 20 }]}>
         {segments.map((seg, idx) => (
           <SegmentBar key={`bar-${idx}`} seg={seg} totalMinutes={totalMinutes} />
         ))}
