@@ -17,6 +17,8 @@ type Props = {
   onPressCalendar: () => void;
 
   meetingTime: string;
+  meetingTitle: string;
+  onChangeMeetingTitle: (v: string) => void;
   onPressTime: () => void;
 };
 
@@ -117,6 +119,19 @@ export function InputCard(props: Props) {
               pointerEvents="none"
             />
           </Pressable>
+        </View>
+
+        <View style={styles.row}>
+          <Text style={styles.label}>제목</Text>
+
+          <TextInput
+            value={props.meetingTitle}
+            onChangeText={props.onChangeMeetingTitle}
+            placeholder="무슨 약속인가요?"
+            placeholderTextColor={THEME.placeholder}
+            style={styles.input}
+            returnKeyType="done"
+          />
         </View>
       </View>
     </View>

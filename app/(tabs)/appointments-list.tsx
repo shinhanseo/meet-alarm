@@ -38,7 +38,6 @@ export function getDday(meetingDate: string, meetingTime: string) {
   return "곧 출발";
 }
 
-
 function buildMeetingAt(meetingDate: string, meetingTimeHHmm: string) {
   if (!meetingDate || !meetingTimeHHmm) return null;
   const [y, m, d] = meetingDate.split("-").map(Number);
@@ -83,6 +82,8 @@ export default function AppointmentsListScreen() {
         const selectedRoute = a?.selectedRoute ?? null;
         const segments = selectedRoute?.segments ?? [];
 
+        const title = (a?.meetingTitle ?? "").trim();
+
         return {
           key: a?.id ?? String(idx),
           id: a?.id ?? null,
@@ -90,6 +91,7 @@ export default function AppointmentsListScreen() {
           meetingTime: a?.meetingTime ?? null,
           originName: a?.originPlace?.name ?? "출발지",
           destName: a?.destPlace?.name ?? "목적지",
+          meetingTitle: title, // ✅ trim 적용
           ms,
           segments,
           now,
@@ -121,13 +123,26 @@ export default function AppointmentsListScreen() {
           const segments = item.segments ?? [];
           const canDelete = !!item.id;
 
+          const hasTitle = !!item.meetingTitle;
+          // 제목이 없으면 route를 제목처럼 쓰고, 아래 route는 숨김(중복 방지)
+          const displayTitle = hasTitle
+            ? item.meetingTitle
+            : `${item.originName} → ${item.destName}`;
+
           return (
             <View style={styles.cardShell}>
               <View style={styles.rowTop}>
                 <View style={{ flex: 1 }}>
+                  {/* ✅ 최상단: 약속 제목 */}
+                  <Text style={styles.titleText} numberOfLines={1}>
+                    {displayTitle}
+                  </Text>
+
+                  {/* 날짜 + D-day */}
                   <View style={styles.metaRow}>
                     <Text style={styles.dateText}>
-                      {formatDateLabel(item.meetingDate!)} · {formatTimeHHmm(item.meetingTime!)}
+                      {formatDateLabel(item.meetingDate!)} ·{" "}
+                      {formatTimeHHmm(item.meetingTime!)}
                     </Text>
 
                     <View style={styles.ddayPill}>
@@ -137,9 +152,12 @@ export default function AppointmentsListScreen() {
                     </View>
                   </View>
 
-                  <Text style={styles.routeText} numberOfLines={1}>
-                    {item.originName} → {item.destName}
-                  </Text>
+                  {/* ✅ 제목이 있을 때만: 경로를 서브로 보여줌 */}
+                  {hasTitle && (
+                    <Text style={styles.subRouteText} numberOfLines={1}>
+                      {item.originName} → {item.destName}
+                    </Text>
+                  )}
                 </View>
 
                 <Pressable
@@ -247,14 +265,25 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: 12,
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
     gap: 10,
   },
 
+  // ✅ 최상단 제목
+  titleText: {
+    fontSize: 18,
+    fontWeight: "900",
+    color: THEME.text,
+    letterSpacing: -0.3,
+    marginBottom: 6,
+  },
+
   dateText: { fontSize: 13, fontWeight: "600", color: THEME.muted },
-  routeText: {
+
+  // ✅ 제목이 있을 때만 나오는 서브 경로
+  subRouteText: {
     marginTop: 6,
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: "800",
     color: THEME.text,
     letterSpacing: -0.2,
@@ -266,7 +295,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: THEME.dangerSoft,
     borderWidth: 1,
-    marginBottom: 12,
+    marginTop: 2,
     borderColor: "#FECACA",
   },
   deleteText: { color: THEME.danger, fontSize: 12, fontWeight: "900" },
@@ -289,21 +318,6 @@ const styles = StyleSheet.create({
     paddingTop: 14,
     paddingBottom: 14,
   },
-
-  actionsRow: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    marginTop: 12,
-  },
-  actionBtn: {
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: THEME.border,
-    backgroundColor: THEME.card,
-  },
-  actionText: { fontSize: 13, fontWeight: "900", color: THEME.text },
 
   emptyBox: { marginTop: 80, alignItems: "center" },
   emptyText: {

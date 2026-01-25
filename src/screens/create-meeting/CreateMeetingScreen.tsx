@@ -45,11 +45,10 @@ export default function CreateMeetingScreen() {
     setDraftPlaceSilent,
     setDraftMeetingDate,
     setDraftSelectedRoute,
-
+    setDraftMeetingTitle,
     saveDraft,
 
     scheduleDepartureAlarm,
-
   } = usePlacesStore();
 
   const originPlace = draft?.originPlace ?? null;
@@ -58,6 +57,7 @@ export default function CreateMeetingScreen() {
   const meetingTimeStr = draft?.meetingTime ?? null;
   const selectedRoute = draft?.selectedRoute ?? null;
   const meetingTime = meetingTimeStr ?? "";
+  const meetingTitle = draft?.meetingTitle ?? "";
 
   const [region, setRegion] = useState<Region | null>(null);
   const [showDateModal, setShowDateModal] = useState(false);
@@ -70,9 +70,7 @@ export default function CreateMeetingScreen() {
   }, []);
 
   useEffect(() => {
-    if (!draft) {
-      startDraft();
-    }
+    if (!draft) startDraft();
   }, [draft, startDraft]);
 
   useEffect(() => {
@@ -120,14 +118,7 @@ export default function CreateMeetingScreen() {
     if (!originPlace || !destPlace || !meetingDate || !meetingTimeStr) {
       Alert.alert(
         "입력이 필요해요",
-        `${!originPlace
-          ? "출발지"
-          : !destPlace
-            ? "도착지"
-            : !meetingDate
-              ? "약속 날짜"
-              : "약속 시간"
-        }를 먼저 설정해주세요.`,
+        `${!originPlace ? "출발지" : !destPlace ? "도착지" : !meetingDate ? "약속 날짜" : "약속 시간"}를 먼저 설정해주세요.`,
         [{ text: "확인" }]
       );
       return;
@@ -144,14 +135,16 @@ export default function CreateMeetingScreen() {
     !!meetingDate,
     !!meetingTimeStr,
     !!selectedRoute,
+    !!meetingTitle,
   ].filter(Boolean).length;
 
   const progressText = useMemo(() => {
     if (doneCount === 0) return "아직 아무것도 설정되지 않았어요.";
     if (doneCount === 1) return "좋아요. 하나만 더 설정해봐요.";
-    if (doneCount === 2) return "좋아요. 세 가지만 더 하면 돼요.";
-    if (doneCount === 3) return "거의 다 됐어요. 하나만 설정하면 경로를 선택할 수 있어요!";
-    if (doneCount === 4) return "정말 다 왔어요. 이제 경로를 선택해 주세요.";
+    if (doneCount === 2) return "좋아요. 네 가지만 더 하면 돼요.";
+    if (doneCount === 3) return "절반 왔어요. 두개만 설정하면 경로를 선택할 수 있어요!";
+    if (doneCount === 4) return "정말 다 왔어요. 마지막 하나만 설정하면 경로를 선택할 수 있어요.";
+    if (doneCount === 5) return "다 왔어요. 이제 경로를 선택하세요!"
     return "준비 완료! 이제 저장만 하면 약속을 늦지 않게 알려드릴게요";
   }, [doneCount]);
 
@@ -176,22 +169,18 @@ export default function CreateMeetingScreen() {
   const onPressSave = async () => {
     if (!readyToSave) return;
 
-    // 1. 약속 저장
     const id = saveDraft();
     if (!id) {
       Alert.alert("오류", "약속 저장에 실패했습니다.");
       return;
     }
 
-    // 2. 알림 예약
     try {
       await scheduleDepartureAlarm(id);
     } catch (err) {
       console.error("알림 예약 실패:", err);
-      // 알림 실패해도 약속은 저장됨
     }
 
-    // 3. 홈으로 이동
     router.replace("/appointments-list");
   };
 
@@ -221,6 +210,8 @@ export default function CreateMeetingScreen() {
           onPressTomorrow={() => setDraftMeetingDate(tomorrowDate)}
           onPressCalendar={() => setShowDateModal(true)}
           meetingTime={meetingTime}
+          meetingTitle={meetingTitle}
+          onChangeMeetingTitle={setDraftMeetingTitle}
           onPressTime={openTimer}
         />
 
@@ -239,6 +230,7 @@ export default function CreateMeetingScreen() {
           destDone={!!destPlace}
           dateDone={!!meetingDate}
           timeDone={!!meetingTimeStr}
+          titleDone={!!meetingTitle}
           routeDone={!!selectedRoute}
           doneCount={doneCount}
           progressText={progressText}

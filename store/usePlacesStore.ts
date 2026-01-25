@@ -11,11 +11,12 @@ export type Appointment = {
   id: string;
   originPlace: Place | null;
   destPlace: Place | null;
-  meetingDate: string | null;   // YYYY-MM-DD
-  meetingTime: string | null;   // HH:mm
+  meetingDate: string | null; // YYYY-MM-DD
+  meetingTime: string | null; // HH:mm
   selectedRoute: any | null;
   isConfirmed: boolean;
   scheduledDepartureNotifId: string | null;
+  meetingTitle: string;
 };
 
 export type AppointmentDraft = {
@@ -24,6 +25,7 @@ export type AppointmentDraft = {
   meetingDate: string | null;
   meetingTime: string | null;
   selectedRoute: any | null;
+  meetingTitle: string;
 };
 
 type PlacesState = {
@@ -31,7 +33,6 @@ type PlacesState = {
   draft: AppointmentDraft | null;
   isScheduling: boolean;
 
-  // draft
   startDraft: () => void;
   resetDraft: () => void;
 
@@ -41,15 +42,13 @@ type PlacesState = {
   setDraftMeetingTime: (time: string | null) => void;
   setDraftSelectedRoute: (route: any | null) => void;
   clearDraftSelectedRoute: () => void;
+  setDraftMeetingTitle: (title: string) => void;
 
-  // save
   saveDraft: () => string | null;
 
-  // alarm
   scheduleDepartureAlarm: (id: string) => Promise<void>;
   cancelDepartureAlarm: (id: string) => Promise<void>;
 
-  // delete
   deleteAppointment: (id: string) => Promise<void>;
 
   resetAll: () => Promise<void>;
@@ -69,6 +68,7 @@ const emptyDraft = (): AppointmentDraft => ({
   meetingDate: todayYMD(),
   meetingTime: null,
   selectedRoute: null,
+  meetingTitle: "",
 });
 
 export const usePlacesStore = create<PlacesState>()(
@@ -87,9 +87,6 @@ export const usePlacesStore = create<PlacesState>()(
         draft: null,
         isScheduling: false,
 
-        // --------------------
-        // draft
-        // --------------------
         startDraft: () => set({ draft: emptyDraft() }),
         resetDraft: () => set({ draft: null }),
 
@@ -156,9 +153,17 @@ export const usePlacesStore = create<PlacesState>()(
             };
           }),
 
-        // --------------------
-        // save
-        // --------------------
+        setDraftMeetingTitle: (title) =>
+          set((s) => {
+            if (!s.draft) return s;
+            return {
+              draft: {
+                ...s.draft,
+                meetingTitle: title,
+              },
+            };
+          }),
+
         saveDraft: () => {
           const { draft } = get();
           if (!draft) return null;
@@ -174,6 +179,7 @@ export const usePlacesStore = create<PlacesState>()(
             selectedRoute: draft.selectedRoute,
             isConfirmed: true,
             scheduledDepartureNotifId: null,
+            meetingTitle: draft.meetingTitle.trim(),
           };
 
           set((s) => ({
@@ -184,9 +190,6 @@ export const usePlacesStore = create<PlacesState>()(
           return id;
         },
 
-        // --------------------
-        // alarm
-        // --------------------
         scheduleDepartureAlarm: async (id) => {
           const { appointments, isScheduling } = get();
           const app = appointments.find((a) => a.id === id);
@@ -247,18 +250,15 @@ export const usePlacesStore = create<PlacesState>()(
         },
 
         deleteAppointment: async (id) => {
-          // 알람 먼저 취소
           await internalCancel(id);
-
-          // 배열에서 제거
           set((s) => ({
             appointments: s.appointments.filter((a) => a.id !== id),
           }));
-        }
+        },
       };
     },
     {
-      name: "places-store-v6",
+      name: "places-store-v7",
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (s) => ({
         appointments: s.appointments,

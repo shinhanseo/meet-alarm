@@ -8,6 +8,7 @@ type Props = {
   destDone: boolean;
   dateDone: boolean;
   timeDone: boolean;
+  titleDone: boolean;
   routeDone: boolean;
 
   doneCount: number;
@@ -39,6 +40,9 @@ export function ProgressSection(props: Props) {
 
         <View style={[styles.dot, props.timeDone && styles.dotOn]} />
         <Text style={styles.progressText}>시간</Text>
+
+        <View style={[styles.dot, props.titleDone && styles.dotOn]} />
+        <Text style={styles.progressText}>제목</Text>
 
         <View style={[styles.dot, props.routeDone && styles.dotOn]} />
         <Text style={styles.progressText}>경로</Text>
