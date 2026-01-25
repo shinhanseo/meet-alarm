@@ -53,11 +53,11 @@ export default function TabLayout() {
       />
 
       <Tabs.Screen
-        name="setting"
+        name="appointments-list"
         options={{
-          title: "설정",
+          title: "약속 리스트",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="settings" size={size ?? 28} color={color} />
+            <Ionicons name="list" size={size ?? 28} color={color} />
           ),
         }}
       />

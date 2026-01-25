@@ -89,7 +89,7 @@ export const styles = StyleSheet.create({
     borderRadius: 18,
     padding: 16,
     borderWidth: 1,
-    borderColor: THEME.border,
+    borderColor: THEME.orangeBorder,
     gap: 12,
   },
   departRow: {
@@ -138,7 +138,7 @@ export const styles = StyleSheet.create({
     borderRadius: 18,
     padding: 16,
     borderWidth: 1,
-    borderColor: THEME.border,
+    borderColor: THEME.orangeBorder,
   },
   routeHeader: {
     flexDirection: "row",

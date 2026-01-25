@@ -192,7 +192,7 @@ export default function CreateMeetingScreen() {
     }
 
     // 3. 홈으로 이동
-    router.replace("/");
+    router.replace("/appointments-list");
   };
 
   if (!region) {
