@@ -17,9 +17,16 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingBottom: 10,
     flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
-    gap: 6,
   },
+
+  headerRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    flexShrink: 1,
+  },
+
   headerTitle: { fontSize: 22, fontWeight: "900", color: THEME.text },
 
   content: {
@@ -265,5 +272,34 @@ export const styles = StyleSheet.create({
   segmentDivider: {
     width: 1,
     backgroundColor: THEME.orangeBorder,
+  },
+
+  houseBtn: {
+    marginLeft: 8,
+    height: 44,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    flexShrink: 0,
+  },
+  houseBtnOn: {
+    backgroundColor: THEME.orangeSoft,
+    borderColor: THEME.orangeBorder,
+  },
+  houseBtnOff: {
+    backgroundColor: THEME.card,
+    borderColor: THEME.border,
+  },
+  houseBtnText: {
+    fontSize: 13,
+    fontWeight: "900",
+  },
+  houseBtnTextOn: {
+    color: THEME.orangeDark,
+  },
+  houseBtnTextOff: {
+    color: THEME.muted,
   },
 });

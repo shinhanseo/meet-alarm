@@ -33,6 +33,9 @@ type PlacesState = {
   draft: AppointmentDraft | null;
   isScheduling: boolean;
 
+  myHouse: Place | null;
+  setMyHouse: (place: Place | null) => void;
+
   startDraft: () => void;
   resetDraft: () => void;
 
@@ -86,6 +89,12 @@ export const usePlacesStore = create<PlacesState>()(
         appointments: [],
         draft: null,
         isScheduling: false,
+
+        myHouse: null,
+        setMyHouse: (place) =>
+          set({
+            myHouse: place ? { ...place, name: "우리집" } : null,
+          }),
 
         startDraft: () => set({ draft: emptyDraft() }),
         resetDraft: () => set({ draft: null }),
@@ -148,20 +157,13 @@ export const usePlacesStore = create<PlacesState>()(
         clearDraftSelectedRoute: () =>
           set((s) => {
             if (!s.draft) return s;
-            return {
-              draft: { ...s.draft, selectedRoute: null },
-            };
+            return { draft: { ...s.draft, selectedRoute: null } };
           }),
 
         setDraftMeetingTitle: (title) =>
           set((s) => {
             if (!s.draft) return s;
-            return {
-              draft: {
-                ...s.draft,
-                meetingTitle: title,
-              },
-            };
+            return { draft: { ...s.draft, meetingTitle: title } };
           }),
 
         saveDraft: () => {
@@ -263,6 +265,7 @@ export const usePlacesStore = create<PlacesState>()(
       partialize: (s) => ({
         appointments: s.appointments,
         draft: s.draft,
+        myHouse: s.myHouse,
       }),
     }
   )

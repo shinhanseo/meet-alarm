@@ -24,10 +24,11 @@ type Place = {
 
 export default function PlaceSearchScreen() {
   const router = useRouter();
-  const { mode } = useLocalSearchParams<{ mode: "origin" | "dest" }>();
+  const { mode, scope } = useLocalSearchParams<{ mode: "origin" | "dest"; scope: "draft" | "house"; }>();
 
-  const { setDraftPlace } = usePlacesStore();
+  const { setDraftPlace, setMyHouse } = usePlacesStore();
 
+  const isHouse = scope === "house";
   const [q, setQ] = useState("");
   const [items, setItems] = useState<Place[]>([]);
   const [loading, setLoading] = useState(false);
@@ -68,6 +69,12 @@ export default function PlaceSearchScreen() {
       return;
     }
 
+    if (isHouse) {
+      setMyHouse(place);
+      router.back();
+      return;
+    }
+
     setDraftPlace(mode, place);
     router.replace("/create-meeting");
   };
@@ -76,7 +83,7 @@ export default function PlaceSearchScreen() {
     if (!mode) return;
     router.push({
       pathname: "/map-pick",
-      params: { mode },
+      params: { mode, scope },
     });
   };
 
@@ -86,7 +93,11 @@ export default function PlaceSearchScreen() {
       <View style={styles.container}>
         <View style={styles.headerRow}>
           <Text style={styles.header}>
-            {mode === "origin" ? "출발지 검색" : "목적지 검색"}
+            {isHouse
+              ? "우리집 등록"
+              : mode === "origin"
+                ? "출발지 검색"
+                : "목적지 검색"}
           </Text>
 
           <Pressable

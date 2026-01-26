@@ -9,6 +9,9 @@ type Props = {
   onPressOrigin: () => void;
   onPressDest: () => void;
 
+  onPressMyHouse: () => void;
+  myHouseEnabled: boolean;
+
   meetingDateLabel: string;
   isTodayActive: boolean;
   isTomorrowActive: boolean;
@@ -28,36 +31,71 @@ export function InputCard(props: Props) {
       <View style={styles.accent} />
 
       <View style={{ flex: 1 }}>
-        <Pressable onPress={props.onPressOrigin} style={styles.row}>
+        <View style={styles.row}>
           <Text style={styles.label}>출발</Text>
-          <TextInput
-            value={props.originName}
-            placeholder="출발지를 입력하세요"
-            placeholderTextColor={THEME.placeholder}
-            style={styles.input}
-            editable={false}
-            pointerEvents="none"
-          />
-        </Pressable>
 
-        <Pressable onPress={props.onPressDest} style={styles.row}>
+          <Pressable onPress={props.onPressOrigin} style={{ flex: 1 }}>
+            <View style={styles.fakeInput}>
+              <Text
+                style={[
+                  styles.fakeInputText,
+                  !props.originName && { color: THEME.placeholder },
+                ]}
+                numberOfLines={1}
+              >
+                {props.originName || "출발지를 입력하세요"}
+              </Text>
+            </View>
+          </Pressable>
+
+          <Pressable
+            onPress={props.onPressMyHouse}
+            style={[
+              styles.houseBtn,
+              props.myHouseEnabled ? styles.houseBtnOn : styles.houseBtnOff,
+            ]}
+            hitSlop={8}
+          >
+            <Text
+              style={[
+                styles.houseBtnText,
+                props.myHouseEnabled
+                  ? styles.houseBtnTextOn
+                  : styles.houseBtnTextOff,
+              ]}
+              numberOfLines={1}
+            >
+              우리집
+            </Text>
+          </Pressable>
+        </View>
+
+        {/* 도착 (출발과 동일한 패턴으로 통일) */}
+        <View style={styles.row}>
           <Text style={styles.label}>도착</Text>
-          <TextInput
-            value={props.destName}
-            placeholder="도착지는 어디인가요?"
-            placeholderTextColor={THEME.placeholder}
-            style={styles.input}
-            editable={false}
-            pointerEvents="none"
-          />
-        </Pressable>
 
+          <Pressable onPress={props.onPressDest} style={{ flex: 1 }}>
+            <View style={styles.fakeInput}>
+              <Text
+                style={[
+                  styles.fakeInputText,
+                  !props.destName && { color: THEME.placeholder },
+                ]}
+                numberOfLines={1}
+              >
+                {props.destName || "도착지는 어디인가요?"}
+              </Text>
+            </View>
+          </Pressable>
+        </View>
+
+        {/* 날짜 */}
         <View style={styles.row}>
           <Text style={styles.label}>날짜</Text>
 
           <Pressable onPress={props.onPressCalendar} style={{ flex: 1 }}>
             <View style={styles.fakeInput}>
-              <Text style={styles.fakeInputText}>
+              <Text style={styles.fakeInputText} numberOfLines={1}>
                 {props.meetingDateLabel || "약속 날짜"}
               </Text>
             </View>
@@ -106,6 +144,7 @@ export function InputCard(props: Props) {
           </Pressable>
         </View>
 
+        {/* 시간 */}
         <View style={styles.row}>
           <Text style={styles.label}>시간</Text>
 
@@ -121,6 +160,7 @@ export function InputCard(props: Props) {
           </Pressable>
         </View>
 
+        {/* 제목 */}
         <View style={styles.row}>
           <Text style={styles.label}>제목</Text>
 

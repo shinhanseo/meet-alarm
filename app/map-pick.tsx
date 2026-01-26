@@ -17,8 +17,9 @@ type Place = {
 
 export default function MapPickScreen() {
   const router = useRouter();
-  const { mode } = useLocalSearchParams<{ mode: "origin" | "dest" }>();
+  const { mode, scope } = useLocalSearchParams<{ mode: "origin" | "dest"; scope: "draft" | "house"; }>();
 
+  const isHouse = scope === "house";
   const [region, setRegion] = useState<Region | null>(null);
   const [address, setAddress] = useState<string>("");
   const [addrLoading, setAddrLoading] = useState(false);
@@ -27,10 +28,10 @@ export default function MapPickScreen() {
   const [name, setName] = useState<string>("");
   const [buildingName, setBuildingName] = useState<string>("");
 
-  const { setDraftPlace, setDraftPlaceSilent } = usePlacesStore();
+  const { setDraftPlace, setDraftPlaceSilent, setMyHouse } = usePlacesStore();
 
   const displayLocationText = buildingName || name || address || "현재 위치";
-  const actionText = mode === "origin" ? "출발지로 설정" : "목적지로 설정";
+  const actionText = isHouse ? "우리집 등록" : mode === "origin" ? "출발지로 설정" : "목적지로 설정";
 
   const reverseGecode = async (lat: number, lng: number) => {
     try {
@@ -59,6 +60,12 @@ export default function MapPickScreen() {
   const selectPlace = (place: Place) => {
     if (!mode) {
       router.back();
+      return;
+    }
+
+    if (isHouse) {
+      setMyHouse(place);
+      router.replace("/setting");
       return;
     }
 

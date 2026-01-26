@@ -39,6 +39,7 @@ export default function CreateMeetingScreen() {
   const router = useRouter();
 
   const {
+    myHouse,
     draft,
     startDraft,
 
@@ -47,7 +48,6 @@ export default function CreateMeetingScreen() {
     setDraftSelectedRoute,
     setDraftMeetingTitle,
     saveDraft,
-
     scheduleDepartureAlarm,
   } = usePlacesStore();
 
@@ -184,6 +184,17 @@ export default function CreateMeetingScreen() {
     router.replace("/appointments-list");
   };
 
+  const onPressMyHouse = () => {
+    if (myHouse) {
+      setDraftPlaceSilent("origin", myHouse);
+    } else {
+      router.push({
+        pathname: "/place-search",
+        params: { mode: "origin", scope: "house" },
+      });
+    }
+  };
+
   if (!region) {
     return (
       <View style={styles.loading}>
@@ -203,6 +214,10 @@ export default function CreateMeetingScreen() {
           destName={destPlace ? destPlace.name : ""}
           onPressOrigin={() => openSearch("origin")}
           onPressDest={() => openSearch("dest")}
+
+          onPressMyHouse={onPressMyHouse}
+          myHouseEnabled={!!myHouse}
+
           meetingDateLabel={meetingDateLabel}
           isTodayActive={meetingDate === today}
           isTomorrowActive={meetingDate === tomorrowDate}
@@ -214,6 +229,7 @@ export default function CreateMeetingScreen() {
           onChangeMeetingTitle={setDraftMeetingTitle}
           onPressTime={openTimer}
         />
+
 
         <CreateMeetingRouteSection
           selectedRoute={selectedRoute}
