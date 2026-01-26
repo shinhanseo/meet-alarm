@@ -126,7 +126,7 @@ export default function CreateMeetingScreen() {
     router.push({ pathname: "/direction-search", params: { scope: "draft" } });
   };
 
-  const readyInput = !!(originPlace && destPlace && meetingDate && meetingTimeStr);
+  const readyInput = !!(originPlace && destPlace && meetingDate && meetingTimeStr && meetingTitle);
   const readyToSave = !!(readyInput && selectedRoute);
 
   const doneCount = [
