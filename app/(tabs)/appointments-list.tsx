@@ -19,24 +19,23 @@ export function getDday(meetingDate: string, meetingTime: string) {
   const [y, m, d] = meetingDate.split("-").map(Number);
   const [hh, mm] = meetingTime.split(":").map(Number);
 
-  const meetingDateTime = new Date(y, m - 1, d, hh, mm, 0, 0);
-  const diffMs = meetingDateTime.getTime() - now.getTime();
+  const meetingAt = new Date(y, m - 1, d, hh, mm, 0, 0);
+  const diffMs = meetingAt.getTime() - now.getTime();
 
   if (diffMs <= 0) return "이미 지남";
 
-  const totalHours = Math.ceil(diffMs / 3600000);
+  const today0 = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+  const target0 = new Date(y, m - 1, d, 0, 0, 0, 0);
+  const diffDays = Math.round((target0.getTime() - today0.getTime()) / 86400000);
 
-  if (totalHours >= 24) {
-    const days = Math.ceil(totalHours / 24);
-    return `D-${days}`;
-  }
+  if (diffDays >= 1) return `D-${diffDays}`;
 
-  if (totalHours >= 1) {
-    return `${totalHours}시간 후`;
-  }
+  const totalHours = Math.floor(diffMs / 3600000);
+  if (totalHours >= 1) return `${totalHours}시간 후`;
 
   return "곧 출발";
 }
+
 
 function buildMeetingAt(meetingDate: string, meetingTimeHHmm: string) {
   if (!meetingDate || !meetingTimeHHmm) return null;
@@ -91,7 +90,7 @@ export default function AppointmentsListScreen() {
           meetingTime: a?.meetingTime ?? null,
           originName: a?.originPlace?.name ?? "출발지",
           destName: a?.destPlace?.name ?? "목적지",
-          meetingTitle: title, // ✅ trim 적용
+          meetingTitle: title,
           ms,
           segments,
           now,
@@ -124,7 +123,6 @@ export default function AppointmentsListScreen() {
           const canDelete = !!item.id;
 
           const hasTitle = !!item.meetingTitle;
-          // 제목이 없으면 route를 제목처럼 쓰고, 아래 route는 숨김(중복 방지)
           const displayTitle = hasTitle
             ? item.meetingTitle
             : `${item.originName} → ${item.destName}`;
@@ -133,7 +131,6 @@ export default function AppointmentsListScreen() {
             <View style={styles.cardShell}>
               <View style={styles.rowTop}>
                 <View style={{ flex: 1 }}>
-                  {/* ✅ 최상단: 약속 제목 */}
                   <Text style={styles.titleText} numberOfLines={1}>
                     {displayTitle}
                   </Text>
@@ -152,7 +149,6 @@ export default function AppointmentsListScreen() {
                     </View>
                   </View>
 
-                  {/* ✅ 제목이 있을 때만: 경로를 서브로 보여줌 */}
                   {hasTitle && (
                     <Text style={styles.subRouteText} numberOfLines={1}>
                       {item.originName} → {item.destName}
@@ -269,7 +265,6 @@ const styles = StyleSheet.create({
     gap: 10,
   },
 
-  // ✅ 최상단 제목
   titleText: {
     fontSize: 18,
     fontWeight: "900",
@@ -280,7 +275,6 @@ const styles = StyleSheet.create({
 
   dateText: { fontSize: 13, fontWeight: "600", color: THEME.muted },
 
-  // ✅ 제목이 있을 때만 나오는 서브 경로
   subRouteText: {
     marginTop: 6,
     fontSize: 14,
