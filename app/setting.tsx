@@ -90,15 +90,6 @@ export default function SettingScreen() {
           })
         }
       />
-
-      <Text style={[styles.sectionTitle, { marginTop: 18 }]}>여유 시간</Text>
-
-      <SettingRow
-        title="여유시간"
-        desc="도착 시간보다 미리 도착하도록 계산"
-        icon="schedule"
-      // onPress={() => router.push("/setting/buffer")}
-      />
     </View>
   );
 }
