@@ -1,7 +1,7 @@
 import { View, Pressable, Text, StyleSheet, ActivityIndicator } from "react-native";
 import MapView, { Region } from "react-native-maps";
 import * as Location from "expo-location";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { API_BASE_URL } from "@/src/config/env";
@@ -17,23 +17,49 @@ type Place = {
 
 export default function MapPickScreen() {
   const router = useRouter();
-  const { mode, scope } = useLocalSearchParams<{ mode: "origin" | "dest"; scope: "draft" | "house"; }>();
+  const { mode, scope, type, editId } = useLocalSearchParams<{
+    mode: "origin" | "dest";
+    scope: "draft" | "house";
+    type: "create" | "update";
+    editId?: string;
+  }>();
 
   const isHouse = scope === "house";
-  const [region, setRegion] = useState<Region | null>(null);
-  const [address, setAddress] = useState<string>("");
-  const [addrLoading, setAddrLoading] = useState(false);
-  const [addrError, setAddrError] = useState<string>("");
 
+  const [region, setRegion] = useState<Region | null>(null);
+
+  const [address, setAddress] = useState<string>("");
   const [name, setName] = useState<string>("");
   const [buildingName, setBuildingName] = useState<string>("");
 
-  const { setDraftPlace, setDraftPlaceSilent, setMyHouse } = usePlacesStore();
+  const [addrLoading, setAddrLoading] = useState(false);
+  const [addrError, setAddrError] = useState<string>("");
 
-  const displayLocationText = buildingName || name || address || "현재 위치";
-  const actionText = isHouse ? "우리집 등록" : mode === "origin" ? "출발지로 설정" : "목적지로 설정";
+  const { setDraftPlace, setMyHouse } = usePlacesStore();
 
-  const reverseGecode = async (lat: number, lng: number) => {
+  const requestSeq = useRef(0);
+
+  const actionText = isHouse
+    ? "우리집 등록"
+    : mode === "origin"
+      ? "출발지로 설정"
+      : "목적지로 설정";
+
+  const hasResolvedText = !!(buildingName || name || address);
+
+  const displayLocationText = hasResolvedText
+    ? buildingName || name || address
+    : addrLoading
+      ? "주소 불러오는 중..."
+      : addrError
+        ? "주소를 불러오지 못했어요"
+        : "주소 불러오는 중...";
+
+  console.log("[MapPick params]", { mode, scope, type, editId });
+
+  const reverseGeocode = async (lat: number, lng: number) => {
+    const seq = ++requestSeq.current;
+
     try {
       setAddrLoading(true);
       setAddrError("");
@@ -43,6 +69,8 @@ export default function MapPickScreen() {
         timeout: 5000,
       });
 
+      if (seq !== requestSeq.current) return;
+
       const addr = res.data?.place?.address ?? "";
       const placeName = res.data?.place?.name ?? "";
       const bname = res.data?.place?.buildingName ?? "";
@@ -51,35 +79,46 @@ export default function MapPickScreen() {
       setName(placeName);
       setBuildingName(bname);
     } catch (e) {
+      if (seq !== requestSeq.current) return;
       setAddrError("주소를 불러오지 못했어요");
+      setAddress("");
+      setName("");
+      setBuildingName("");
     } finally {
-      setAddrLoading(false);
+      if (seq === requestSeq.current) setAddrLoading(false);
     }
   };
 
   const selectPlace = (place: Place) => {
-    if (!mode) {
-      router.back();
-      return;
-    }
-
     if (isHouse) {
       setMyHouse(place);
       router.replace("/setting");
       return;
     }
 
+    if (!mode) {
+      router.back();
+      return;
+    }
+
     setDraftPlace(mode, place);
+    if (type === "update") {
+      if (!editId) {
+        router.replace("/appointments-list");
+        return;
+      }
+
+      router.back();
+      return;
+    }
+
     router.replace("/create-meeting");
   };
 
   useEffect(() => {
     (async () => {
       const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== "granted") {
-        console.log("위치 권한 거부됨");
-        return;
-      }
+      if (status !== "granted") return;
 
       const location = await Location.getCurrentPositionAsync({});
       const r: Region = {
@@ -88,9 +127,9 @@ export default function MapPickScreen() {
         latitudeDelta: 0.01,
         longitudeDelta: 0.01,
       };
-      setRegion(r);
 
-      reverseGecode(r.latitude, r.longitude);
+      setRegion(r);
+      reverseGeocode(r.latitude, r.longitude);
     })();
   }, []);
 
@@ -116,16 +155,7 @@ export default function MapPickScreen() {
         userInterfaceStyle="light"
         onRegionChangeComplete={(r) => {
           setRegion(r);
-          reverseGecode(r.latitude, r.longitude);
-
-          if (mode) {
-            setDraftPlaceSilent(mode, {
-              name: displayLocationText,
-              address: name || address || "내 위치",
-              lat: r.latitude,
-              lng: r.longitude,
-            });
-          }
+          reverseGeocode(r.latitude, r.longitude);
         }}
       />
 
@@ -141,15 +171,15 @@ export default function MapPickScreen() {
         <View style={styles.coordBox} pointerEvents="none">
           <Text>{displayLocationText}</Text>
           {!!addrError && <Text style={{ marginTop: 6 }}>{addrError}</Text>}
-          {!!addrLoading && <Text style={{ marginTop: 6 }}>주소 확인 중...</Text>}
         </View>
 
         <Pressable
-          style={styles.confirmBtn}
+          style={[styles.confirmBtn, addrLoading && { opacity: 0.6 }]}
+          disabled={addrLoading}
           onPress={() =>
             selectPlace({
-              name: displayLocationText,
-              address: name || address || "내 위치",
+              name: buildingName || name || address || "선택한 위치",
+              address: address || "주소 정보 없음",
               lat: region.latitude,
               lng: region.longitude,
             })

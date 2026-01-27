@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { View, Text, ActivityIndicator, ScrollView, Alert } from "react-native";
 import { Region } from "react-native-maps";
 import * as Location from "expo-location";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 
 import { usePlacesStore } from "../../../store/usePlacesStore";
 import { styles } from "./styles";
@@ -35,19 +35,21 @@ function formatDateLabel(yyyyMMdd: string) {
   return `${y}.${mm}.${dd} (${day})`;
 }
 
-export default function CreateMeetingScreen() {
+export default function UpdateMeetingScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams<{ id?: string | string[] }>();
+  const editId = Array.isArray(params.id) ? params.id[0] : params.id;
 
   const {
     myHouse,
     draft,
-    startDraft,
+    loadDraftFromAppointment,
+    updateAppointment,
 
     setDraftPlaceSilent,
     setDraftMeetingDate,
     setDraftSelectedRoute,
     setDraftMeetingTitle,
-    saveDraft,
     scheduleDepartureAlarm,
   } = usePlacesStore();
 
@@ -70,8 +72,12 @@ export default function CreateMeetingScreen() {
   }, []);
 
   useEffect(() => {
-    if (!draft) startDraft();
-  }, [draft, startDraft]);
+    if (!editId) {
+      router.back();
+      return;
+    }
+    loadDraftFromAppointment(editId);
+  }, [editId, loadDraftFromAppointment, router]);
 
   useEffect(() => {
     if (!draft) return;
@@ -107,11 +113,11 @@ export default function CreateMeetingScreen() {
   }, [originPlace, setDraftPlaceSilent]);
 
   const openSearch = (mode: "origin" | "dest") => {
-    router.push({ pathname: "/place-search", params: { mode, scope: "draft" } });
+    router.push({ pathname: "/place-search", params: { mode, scope: "draft", type: "update", editId } });
   };
 
   const openTimer = () => {
-    router.push({ pathname: "/set-time", params: { scope: "draft" } });
+    router.push({ pathname: "/set-time", params: { type: "update", editId } });
   };
 
   const directionSearch = () => {
@@ -123,7 +129,7 @@ export default function CreateMeetingScreen() {
       );
       return;
     }
-    router.push({ pathname: "/direction-search", params: { scope: "draft" } });
+    router.push({ pathname: "/direction-search", params: { type: "update", editId } });
   };
 
   const readyInput = !!(originPlace && destPlace && meetingDate && meetingTimeStr && meetingTitle);
@@ -168,15 +174,24 @@ export default function CreateMeetingScreen() {
 
   const onPressSave = async () => {
     if (!readyToSave) return;
+    if (!editId) return;
 
-    const id = await saveDraft();
-    if (!id) {
+    const alarmId = await updateAppointment(editId, {
+      originPlace,
+      destPlace,
+      meetingDate,
+      meetingTime,
+      selectedRoute,
+      meetingTitle,
+    });
+
+    if (!alarmId) {
       Alert.alert("오류", "약속 저장에 실패했습니다.");
       return;
     }
 
     try {
-      await scheduleDepartureAlarm(id);
+      await scheduleDepartureAlarm(alarmId);
     } catch (err) {
       console.error("알림 예약 실패:", err);
     }
@@ -206,7 +221,7 @@ export default function CreateMeetingScreen() {
 
   return (
     <View style={styles.container}>
-      <HeaderBar title="약속 설정" />
+      <HeaderBar title="약속 수정" />
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <InputCard

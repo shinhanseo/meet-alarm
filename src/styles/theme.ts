@@ -14,4 +14,8 @@ export const THEME = {
 
   danger: "#DC2626",
   dangerSoft: "#FEF2F2",
+
+  edit: "#2563EB",
+  editSoft: "#EFF6FF",
+  editBorder: "#BFDBFE",
 };

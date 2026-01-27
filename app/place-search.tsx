@@ -24,7 +24,7 @@ type Place = {
 
 export default function PlaceSearchScreen() {
   const router = useRouter();
-  const { mode, scope } = useLocalSearchParams<{ mode: "origin" | "dest"; scope: "draft" | "house"; }>();
+  const { mode, scope, type, editId } = useLocalSearchParams<{ mode: "origin" | "dest"; scope: "draft" | "house"; type: "create" | "update"; editId?: string; }>();
 
   const { setDraftPlace, setMyHouse } = usePlacesStore();
 
@@ -76,14 +76,20 @@ export default function PlaceSearchScreen() {
     }
 
     setDraftPlace(mode, place);
+
+    if (type == "update") {
+      router.back();
+      return;
+    }
+
     router.replace("/create-meeting");
   };
 
   const goMapPick = () => {
     if (!mode) return;
-    router.push({
+    router.replace({
       pathname: "/map-pick",
-      params: { mode, scope },
+      params: { mode, scope, type, editId },
     });
   };
 

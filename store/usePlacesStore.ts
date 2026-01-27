@@ -7,6 +7,15 @@ import { calculateDepartureAt } from "@/src/utils/calculateDepartureAt";
 type Place = { name: string; address: string; lat: number; lng: number };
 type Mode = "origin" | "dest";
 
+type UpdatePayload = {
+  originPlace: Place | null;
+  destPlace: Place | null;
+  meetingDate: string | null;
+  meetingTime: string | null;
+  selectedRoute: any | null;
+  meetingTitle: string;
+};
+
 export type Appointment = {
   id: string;
   originPlace: Place | null;
@@ -51,6 +60,9 @@ type PlacesState = {
 
   scheduleDepartureAlarm: (id: string) => Promise<void>;
   cancelDepartureAlarm: (id: string) => Promise<void>;
+
+  loadDraftFromAppointment: (id: string) => void;
+  updateAppointment: (id: string, data: UpdatePayload) => Promise<string>;
 
   deleteAppointment: (id: string) => Promise<void>;
 
@@ -249,6 +261,48 @@ export const usePlacesStore = create<PlacesState>()(
             }
           }
           set({ appointments: [], draft: null });
+        },
+
+        loadDraftFromAppointment: (id) =>
+          set((s) => {
+            const app = s.appointments.find(a => a.id === id);
+            if (!app) return s;
+
+            return {
+              draft: {
+                originPlace: app.originPlace,
+                destPlace: app.destPlace,
+                meetingDate: app.meetingDate,
+                meetingTime: app.meetingTime,
+                selectedRoute: app.selectedRoute,
+                meetingTitle: app.meetingTitle ?? "",
+              },
+            };
+          }),
+
+        updateAppointment: async (id, data) => {
+          await internalCancel(id);
+
+          set((s) => ({
+            appointments: s.appointments.map((a) =>
+              a.id === id
+                ? {
+                  ...a,
+                  originPlace: data.originPlace,
+                  destPlace: data.destPlace,
+                  meetingDate: data.meetingDate,
+                  meetingTime: data.meetingTime,
+                  selectedRoute: data.selectedRoute,
+                  meetingTitle: data.meetingTitle.trim(),
+                  scheduledDepartureNotifId: null,
+                  isConfirmed: true,
+                }
+                : a
+            ),
+          }));
+
+          get().resetDraft();
+          return id;
         },
 
         deleteAppointment: async (id) => {

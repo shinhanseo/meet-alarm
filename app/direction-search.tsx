@@ -12,7 +12,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import axios from "axios";
 import { usePlacesStore } from "@/store/usePlacesStore";
 import { API_BASE_URL } from "@/src/config/env";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 
 import { SegmentChip } from "@/src/components/SegmentChip";
 
@@ -45,7 +45,10 @@ const formatWon = (n: number) => `${Number(n || 0).toLocaleString("ko-KR")}원`;
 
 export default function DirectionSearchScreen() {
   const router = useRouter();
-
+  const { type, editId } = useLocalSearchParams<{
+    type: "create" | "update";
+    editId?: string;
+  }>();
   const { draft, setDraftSelectedRoute } = usePlacesStore();
   const originPlace = draft?.originPlace ?? null;
   const destPlace = draft?.destPlace ?? null;
@@ -188,6 +191,11 @@ export default function DirectionSearchScreen() {
           onPress={() => {
             if (!selectedRoute) return;
             setDraftSelectedRoute(selectedRoute);
+            if (type === "update") {
+              router.back();
+              return;
+            }
+
             router.replace("/create-meeting");
           }}
         >

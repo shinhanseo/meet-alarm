@@ -1,7 +1,7 @@
 import { View, Text, Pressable, StyleSheet, Platform, Alert } from "react-native";
 import DateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
 import { useMemo, useState } from "react";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { usePlacesStore } from "../store/usePlacesStore";
 
 function buildMeetingAt(meetingDate: string, time: Date) {
@@ -24,6 +24,7 @@ function parseInitialTime(meetingTime: string | null) {
 
 export default function SetTimeScreen() {
   const router = useRouter();
+  const { type, editId } = useLocalSearchParams<{ scope: "draft" | "house"; type: "create" | "update"; editId?: string; }>();
 
   const { draft, setDraftMeetingTime } = usePlacesStore();
   const meetingDate = draft?.meetingDate ?? null;
@@ -104,6 +105,10 @@ export default function SetTimeScreen() {
           }
 
           setDraftMeetingTime(toHHmm(tempTime));
+          if (type === "update") {
+            router.back();
+            return;
+          }
           router.replace("/create-meeting");
         }}
       >

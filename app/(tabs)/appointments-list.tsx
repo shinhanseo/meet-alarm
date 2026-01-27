@@ -12,6 +12,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { usePlacesStore } from "@/store/usePlacesStore";
 import { RouteBar } from "@/src/components/RouteBar";
 import { SegmentChip } from "@/src/components/SegmentChip";
+import { useRouter } from "expo-router";
 
 export function getDday(meetingDate: string, meetingTime: string) {
   const now = new Date();
@@ -62,7 +63,7 @@ function formatTimeHHmm(meetingTimeHHmm: string) {
 
 export default function AppointmentsListScreen() {
   const { appointments, deleteAppointment } = usePlacesStore();
-
+  const router = useRouter();
   // 펼친 카드 key (RouteBar 눌렀을 때만 토글)
   const [openKey, setOpenKey] = useState<string | null>(null);
 
@@ -157,6 +158,21 @@ export default function AppointmentsListScreen() {
                 </View>
 
                 <Pressable
+                  style={({ pressed }) => [
+                    styles.editBtn,
+                    pressed && { opacity: 0.75 },
+                  ]}
+                  onPress={() => {
+                    if (!item.id) return;
+                    router.push({
+                      pathname: "/update-meeting",
+                      params: { id: item.id },
+                    });
+                  }}
+                >
+                  <Text style={styles.editText}>수정</Text>
+                </Pressable>
+                <Pressable
                   disabled={!canDelete}
                   hitSlop={10}
                   style={({ pressed }) => [
@@ -227,6 +243,11 @@ export const THEME = {
   orangeBorder: "#FED7AA",
   danger: "#DC2626",
   dangerSoft: "#FEF2F2",
+
+  edit: "#2563EB",
+  editSoft: "#EFF6FF",
+  editBorder: "#BFDBFE",
+
 };
 
 const styles = StyleSheet.create({
@@ -342,4 +363,21 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     color: THEME.text,
   },
+
+  editBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 999,
+    marginTop: 2,
+    backgroundColor: THEME.editSoft,
+    borderWidth: 1,
+    borderColor: THEME.editBorder,
+  },
+
+  editText: {
+    color: THEME.edit,
+    fontSize: 12,
+    fontWeight: "900",
+  },
+
 });
