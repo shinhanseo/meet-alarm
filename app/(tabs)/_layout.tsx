@@ -17,7 +17,7 @@ export default function TabLayout() {
       }
     })();
 
-    // 알림 클릭했을 때 알람 화면으로 이동
+    // 알림 클릭했을 때 화면으로 이동
     const sub = Notifications.addNotificationResponseReceivedListener(
       (res) => {
         const data = res.notification.request.content.data as any;
@@ -31,7 +31,14 @@ export default function TabLayout() {
   }, [router]);
 
   return (
-    <Tabs screenOptions={{ headerShown: false }}>
+    <Tabs screenOptions={{
+      headerShown: false,
+      tabBarStyle: {
+        backgroundColor: "#ffffff",
+      },
+      tabBarActiveTintColor: "#F97316",   // 활성 아이콘 색
+      tabBarInactiveTintColor: "#9CA3AF", // 비활성 아이콘 색
+    }}>
       <Tabs.Screen
         name="index"
         options={{
