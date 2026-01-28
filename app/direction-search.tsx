@@ -15,6 +15,7 @@ import { API_BASE_URL } from "@/src/config/env";
 import { useLocalSearchParams, useRouter } from "expo-router";
 
 import { SegmentChip } from "@/src/components/SegmentChip";
+import { THEME } from "@/src/styles/theme";
 
 type Segment = {
   type: "WALK" | "BUS" | "SUBWAY" | string;
@@ -239,16 +240,16 @@ const styles = StyleSheet.create({
     padding: 14,
     backgroundColor: "#fff",
   },
-  cardActive: { borderColor: "#75B06F", backgroundColor: "#EEF6EE" },
+  cardActive: { borderColor: THEME.orangeBorder, backgroundColor: THEME.orangeSoft },
   cardTop: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
   cardTitle: { fontSize: 15, fontWeight: "800", color: "#111827" },
-  cardTitleActive: { color: "#2F6B2F" },
+  cardTitleActive: { color: THEME.orange },
   cardTime: { fontSize: 15, fontWeight: "800", color: "#111827" },
-  cardTimeActive: { color: "#2F6B2F" },
+  cardTimeActive: { color: THEME.orange },
 
   cardMeta: { marginTop: 6, fontSize: 13, color: "#6B7280" },
 
@@ -265,12 +266,12 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   primaryBtn: {
-    backgroundColor: "#F0F8A4",
+    backgroundColor: THEME.orange,
     paddingVertical: 14,
     borderRadius: 14,
     alignItems: "center",
   },
-  primaryBtnText: { color: "#000", fontSize: 15, fontWeight: "800" },
+  primaryBtnText: { color: THEME.text, fontSize: 15, fontWeight: "800" },
 
   center: {
     flex: 1,

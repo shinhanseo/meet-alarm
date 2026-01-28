@@ -107,11 +107,11 @@ export default function CreateMeetingScreen() {
   }, [originPlace, setDraftPlaceSilent]);
 
   const openSearch = (mode: "origin" | "dest") => {
-    router.push({ pathname: "/place-search", params: { mode, scope: "draft" } });
+    router.push({ pathname: "/place-search", params: { mode, scope: "draft", type: "create" } });
   };
 
   const openTimer = () => {
-    router.push({ pathname: "/set-time", params: { scope: "draft" } });
+    router.push({ pathname: "/set-time", params: { scope: "draft", type: "create" } });
   };
 
   const directionSearch = () => {
@@ -123,7 +123,7 @@ export default function CreateMeetingScreen() {
       );
       return;
     }
-    router.push({ pathname: "/direction-search", params: { scope: "draft" } });
+    router.push({ pathname: "/direction-search", params: { scope: "draft", type: "create" } });
   };
 
   const readyInput = !!(originPlace && destPlace && meetingDate && meetingTimeStr && meetingTitle);

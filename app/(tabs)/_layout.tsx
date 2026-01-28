@@ -62,7 +62,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="appointments-list"
         options={{
-          title: "약속 리스트",
+          title: "약속 목록",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="list" size={size ?? 28} color={color} />
           ),

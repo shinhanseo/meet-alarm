@@ -202,6 +202,15 @@ export default function HomeScreen() {
             }
           }} />
 
+        <TimerSection
+          readyToShowResult={readyToShowResult}
+          departureAtISO={departureAt ? departureAt.toISOString() : null}
+          departTimeText={departTimeText}
+          seconds={seconds}
+          timerText={timerText}
+          isConfirmed={isConfirmed}
+        />
+
         <MeetingSection
           originPlace={originPlace}
           destPlace={destPlace}
@@ -217,14 +226,7 @@ export default function HomeScreen() {
           }}
         />
 
-        <TimerSection
-          readyToShowResult={readyToShowResult}
-          departureAtISO={departureAt ? departureAt.toISOString() : null}
-          departTimeText={departTimeText}
-          seconds={seconds}
-          timerText={timerText}
-          isConfirmed={isConfirmed}
-        />
+
 
         <WeatherSection
           destPlaceName={destPlace?.name ?? null}
