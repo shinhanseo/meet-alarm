@@ -14,6 +14,7 @@ import { Ionicons } from "@expo/vector-icons";
 
 import { usePlacesStore } from "@/store/usePlacesStore";
 import { API_BASE_URL } from "@/src/config/env";
+import { getOrCreateInstallId } from "@/src/lib/installId";
 
 type Place = {
   name: string;
@@ -49,10 +50,14 @@ export default function PlaceSearchScreen() {
   const search = async (query: string) => {
     try {
       setLoading(true);
+      const installId = await getOrCreateInstallId();
 
       const res = await axios.get(`${API_BASE_URL}/api/places/search`, {
         params: { q: query },
         timeout: 5000,
+        headers: {
+          "x-install-id": installId,
+        }
       });
 
       setItems(res.data?.places ?? []);

@@ -7,6 +7,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { API_BASE_URL } from "@/src/config/env";
 import axios from "axios";
 import { usePlacesStore } from "@/store/usePlacesStore";
+import { getOrCreateInstallId } from "@/src/lib/installId";
 
 type Place = {
   name: string;
@@ -63,10 +64,14 @@ export default function MapPickScreen() {
     try {
       setAddrLoading(true);
       setAddrError("");
+      const installId = await getOrCreateInstallId();
 
       const res = await axios.get(`${API_BASE_URL}/api/places/map-pick`, {
         params: { lat, lng },
         timeout: 5000,
+        headers: {
+          "x-install-id": installId,
+        }
       });
 
       if (seq !== requestSeq.current) return;

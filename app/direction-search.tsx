@@ -17,6 +17,8 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { SegmentChip } from "@/src/components/SegmentChip";
 import { THEME } from "@/src/styles/theme";
 
+import { getOrCreateInstallId } from "@/src/lib/installId";
+
 type Segment = {
   type: "WALK" | "BUS" | "SUBWAY" | string;
   timeMin: number;
@@ -61,11 +63,16 @@ export default function DirectionSearchScreen() {
   useEffect(() => {
     const directionSearch = async () => {
       try {
+        const installId = await getOrCreateInstallId();
         const res = await axios.post(`${API_BASE_URL}/api/direction/find`, {
           startX: originPlace!.lng,
           startY: originPlace!.lat,
           endX: destPlace!.lng,
           endY: destPlace!.lat,
+        }, {
+          headers: {
+            "x-install-id": installId,
+          }
         });
 
         setRoutes(res.data.routes ?? []);
