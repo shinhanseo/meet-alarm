@@ -112,6 +112,7 @@ export const styles = StyleSheet.create({
   badgeDanger: { color: THEME.danger },
 
   countdownBox: {
+    position: "relative",
     backgroundColor: THEME.orangeSoft,
     borderRadius: 16,
     paddingVertical: 16,
@@ -245,6 +246,15 @@ export const styles = StyleSheet.create({
     fontWeight: "900",
     letterSpacing: -0.2,
     color: THEME.text,
+  },
+
+  timerBear: {
+    position: "absolute",
+    right: 8,
+    bottom: -6,
+    marginBottom: 8,
+    width: 78,
+    height: 78,
   },
 
 });

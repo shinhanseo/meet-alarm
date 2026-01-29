@@ -33,8 +33,8 @@ export function getDday(meetingDate: string, meetingTime: string) {
 
   const totalHours = Math.floor(diffMs / 3600000);
   if (totalHours >= 1) return `${totalHours}시간 후`;
-
-  return "곧 출발";
+  if (totalHours < 1 && totalHours > 0) return "곧 출발";
+  return "D-Day";
 }
 
 

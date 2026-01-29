@@ -1,4 +1,4 @@
-import { View, Text } from "react-native";
+import { View, Text, Image as RNImage } from "react-native";
 import { styles } from "../styles";
 import { THEME } from "../../../styles/theme";
 
@@ -31,6 +31,28 @@ function departDayLabel(departureAtISO: string) {
   const m = String(depart.getMonth() + 1).padStart(2, "0");
   const d = String(depart.getDate()).padStart(2, "0");
   return `${y}.${m}.${d} (${day})`;
+}
+
+function bearSourceBySeconds(seconds: number) {
+  if (seconds <= 0) {
+    return require("../../../../assets/bears/bear_busback2.png");
+  }
+  if (seconds <= 120) {
+    return require("../../../../assets/bears/bear_go2.png");
+  }
+  if (seconds <= 300) {
+    return require("../../../../assets/bears/bear_hurry.png");
+  }
+  if (seconds <= 600) {
+    return require("../../../../assets/bears/bear_bag.png");
+  }
+  if (seconds <= 900) {
+    return require("../../../../assets/bears/bear_wearing.png");
+  }
+  if (seconds <= 1800) {
+    return require("../../../../assets/bears/bear_shower.png");
+  }
+  return require("../../../../assets/bears/bear_sleep.png");
 }
 
 export default function TimerSection({
@@ -71,8 +93,13 @@ export default function TimerSection({
                   : seconds <= 300
                     ? "늦지 않게 서두르세요!"
                     : seconds <= 600
-                      ? "이제 소지품을 챙겨볼까요?"
-                      : "아직은 마음 놓으셔도 돼요."}
+                      ? "이제 소지품을 챙겨보세요!"
+                      : seconds <= 900
+                        ? "슬슬 옷을 입을 떄가 된거 같아요!"
+                        : seconds <= 1800
+                          ? "이제 씻어볼까요?"
+                          : "아직은 마음 놓으셔도 되요"
+                }
               </Text>
             </View>
           </View>
@@ -82,21 +109,21 @@ export default function TimerSection({
               {timerText}
             </Text>
             <Text style={styles.countdownSub}>출발까지 남은 시간</Text>
+
+            <RNImage
+              source={bearSourceBySeconds(seconds)}
+              style={styles.timerBear}
+              resizeMode="contain"
+            />
           </View>
-          <Text
-            style={[
-              styles.ghostBtnText,
-              { fontWeight: "600", fontSize: 12 },
-            ]}
-          >
+
+          <Text style={[styles.ghostBtnText, { fontWeight: "600", fontSize: 12 }]}>
             도착 10분 전 기준으로 안내해요
           </Text>
         </>
       ) : (
         <View style={styles.hintBox}>
-          <Text style={styles.hintText}>
-            약속을 저장하면 출발 추천 시간과 타이머가 보여요.
-          </Text>
+          <Text style={styles.hintText}>약속을 저장하면 출발 추천 시간과 타이머가 보여요.</Text>
         </View>
       )}
     </View>

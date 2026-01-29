@@ -76,7 +76,7 @@ export default function MeetingSection({
   ) : (
     <View style={styles.meetingCard}>
       <View style={styles.sectionRow}>
-        <Text style={styles.sectionLabel}>다음 약속</Text>
+        <Text style={styles.sectionLabel}>이번 약속</Text>
         <View style={styles.titlePill}>
           <Text style={styles.titlePillText} numberOfLines={1} ellipsizeMode="tail">
             {displayTitle}
