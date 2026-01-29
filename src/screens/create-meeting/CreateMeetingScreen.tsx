@@ -53,6 +53,9 @@ export default function CreateMeetingScreen() {
     setDraftMeetingTitle,
     saveDraft,
     scheduleDepartureAlarm,
+
+    setDbId,
+
   } = usePlacesStore();
 
   const originPlace = draft?.originPlace ?? null;
@@ -195,6 +198,10 @@ export default function CreateMeetingScreen() {
         originPlace,
         destPlace,
       });
+
+      const dbId = res.data.id;
+
+      setDbId(id, dbId);
     } catch (err) {
       console.error("DB 저장 실패 : ", err);
     }

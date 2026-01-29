@@ -14,6 +14,10 @@ import { ProgressSection } from "./components/ProgressSection";
 import { BottomBar } from "./components/BottomBar";
 import { DatePickerModal } from "./components/DatePickerModal";
 
+import { API_BASE_URL } from "@/src/config/env";
+import axios from "axios";
+import { getOrCreateInstallId } from "@/src/lib/installId";
+
 function getLocalYYYYMMDD(d = new Date()) {
   const yyyy = d.getFullYear();
   const mm = String(d.getMonth() + 1).padStart(2, "0");
@@ -60,6 +64,7 @@ export default function UpdateMeetingScreen() {
   const selectedRoute = draft?.selectedRoute ?? null;
   const meetingTime = meetingTimeStr ?? "";
   const meetingTitle = draft?.meetingTitle ?? "";
+  const dbId = draft?.dbId ?? null;
 
   const [region, setRegion] = useState<Region | null>(null);
   const [showDateModal, setShowDateModal] = useState(false);
@@ -194,6 +199,17 @@ export default function UpdateMeetingScreen() {
       await scheduleDepartureAlarm(alarmId);
     } catch (err) {
       console.error("알림 예약 실패:", err);
+    }
+
+    try {
+      await axios.put(`${API_BASE_URL}/api/save/meeting/${dbId}`, {
+        title: meetingTitle,
+        meetingAt: `${meetingDate} ${meetingTime}`,
+        originPlace,
+        destPlace,
+      });
+    } catch (err) {
+      console.error("미팅 업데이트 실패", err);
     }
 
     router.replace("/appointments-list");

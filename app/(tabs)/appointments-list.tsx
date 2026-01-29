@@ -14,6 +14,9 @@ import { RouteBar } from "@/src/components/RouteBar";
 import { SegmentChip } from "@/src/components/SegmentChip";
 import { useRouter } from "expo-router";
 
+import { API_BASE_URL } from "@/src/config/env";
+import axios from "axios";
+
 export function getDday(meetingDate: string, meetingTime: string) {
   const now = new Date();
 
@@ -87,6 +90,7 @@ export default function AppointmentsListScreen() {
         return {
           key: a?.id ?? String(idx),
           id: a?.id ?? null,
+          dbId: a?.dbId ?? null,
           meetingDate: a?.meetingDate ?? null,
           meetingTime: a?.meetingTime ?? null,
           originName: a?.originPlace?.name ?? "출발지",
@@ -180,7 +184,7 @@ export default function AppointmentsListScreen() {
                     !canDelete && { opacity: 0.4 },
                     pressed && { opacity: 0.75 },
                   ]}
-                  onPress={() => {
+                  onPress={async () => {
                     if (!item.id) return;
 
                     Alert.alert("약속 삭제", "이 약속을 삭제할까요?", [
@@ -188,9 +192,15 @@ export default function AppointmentsListScreen() {
                       {
                         text: "삭제",
                         style: "destructive",
-                        onPress: () => {
+                        onPress: async () => {
                           deleteAppointment(item.id);
                           setOpenKey((prev) => (prev === item.key ? null : prev));
+
+                          try {
+                            await axios.delete(`${API_BASE_URL}/api/save/meeting/${item.dbId}`);
+                          } catch (err) {
+                            console.error("db 삭제 실패", err);
+                          }
                         },
                       },
                     ]);

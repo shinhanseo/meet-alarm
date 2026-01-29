@@ -18,6 +18,7 @@ type UpdatePayload = {
 
 export type Appointment = {
   id: string;
+  dbId: number | null;
   originPlace: Place | null;
   destPlace: Place | null;
   meetingDate: string | null; // YYYY-MM-DD
@@ -29,6 +30,7 @@ export type Appointment = {
 };
 
 export type AppointmentDraft = {
+  dbId: number | null;
   originPlace: Place | null;
   destPlace: Place | null;
   meetingDate: string | null;
@@ -66,6 +68,8 @@ type PlacesState = {
 
   deleteAppointment: (id: string) => Promise<void>;
 
+  setDbId: (localId: string, dbId: number) => void;
+
   resetAll: () => Promise<void>;
 };
 
@@ -78,6 +82,7 @@ const makeNewId = () => {
 };
 
 const emptyDraft = (): AppointmentDraft => ({
+  dbId: null,
   originPlace: null,
   destPlace: null,
   meetingDate: todayYMD(),
@@ -186,6 +191,7 @@ export const usePlacesStore = create<PlacesState>()(
 
           const app: Appointment = {
             id,
+            dbId: null,
             originPlace: draft.originPlace,
             destPlace: draft.destPlace,
             meetingDate: draft.meetingDate,
@@ -270,6 +276,7 @@ export const usePlacesStore = create<PlacesState>()(
 
             return {
               draft: {
+                dbId: app.dbId,
                 originPlace: app.originPlace,
                 destPlace: app.destPlace,
                 meetingDate: app.meetingDate,
@@ -279,6 +286,14 @@ export const usePlacesStore = create<PlacesState>()(
               },
             };
           }),
+
+        setDbId: (localId, dbId) =>
+          set((s) => ({
+            appointments: s.appointments.map((a) =>
+              a.id === localId ? { ...a, dbId } : a
+            ),
+          })),
+
 
         updateAppointment: async (id, data) => {
           await internalCancel(id);
