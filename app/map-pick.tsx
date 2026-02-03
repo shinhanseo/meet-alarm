@@ -56,8 +56,6 @@ export default function MapPickScreen() {
         ? "주소를 불러오지 못했어요"
         : "주소 불러오는 중...";
 
-  console.log("[MapPick params]", { mode, scope, type, editId });
-
   const reverseGeocode = async (lat: number, lng: number) => {
     const seq = ++requestSeq.current;
 
@@ -165,7 +163,7 @@ export default function MapPickScreen() {
       />
 
       <View style={styles.centerPin} pointerEvents="none">
-        <Ionicons name="location-sharp" size={36} color="#36656B" />
+        <Ionicons name="location-sharp" size={36} color="#F97316" />
       </View>
 
       <Pressable style={styles.backBtn} onPress={() => router.back()}>
@@ -243,7 +241,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
     height: 54,
     borderRadius: 18,
-    backgroundColor: "#F0F8A4",
+    backgroundColor: "#FFF7ED",
     alignItems: "center",
     justifyContent: "center",
   },
