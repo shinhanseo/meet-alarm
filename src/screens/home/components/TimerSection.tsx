@@ -38,7 +38,7 @@ function bearSourceBySeconds(seconds: number) {
     return require("../../../../assets/bears/bear_busback2.png");
   }
   if (seconds <= 120) {
-    return require("../../../../assets/bears/bear_go2.png");
+    return require("../../../../assets/bears/bear_go3.png");
   }
   if (seconds <= 300) {
     return require("../../../../assets/bears/bear_hurry.png");
@@ -95,7 +95,7 @@ export default function TimerSection({
                     : seconds <= 600
                       ? "이제 소지품을 챙겨보세요!"
                       : seconds <= 900
-                        ? "슬슬 옷을 입을 떄가 된거 같아요!"
+                        ? "옷을 입어볼까요?"
                         : seconds <= 1800
                           ? "이제 씻어볼까요?"
                           : "아직은 마음 놓으셔도 되요"
