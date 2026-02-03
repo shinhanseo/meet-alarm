@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { View, Text, ActivityIndicator, ScrollView, Alert } from "react-native";
+import { View, Text, ActivityIndicator, ScrollView, Alert, Image } from "react-native";
 import { Region } from "react-native-maps";
 import * as Location from "expo-location";
 import { useRouter } from "expo-router";
@@ -150,9 +150,9 @@ export default function CreateMeetingScreen() {
     if (doneCount === 1) return "좋아요. 하나만 더 설정해봐요.";
     if (doneCount === 2) return "좋아요. 네 가지만 더 하면 돼요.";
     if (doneCount === 3) return "절반 왔어요. 두개만 설정하면 경로를 선택할 수 있어요!";
-    if (doneCount === 4) return "정말 다 왔어요. 마지막 하나만 설정하면 경로를 선택할 수 있어요.";
+    if (doneCount === 4) return "정말 다 왔어요. 마지막 하나만 선택해주세요!";
     if (doneCount === 5) return "다 왔어요. 이제 경로를 선택하세요!"
-    return "준비 완료! 이제 저장만 하면 약속을 늦지 않게 알려드릴게요";
+    return "준비 완료! 저장하면 약속을 늦지 않게 알려드릴게요";
   }, [doneCount]);
 
   const dateText = useMemo(() => {

@@ -35,22 +35,13 @@ export function CreateMeetingRouteSection(props: Props) {
         <>
           <Text style={styles.routeSummaryText}>{props.routeSummaryText}</Text>
 
-          <View style={{ marginTop: 10 }}>
+          <View>
             <RouteBar segments={props.selectedRoute.segments ?? []} />
           </View>
 
           <View style={styles.routeActions}>
             <Pressable onPress={props.onPressSearch} style={styles.smallBtn}>
               <Text style={styles.smallBtnText}>경로 변경</Text>
-            </Pressable>
-
-            <Pressable
-              onPress={props.onPressClear}
-              style={[styles.smallBtn, styles.smallBtnDanger]}
-            >
-              <Text style={[styles.smallBtnText, styles.smallBtnDangerText]}>
-                경로 지우기
-              </Text>
             </Pressable>
           </View>
         </>

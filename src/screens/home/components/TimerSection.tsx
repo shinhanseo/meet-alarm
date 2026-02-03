@@ -35,7 +35,7 @@ function departDayLabel(departureAtISO: string) {
 
 function bearSourceBySeconds(seconds: number) {
   if (seconds <= 0) {
-    return require("../../../../assets/bears/bear_busback2.png");
+    return require("../../../../assets/bears/bear_busback.png");
   }
   if (seconds <= 120) {
     return require("../../../../assets/bears/bear_go3.png");

@@ -1,4 +1,4 @@
-import { View, Text } from "react-native";
+import { View, Text, Image } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { styles } from "../styles";
 import { THEME } from "@/src/styles/theme";
@@ -17,11 +17,15 @@ type Props = {
 };
 
 export function ProgressSection(props: Props) {
+
+  const bearSetting = require("../../../../assets/bears/bear_setting.png");
+  const bearHappy = require("../../../../assets/bears/bear_good.png");
+
   return (
     <View style={styles.infoCard}>
       <View style={styles.routeHeader}>
         <Text style={styles.infoTitle}>진행 상태</Text>
-        {props.doneCount <= 4 ? (
+        {props.doneCount <= 5 ? (
           <MaterialIcons name="autorenew" size={18} color={THEME.orange} />
         ) : (
           <MaterialIcons name="check-circle" size={18} color={THEME.orange} />
@@ -48,7 +52,14 @@ export function ProgressSection(props: Props) {
         <Text style={styles.progressText}>경로</Text>
       </View>
 
-      <Text style={styles.infoDesc}>{props.progressText}</Text>
+      <View style={styles.bearGuideWrap}>
+        {props.doneCount <= 5 ? <Image source={bearSetting} style={styles.bearGuideImg} resizeMode="contain" /> : <Image source={bearHappy} style={styles.bearGuideImg} resizeMode="contain" />}
+        <View style={styles.bearBubble}>
+          <Text style={styles.bearBubbleText}>
+            {props.progressText}
+          </Text>
+        </View>
+      </View>
 
       {props.showTips && (
         <View>

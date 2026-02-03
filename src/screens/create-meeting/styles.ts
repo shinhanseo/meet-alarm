@@ -135,15 +135,16 @@ export const styles = StyleSheet.create({
   },
   routeBtnText: { fontSize: 14, fontWeight: "900", color: THEME.orangeDark },
   routeSummaryText: { fontSize: 13, fontWeight: "900", color: THEME.text },
-  routeActions: { flexDirection: "row", gap: 10, marginTop: 12 },
+  routeActions: { flexDirection: "row" },
   smallBtn: {
     flex: 1,
-    paddingVertical: 12,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
     borderRadius: 14,
     alignItems: "center",
-    backgroundColor: THEME.card,
+    backgroundColor: THEME.orangeSoft,
     borderWidth: 1,
-    borderColor: THEME.border,
+    borderColor: THEME.orangeBorder,
   },
   smallBtnText: { fontSize: 13, fontWeight: "900", color: THEME.text },
   smallBtnDanger: { borderColor: "#FCA5A5", backgroundColor: "#FEF2F2" },
@@ -301,5 +302,30 @@ export const styles = StyleSheet.create({
   },
   houseBtnTextOff: {
     color: THEME.muted,
+  },
+
+  bearGuideWrap: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 10,
+  },
+  bearGuideImg: {
+    width: 64,
+    height: 64,
+    marginRight: 10,
+  },
+  bearBubble: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: "#F1D3B5",
+    backgroundColor: "#FFF7EF",
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 14,
+  },
+  bearBubbleText: {
+    fontSize: 13,
+    color: "#333",
+    fontWeight: "600",
   },
 });
