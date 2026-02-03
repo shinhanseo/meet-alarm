@@ -297,6 +297,10 @@ export default function UpdateMeetingScreen() {
         visible={showDateModal}
         date={meetingDate ? ymdToDate(meetingDate) : new Date()}
         onConfirm={(picked) => {
+          if (picked.getTime() < new Date().getTime()) {
+            Alert.alert("이미 지난 날짜입니다", "날짜를 다시 설정해주세요", [{ text: "확인" }]);
+            return;
+          }
           setDraftMeetingDate(getLocalYYYYMMDD(picked));
           setShowDateModal(false);
         }}
