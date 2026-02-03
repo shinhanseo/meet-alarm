@@ -138,10 +138,6 @@ export function InputCard(props: Props) {
               </Text>
             </Pressable>
           </View>
-
-          <Pressable onPress={props.onPressCalendar} style={styles.calendarBtn}>
-            <Text style={styles.calendarText}>📅</Text>
-          </Pressable>
         </View>
 
         {/* 시간 */}
