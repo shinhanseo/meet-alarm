@@ -40,21 +40,21 @@ export default function TabLayout() {
       tabBarInactiveTintColor: "#9CA3AF", // 비활성 아이콘 색
     }}>
       <Tabs.Screen
-        name="index"
-        options={{
-          title: "홈",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home" size={size ?? 28} color={color} />
-          ),
-        }}
-      />
-
-      <Tabs.Screen
         name="create-meeting"
         options={{
           title: "약속 만들기",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="calendar" size={size ?? 28} color={color} />
+          ),
+        }}
+      />
+
+      <Tabs.Screen
+        name="index"
+        options={{
+          title: "홈",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="home" size={size ?? 28} color={color} />
           ),
         }}
       />
