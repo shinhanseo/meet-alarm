@@ -25,7 +25,7 @@ export type Appointment = {
   meetingTime: string | null; // HH:mm
   selectedRoute: any | null;
   isConfirmed: boolean;
-  scheduledDepartureNotifId: string | null;
+  scheduledDepartureNotifId: string[];
   meetingTitle: string;
 };
 
@@ -94,12 +94,18 @@ const emptyDraft = (): AppointmentDraft => ({
 export const usePlacesStore = create<PlacesState>()(
   persist(
     (set, get) => {
-      const internalCancel = async (id: string) => {
+      const internalCancelAll = async (id: string) => {
         const app = get().appointments.find((a) => a.id === id);
-        if (!app?.scheduledDepartureNotifId) return;
-        try {
-          await cancelAlarm(app.scheduledDepartureNotifId);
-        } catch { }
+        const ids = app?.scheduledDepartureNotifId ?? [];
+        if (!ids.length) return;
+
+        await Promise.all(
+          ids.map(async (nid) => {
+            try {
+              await cancelAlarm(nid);
+            } catch { }
+          })
+        );
       };
 
       return {
@@ -198,7 +204,7 @@ export const usePlacesStore = create<PlacesState>()(
             meetingTime: draft.meetingTime,
             selectedRoute: draft.selectedRoute,
             isConfirmed: true,
-            scheduledDepartureNotifId: null,
+            scheduledDepartureNotifId: [],
             meetingTitle: draft.meetingTitle.trim(),
           };
 
@@ -210,6 +216,7 @@ export const usePlacesStore = create<PlacesState>()(
           return id;
         },
 
+        // 출발 알림 + 출발 10분 전 알림 (2개 예약)
         scheduleDepartureAlarm: async (id) => {
           const { appointments, isScheduling } = get();
           const app = appointments.find((a) => a.id === id);
@@ -224,24 +231,39 @@ export const usePlacesStore = create<PlacesState>()(
 
           if (!departureAt || departureAt.getTime() <= Date.now()) return;
 
+          const tenMinBefore = new Date(departureAt.getTime() - 10 * 60 * 1000);
+
           set({ isScheduling: true });
           try {
-            await internalCancel(id);
+            await internalCancelAll(id);
 
+            const newIds: string[] = [];
+
+            // (1) 출발 10분 전 알림 (과거면 스킵)
+            if (tenMinBefore.getTime() > Date.now()) {
+              const nid = await scheduleAlarmAt(tenMinBefore, {
+                title: "10분 뒤 출발 준비!",
+                body: `${app.destPlace.name} 가려면 10분 뒤에 출발해야되요!`,
+              });
+              newIds.push(nid);
+            }
+
+            // (2) 출발 알림
             const timeText = departureAt.toLocaleTimeString("ko-KR", {
               hour: "2-digit",
               minute: "2-digit",
               hour12: false,
             });
 
-            const notifId = await scheduleAlarmAt(departureAt, {
+            const nid2 = await scheduleAlarmAt(departureAt, {
               title: "지금 출발!",
               body: `${app.destPlace.name}에 늦지 않으려면 지금 출발해야 해요! (${timeText})`,
             });
+            newIds.push(nid2);
 
             set((s) => ({
               appointments: s.appointments.map((a) =>
-                a.id === id ? { ...a, scheduledDepartureNotifId: notifId } : a
+                a.id === id ? { ...a, scheduledDepartureNotifId: newIds } : a
               ),
             }));
           } finally {
@@ -250,28 +272,32 @@ export const usePlacesStore = create<PlacesState>()(
         },
 
         cancelDepartureAlarm: async (id) => {
-          await internalCancel(id);
+          await internalCancelAll(id);
           set((s) => ({
             appointments: s.appointments.map((a) =>
-              a.id === id ? { ...a, scheduledDepartureNotifId: null } : a
+              a.id === id ? { ...a, scheduledDepartureNotifId: [] } : a
             ),
           }));
         },
 
         resetAll: async () => {
-          for (const a of get().appointments) {
-            if (a.scheduledDepartureNotifId) {
-              try {
-                await cancelAlarm(a.scheduledDepartureNotifId);
-              } catch { }
-            }
-          }
+          const apps = get().appointments;
+          await Promise.all(
+            apps.flatMap((a) =>
+              (a.scheduledDepartureNotifId ?? []).map(async (nid) => {
+                try {
+                  await cancelAlarm(nid);
+                } catch { }
+              })
+            )
+          );
+
           set({ appointments: [], draft: null });
         },
 
         loadDraftFromAppointment: (id) =>
           set((s) => {
-            const app = s.appointments.find(a => a.id === id);
+            const app = s.appointments.find((a) => a.id === id);
             if (!app) return s;
 
             return {
@@ -294,9 +320,8 @@ export const usePlacesStore = create<PlacesState>()(
             ),
           })),
 
-
         updateAppointment: async (id, data) => {
-          await internalCancel(id);
+          await internalCancelAll(id);
 
           set((s) => ({
             appointments: s.appointments.map((a) =>
@@ -309,7 +334,7 @@ export const usePlacesStore = create<PlacesState>()(
                   meetingTime: data.meetingTime,
                   selectedRoute: data.selectedRoute,
                   meetingTitle: data.meetingTitle.trim(),
-                  scheduledDepartureNotifId: null,
+                  scheduledDepartureNotifId: [], // 
                   isConfirmed: true,
                 }
                 : a
@@ -321,7 +346,7 @@ export const usePlacesStore = create<PlacesState>()(
         },
 
         deleteAppointment: async (id) => {
-          await internalCancel(id);
+          await internalCancelAll(id);
           set((s) => ({
             appointments: s.appointments.filter((a) => a.id !== id),
           }));
