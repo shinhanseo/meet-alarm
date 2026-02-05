@@ -96,14 +96,14 @@ export default function SetTimeScreen() {
           const hour = meetingAt.getHours();
           const isNight = hour >= 23 || hour <= 6;
 
-          if (isNight) {
-            Alert.alert(
-              "심야 시간에는 대중교통 운행이 제한될 수 있어요.",
-              "다른 이동 수단을 고려해 보세요",
-              [{ text: "확인" }]
-            );
-            return;
-          }
+          // if (isNight) {
+          //   Alert.alert(
+          //     "심야 시간에는 대중교통 운행이 제한될 수 있어요.",
+          //     "다른 이동 수단을 고려해 보세요",
+          //     [{ text: "확인" }]
+          //   );
+          //   return;
+          // }
 
           setDraftMeetingTime(toHHmm(tempTime));
           if (type === "update") {

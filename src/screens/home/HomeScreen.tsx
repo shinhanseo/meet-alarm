@@ -13,6 +13,7 @@ import MeetingSection from "./components/MeetingSection";
 import TimerSection from "./components/TimerSection";
 import HomeRouteSection from "./components/HomeRouteSection";
 import WeatherSection from "./components/WeatherSection";
+import CameraSection from "./components/CameraSection";
 
 type WeatherDto = {
   name: string;
@@ -183,14 +184,21 @@ export default function HomeScreen() {
     });
   };
 
+  const nowMs = Date.now();
+  const departureMs = departureAt?.getTime() ?? null;
+
+  // 출발 전 10분 ~ 출발 후 10분
+  const inCameraWindow =
+    !!departureMs &&
+    nowMs >= departureMs - 10 * 60 * 1000 &&
+    nowMs <= departureMs + 10 * 60 * 1000;
+
   // 5) 약속 없음 화면
   if (!app) {
     return (
       <View style={styles.container}>
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
           <HeaderBar
-            onPressCamera={goDepartureCamera}
-            cameraDisabled={!readyToShowResult}
           />
 
           <MeetingSection
@@ -215,8 +223,6 @@ export default function HomeScreen() {
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <HeaderBar
-          onPressCamera={goDepartureCamera}
-          cameraDisabled={cameraDisabled}
         />
 
         <TimerSection
@@ -226,6 +232,12 @@ export default function HomeScreen() {
           seconds={seconds}
           timerText={timerText}
           isConfirmed={isConfirmed}
+        />
+
+        <CameraSection
+          enabled={isConfirmed && readyToShowResult && inCameraWindow}
+          seconds={seconds}
+          onPressCamera={goDepartureCamera}
         />
 
         <MeetingSection

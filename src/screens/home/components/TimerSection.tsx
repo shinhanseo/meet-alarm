@@ -137,7 +137,7 @@ export default function TimerSection({
                         ? "옷을 입어볼까요?"
                         : seconds <= 1800
                           ? "이제 씻어볼까요?"
-                          : "아직은 마음 놓으셔도 되요"
+                          : "아직은 마음 놓으셔도 돼요"
                 }
               </Text>
             </View>

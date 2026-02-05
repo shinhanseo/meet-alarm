@@ -10,6 +10,7 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingVertical: 6,
+    marginTop: 12,
   },
   headerTitle: { fontSize: 22, fontWeight: "900", color: THEME.text },
   headerBtn: {
@@ -257,35 +258,72 @@ export const styles = StyleSheet.create({
     height: 78,
   },
 
-  proofBtn: {
-    marginTop: 12,
+  cameraCard: {
+    marginTop: 4,
     paddingVertical: 14,
     paddingHorizontal: 14,
-    borderRadius: 16,
-    backgroundColor: "#FFF7EF",
+    borderRadius: 18,
+    backgroundColor: THEME.card,
     borderWidth: 1,
-    borderColor: "#F1D3B5",
-  },
-  proofBtnText: {
-    fontSize: 15,
-    fontWeight: "800",
-    color: "#333",
-  },
-  proofBtnSubText: {
-    marginTop: 4,
-    fontSize: 12,
-    color: "#666",
+    borderColor: THEME.orangeBorder,
   },
 
-  cameraBtnTop: {
-    paddingHorizontal: 12,
+  cameraCardTop: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+
+  cameraTitleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+
+  cameraTitle: {
+    fontSize: 15,
+    fontWeight: "900",
+    color: "#333",
+  },
+
+  cameraTimerPill: {
+    paddingHorizontal: 10,
     paddingVertical: 6,
-    borderRadius: 10,
-    backgroundColor: "#FFF7EF",
+    borderRadius: 999,
     borderWidth: 1,
     borderColor: "#F1D3B5",
+    backgroundColor: "#ffffff",
+    fontSize: 12,
+    fontWeight: "800",
+    color: "#F97316",
+  },
+
+  cameraSubText: {
+    marginTop: 10,
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#F97316",
+  },
+
+  cameraCtaBtn: {
+    marginTop: 12,
+    height: 44,
+    borderRadius: 14,
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: "#F97316",
+  },
+
+  cameraCtaText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "900",
+  },
+
+  cameraHint: {
+    marginTop: 8,
+    fontSize: 11,
+    color: THEME.orange,
   },
 
 

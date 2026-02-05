@@ -141,7 +141,7 @@ export default function DepartureCameraScreen() {
       if (verdict.ok) {
         Alert.alert(
           "인증 완료!",
-          `집 근처에서 출발 준비 확인!`,
+          `나갈준비가 다 되셨군요!`,
           [{ text: "확인", onPress: () => router.back() }]
         );
       } else {
