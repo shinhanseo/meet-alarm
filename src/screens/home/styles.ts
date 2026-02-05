@@ -257,4 +257,36 @@ export const styles = StyleSheet.create({
     height: 78,
   },
 
+  proofBtn: {
+    marginTop: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    borderRadius: 16,
+    backgroundColor: "#FFF7EF",
+    borderWidth: 1,
+    borderColor: "#F1D3B5",
+  },
+  proofBtnText: {
+    fontSize: 15,
+    fontWeight: "800",
+    color: "#333",
+  },
+  proofBtnSubText: {
+    marginTop: 4,
+    fontSize: 12,
+    color: "#666",
+  },
+
+  cameraBtnTop: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 10,
+    backgroundColor: "#FFF7EF",
+    borderWidth: 1,
+    borderColor: "#F1D3B5",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+
 });

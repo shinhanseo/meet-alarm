@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { View, ScrollView } from "react-native";
+import { View, ScrollView, Alert, Pressable, Text } from "react-native";
 import { useRouter } from "expo-router";
 import axios from "axios";
 
@@ -167,12 +167,31 @@ export default function HomeScreen() {
     };
   }, [destPlace?.lat, destPlace?.lng]);
 
+  const cameraDisabled = seconds > 600;
+
+  const goDepartureCamera = () => {
+    if (!app?.id) return;
+
+    if (!departureAt) {
+      Alert.alert("아직 준비가 안 됐어요", "경로/시간 설정을 먼저 완료해줘.");
+      return;
+    }
+
+    router.push({
+      pathname: "/departure-camera",
+      params: { appId: app.id },
+    });
+  };
+
   // 5) 약속 없음 화면
   if (!app) {
     return (
       <View style={styles.container}>
         <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-          <HeaderBar onPressReset={() => { }} />
+          <HeaderBar
+            onPressCamera={goDepartureCamera}
+            cameraDisabled={!readyToShowResult}
+          />
 
           <MeetingSection
             originPlace={null}
@@ -196,11 +215,9 @@ export default function HomeScreen() {
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <HeaderBar
-          onPressReset={() => {
-            if (app?.id) {
-              deleteAppointment(app.id);
-            }
-          }} />
+          onPressCamera={goDepartureCamera}
+          cameraDisabled={cameraDisabled}
+        />
 
         <TimerSection
           readyToShowResult={readyToShowResult}
@@ -225,8 +242,6 @@ export default function HomeScreen() {
             router.push("/create-meeting");
           }}
         />
-
-
 
         <WeatherSection
           destPlaceName={destPlace?.name ?? null}
