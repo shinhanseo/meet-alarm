@@ -96,8 +96,12 @@ export const usePlacesStore = create<PlacesState>()(
     (set, get) => {
       const internalCancelAll = async (id: string) => {
         const app = get().appointments.find((a) => a.id === id);
-        const ids = app?.scheduledDepartureNotifId ?? [];
-        if (!ids.length) return;
+
+        const raw = app?.scheduledDepartureNotifId;
+
+        const ids: string[] = Array.isArray(raw) ? raw : raw ? [raw] : [];
+
+        if (ids.length === 0) return;
 
         await Promise.all(
           ids.map(async (nid) => {
