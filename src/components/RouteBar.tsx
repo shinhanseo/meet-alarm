@@ -67,11 +67,11 @@ function formatBusRoute(route?: string) {
   }
 
   if (route.includes("마을")) {
-    return `마을버스 ${number}`;
+    return `버스 ${number}`;
   }
 
   if (route.includes("일반")) {
-    return `시내버스 ${number}`;
+    return `버스 ${number}`;
   }
 
   return `버스 ${number}`;
