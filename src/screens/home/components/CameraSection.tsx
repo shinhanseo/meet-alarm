@@ -5,18 +5,13 @@ import { styles } from "../styles";
 type Props = {
   enabled: boolean;          // seconds <= 600 같은 조건
   seconds: number;           // 남은 시간(초)
+  isCameraVerified: boolean;
   onPressCamera: () => void; // 카메라 화면 이동
 };
 
-function formatMmSs(totalSeconds: number) {
-  const s = Math.max(0, Math.floor(totalSeconds));
-  const mm = String(Math.floor(s / 60)).padStart(2, "0");
-  const ss = String(s % 60).padStart(2, "0");
-  return `${mm}:${ss}`;
-}
-
-export default function CameraSection({ enabled, seconds, onPressCamera }: Props) {
+export default function CameraSection({ enabled, seconds, isCameraVerified, onPressCamera }: Props) {
   if (!enabled) return null;
+  if (isCameraVerified) return;
 
   return (
     <View style={styles.cameraCard}>
@@ -28,7 +23,7 @@ export default function CameraSection({ enabled, seconds, onPressCamera }: Props
       </View>
 
       <Text style={styles.cameraSubText}>
-        ⏰ 출발 10분 전부터 신발 사진을 찍으면 인증돼요.
+        ⏰ 출발 10분 전부터 신발을 신고 사진을 찍으면 인증돼요.
       </Text>
 
       <Pressable style={styles.cameraCtaBtn} onPress={onPressCamera}>

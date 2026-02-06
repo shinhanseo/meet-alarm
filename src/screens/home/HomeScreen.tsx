@@ -52,7 +52,7 @@ function pickNearestFuture(appointments: any[] = []) {
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { appointments, deleteAppointment } = usePlacesStore();
+  const { appointments } = usePlacesStore();
 
   const bufferMin = 10;
 
@@ -72,6 +72,7 @@ export default function HomeScreen() {
   const selectedRoute = app?.selectedRoute ?? null;
   const isConfirmed = app?.isConfirmed ?? false;
   const meetingTitle = app?.meetingTitle ?? false;
+  const isCameraVerified = app?.isCameraVerified ?? false;
 
   // 2) departureAt은 유틸 함수로 계산
   const departureAt = useMemo(() => {
@@ -191,7 +192,7 @@ export default function HomeScreen() {
   const inCameraWindow =
     !!departureMs &&
     nowMs >= departureMs - 10 * 60 * 1000 &&
-    nowMs <= departureMs + 10 * 60 * 1000;
+    nowMs <= departureMs + 5 * 60 * 1000;
 
   // 5) 약속 없음 화면
   if (!app) {
@@ -209,6 +210,7 @@ export default function HomeScreen() {
             selectedRoute={null}
             isConfirmed={false}
             meetingTitle={""}
+            isCameraVerified={isCameraVerified}
             onPressCreate={() => router.push("/create-meeting")}
             onPressEdit={() => router.push("/create-meeting")}
             onPressSearchRoute={() => router.push("/create-meeting")}
@@ -237,6 +239,7 @@ export default function HomeScreen() {
         <CameraSection
           enabled={isConfirmed && readyToShowResult && inCameraWindow}
           seconds={seconds}
+          isCameraVerified={isCameraVerified}
           onPressCamera={goDepartureCamera}
         />
 
@@ -248,6 +251,7 @@ export default function HomeScreen() {
           selectedRoute={selectedRoute}
           isConfirmed={isConfirmed}
           meetingTitle={meetingTitle}
+          isCameraVerified={isCameraVerified}
           onPressCreate={() => router.push("/create-meeting")}
           onPressEdit={() => router.push("/create-meeting")}
           onPressSearchRoute={() => {

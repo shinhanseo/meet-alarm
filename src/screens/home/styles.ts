@@ -326,5 +326,53 @@ export const styles = StyleSheet.create({
     color: THEME.orange,
   },
 
+  verifyBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 999,
+    borderWidth: 1,
+    marginLeft: 8,
+  },
+
+  verifyBadgeOk: {
+    backgroundColor: "#ECFDF3",
+    borderColor: "#A7F3D0",
+  },
+
+  verifyBadgeNeed: {
+    backgroundColor: THEME.dangerSoft,
+    borderColor: THEME.danger,
+  },
+
+  verifyDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 99,
+    marginRight: 6,
+  },
+
+  verifyDotOk: {
+    backgroundColor: "#22C55E",
+  },
+
+  verifyDotNeed: {
+    backgroundColor: "#FF0000",
+  },
+
+  verifyText: {
+    fontSize: 12,
+    fontWeight: "700",
+  },
+
+  verifyTextOk: {
+    color: "#166534",
+  },
+
+  verifyTextNeed: {
+    color: "#D2042D",
+  },
+
 
 });

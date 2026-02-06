@@ -11,7 +11,7 @@ type Props = {
   selectedRoute: any;
   isConfirmed: boolean;
   meetingTitle: string;
-
+  isCameraVerified: boolean;
   onPressCreate: () => void;
   onPressEdit: () => void;
   onPressSearchRoute: () => void;
@@ -52,6 +52,7 @@ export default function MeetingSection({
   selectedRoute,
   isConfirmed,
   meetingTitle,
+  isCameraVerified,
   onPressCreate,
   onPressEdit,
   onPressSearchRoute,
@@ -77,11 +78,14 @@ export default function MeetingSection({
     <View style={styles.meetingCard}>
       <View style={styles.sectionRow}>
         <Text style={styles.sectionLabel}>이번 약속</Text>
+
         <View style={styles.titlePill}>
           <Text style={styles.titlePillText} numberOfLines={1} ellipsizeMode="tail">
             {displayTitle}
           </Text>
         </View>
+
+        <VerifyBadge verified={isCameraVerified} />
       </View>
 
       <View style={styles.placeRow}>
@@ -97,18 +101,32 @@ export default function MeetingSection({
       <Text style={styles.meetingMeta}>
         {meetingDate ? relativeDayLabel(meetingDate) : ""} · {meetingTime ?? ""}
       </Text>
+    </View>
+  );
+}
 
-      {/* <View style={styles.meetingActions}>
-        <Pressable onPress={onPressEdit} style={styles.ghostBtn}>
-          <Text style={styles.ghostBtnText}>약속 수정</Text>
-        </Pressable>
-
-        <Pressable onPress={onPressSearchRoute} style={styles.primaryBtnSmall}>
-          <Text style={styles.primaryBtnSmallText}>
-            {selectedRoute ? "경로 다시 탐색" : "경로 탐색"}
-          </Text>
-        </Pressable>
-      </View> */}
+function VerifyBadge({ verified }: { verified: boolean }) {
+  return (
+    <View
+      style={[
+        styles.verifyBadge,
+        verified ? styles.verifyBadgeOk : styles.verifyBadgeNeed,
+      ]}
+    >
+      <View
+        style={[
+          styles.verifyDot,
+          verified ? styles.verifyDotOk : styles.verifyDotNeed,
+        ]}
+      />
+      <Text
+        style={[
+          styles.verifyText,
+          verified ? styles.verifyTextOk : styles.verifyTextNeed,
+        ]}
+      >
+        {verified ? "인증 완료" : "인증 필요"}
+      </Text>
     </View>
   );
 }

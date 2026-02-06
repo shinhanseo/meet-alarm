@@ -19,6 +19,7 @@ export default function DepartureCameraScreen() {
   const [isTaking, setIsTaking] = useState(false);
   const [facing, setFacing] = useState<CameraType>("back");
 
+  const { setCameraVerified } = usePlacesStore();
   const appt = usePlacesStore((s) =>
     s.appointments?.find((a: any) => a.id === appId)
   );
@@ -133,7 +134,7 @@ export default function DepartureCameraScreen() {
         currentLng: loc.coords.longitude,
         allowedRadiusM: 200,
         allowEarlyMs: 10 * 60 * 1000,
-        allowLateMs: 10 * 60 * 1000,
+        allowLateMs: 5 * 60 * 1000,
       });
 
       await deleteCapturedPhotoSafely(photo.uri);
@@ -144,6 +145,7 @@ export default function DepartureCameraScreen() {
           `나갈준비가 다 되셨군요!`,
           [{ text: "확인", onPress: () => router.back() }]
         );
+        setCameraVerified(appId, true);
       } else {
         const msg =
           verdict.reason === "too_far"
