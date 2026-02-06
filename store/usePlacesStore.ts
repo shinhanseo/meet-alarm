@@ -27,6 +27,7 @@ export type Appointment = {
   isConfirmed: boolean;
   scheduledDepartureNotifId: string[];
   meetingTitle: string;
+  isCameraVerified: boolean;
 };
 
 export type AppointmentDraft = {
@@ -69,6 +70,8 @@ type PlacesState = {
   deleteAppointment: (id: string) => Promise<void>;
 
   setDbId: (localId: string, dbId: number) => void;
+
+  setCameraVerified: (id: string, verified: boolean) => void;
 
   resetAll: () => Promise<void>;
 };
@@ -210,6 +213,7 @@ export const usePlacesStore = create<PlacesState>()(
             isConfirmed: true,
             scheduledDepartureNotifId: [],
             meetingTitle: draft.meetingTitle.trim(),
+            isCameraVerified: false,
           };
 
           set((s) => ({
@@ -284,6 +288,13 @@ export const usePlacesStore = create<PlacesState>()(
           }));
         },
 
+        setCameraVerified: (id, verified) =>
+          set((s) => ({
+            appointments: s.appointments.map((a) =>
+              a.id === id ? { ...a, isCameraVerified: verified } : a
+            ),
+          })),
+
         resetAll: async () => {
           const apps = get().appointments;
           await Promise.all(
@@ -340,6 +351,7 @@ export const usePlacesStore = create<PlacesState>()(
                   meetingTitle: data.meetingTitle.trim(),
                   scheduledDepartureNotifId: [], // 
                   isConfirmed: true,
+                  isCameraVerified: false,
                 }
                 : a
             ),
