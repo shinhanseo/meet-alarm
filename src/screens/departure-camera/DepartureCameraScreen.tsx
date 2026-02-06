@@ -7,6 +7,7 @@ import * as Location from "expo-location";
 import { usePlacesStore } from "../../../store/usePlacesStore";
 import { evaluateShoeProof, deleteCapturedPhotoSafely } from "@/src/lib/camera";
 import { calculateDepartureAt } from "@/src/utils/calculateDepartureAt";
+import { sendPhotoForVerdict } from "@/src/lib/photoApi";
 
 export default function DepartureCameraScreen() {
   const router = useRouter();
@@ -104,6 +105,8 @@ export default function DepartureCameraScreen() {
     if (isTaking) return;
     setIsTaking(true);
 
+    let capturedUri: string | null = null;
+
     try {
       const photo = await (cameraRef.current as any)?.takePictureAsync?.({
         quality: 0.7,
@@ -112,6 +115,21 @@ export default function DepartureCameraScreen() {
 
       if (!photo?.uri) {
         Alert.alert("촬영 실패", "사진을 찍지 못했어요. 다시 시도해주세요");
+        return;
+      }
+
+      capturedUri = photo.uri;
+      if (!capturedUri) return;
+
+      const p = await sendPhotoForVerdict(capturedUri);
+
+      if (!p.isShoe || p.confidence < 0.55) {
+        Alert.alert(
+          "신발이 잘 안 보여요",
+          p.confidence < 0.55
+            ? "판정이 애매해요. 신발이 프레임 중앙에 오게 다시 찍어주세요."
+            : "신발이 보이도록 다시 찍어주세요!"
+        );
         return;
       }
 
@@ -136,8 +154,6 @@ export default function DepartureCameraScreen() {
         allowEarlyMs: 10 * 60 * 1000,
         allowLateMs: 5 * 60 * 1000,
       });
-
-      await deleteCapturedPhotoSafely(photo.uri);
 
       if (verdict.ok) {
         Alert.alert(
@@ -164,6 +180,7 @@ export default function DepartureCameraScreen() {
       Alert.alert("오류", "처리 중 문제가 생겼어요");
     } finally {
       setIsTaking(false);
+      if (capturedUri) await deleteCapturedPhotoSafely(capturedUri);
     }
   }
 

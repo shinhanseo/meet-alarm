@@ -329,11 +329,11 @@ export const styles = StyleSheet.create({
   verifyBadge: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 6,
+    paddingVertical: 4,
     paddingHorizontal: 10,
     borderRadius: 999,
     borderWidth: 1,
-    marginLeft: 8,
+    marginLeft: "auto",
   },
 
   verifyBadgeOk: {
