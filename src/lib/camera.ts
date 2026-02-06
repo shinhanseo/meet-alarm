@@ -42,7 +42,6 @@ export type ShoeProofRules = {
 };
 
 /**
- * B안 핵심 로직
  * - 출발 시간 근처인지
  * - 집 근처인지
  */
@@ -52,7 +51,7 @@ export function evaluateShoeProof(r: ShoeProofRules): ShoeProofVerdict {
 
     const allowedRadiusM = r.allowedRadiusM ?? 200;
     const allowEarlyMs = r.allowEarlyMs ?? 10 * 60 * 1000;
-    const allowLateMs = r.allowLateMs ?? 10 * 60 * 1000;
+    const allowLateMs = r.allowLateMs ?? 5 * 60 * 1000;
 
     const deltaMs = capturedAt - r.departureAtMs;
     const distanceM = haversineMeters(
