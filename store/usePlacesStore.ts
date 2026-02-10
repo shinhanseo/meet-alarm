@@ -13,6 +13,7 @@ import { calculateDepartureAt } from "@/src/utils/calculateDepartureAt";
 
 type Place = { name: string; address: string; lat: number; lng: number };
 type Mode = "origin" | "dest";
+type DraftMode = "create" | "edit";
 
 type UpdatePayload = {
   originPlace: Place | null;
@@ -45,6 +46,8 @@ export type Appointment = {
 
 export type AppointmentDraft = {
   dbId: number | null;
+  mode: DraftMode;
+  editingId: string | null;
   originPlace: Place | null;
   destPlace: Place | null;
   meetingDate: string | null;
@@ -105,6 +108,8 @@ const makeNewId = () => {
 
 const emptyDraft = (): AppointmentDraft => ({
   dbId: null,
+  mode: "create",
+  editingId: null,
   originPlace: null,
   destPlace: null,
   meetingDate: todayYMD(),
@@ -159,7 +164,7 @@ export const usePlacesStore = create<PlacesState>()(
             myHouse: place ? { ...place, name: "우리집" } : null,
           }),
 
-        startDraft: () => set({ draft: emptyDraft() }),
+        startDraft: () => set({ draft: { ...emptyDraft(), mode: "create", editingId: null } }),
         resetDraft: () => set({ draft: null }),
 
         setDraftPlace: (mode, place) =>
@@ -411,6 +416,8 @@ export const usePlacesStore = create<PlacesState>()(
 
             return {
               draft: {
+                mode: "edit",
+                editingId: id,
                 dbId: app.dbId,
                 originPlace: app.originPlace,
                 destPlace: app.destPlace,
@@ -421,6 +428,7 @@ export const usePlacesStore = create<PlacesState>()(
               },
             };
           }),
+
 
         setDbId: (localId, dbId) =>
           set((s) => ({
@@ -464,7 +472,6 @@ export const usePlacesStore = create<PlacesState>()(
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (s) => ({
         appointments: s.appointments,
-        draft: s.draft,
         myHouse: s.myHouse,
       }),
     }

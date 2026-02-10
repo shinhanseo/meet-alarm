@@ -3,6 +3,8 @@ import { View, Text, ActivityIndicator, ScrollView, Alert, Image } from "react-n
 import { Region } from "react-native-maps";
 import * as Location from "expo-location";
 import { useRouter } from "expo-router";
+import { useFocusEffect } from "expo-router";
+import { useCallback } from "react";
 
 import { usePlacesStore } from "../../../store/usePlacesStore";
 import { styles } from "./styles";
@@ -76,9 +78,14 @@ export default function CreateMeetingScreen() {
     return getLocalYYYYMMDD(d);
   }, []);
 
-  useEffect(() => {
-    if (!draft) startDraft();
-  }, [draft, startDraft]);
+  useFocusEffect(
+    useCallback(() => {
+      const d = usePlacesStore.getState().draft;
+      if (!d || d.mode !== "create") {
+        usePlacesStore.getState().startDraft();
+      }
+    }, [])
+  );
 
   useEffect(() => {
     if (!draft) return;

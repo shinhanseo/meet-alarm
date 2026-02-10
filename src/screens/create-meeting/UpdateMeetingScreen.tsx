@@ -3,6 +3,8 @@ import { View, Text, ActivityIndicator, ScrollView, Alert } from "react-native";
 import { Region } from "react-native-maps";
 import * as Location from "expo-location";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { useFocusEffect } from "expo-router";
+import { useCallback } from "react";
 
 import { usePlacesStore } from "../../../store/usePlacesStore";
 import { styles } from "./styles";
@@ -16,7 +18,6 @@ import { DatePickerModal } from "./components/DatePickerModal";
 
 import { API_BASE_URL } from "@/src/config/env";
 import axios from "axios";
-import { getOrCreateInstallId } from "@/src/lib/installId";
 
 function getLocalYYYYMMDD(d = new Date()) {
   const yyyy = d.getFullYear();
@@ -75,6 +76,16 @@ export default function UpdateMeetingScreen() {
     d.setDate(d.getDate() + 1);
     return getLocalYYYYMMDD(d);
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!editId) {
+        router.back();
+        return;
+      }
+      usePlacesStore.getState().loadDraftFromAppointment(editId);
+    }, [editId])
+  );
 
   useEffect(() => {
     if (!editId) {
