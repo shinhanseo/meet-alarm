@@ -9,6 +9,8 @@ import { usePlacesStore } from "../../../store/usePlacesStore";
 import { evaluateShoeProof, deleteCapturedPhotoSafely } from "@/src/lib/camera";
 import { calculateDepartureAt } from "@/src/utils/calculateDepartureAt";
 import { sendPhotoForVerdict } from "@/src/lib/photoApi";
+import { predictShoe } from "@/src/lib/tfModel";
+import { cropToFrame } from "@/src/lib/crop";
 
 export default function DepartureCameraScreen() {
   const router = useRouter();
@@ -122,17 +124,26 @@ export default function DepartureCameraScreen() {
       capturedUri = photo.uri;
       if (!capturedUri) return;
 
-      const p = await sendPhotoForVerdict(capturedUri);
+      const croppedUri = await cropToFrame(capturedUri);
+      const p = await predictShoe(croppedUri);
 
-      if (!p.isShoe || p.confidence < 0.55) {
-        Alert.alert(
-          "신발이 잘 안 보여요",
-          p.confidence < 0.55
-            ? "판정이 애매해요. 신발이 프레임 중앙에 오게 다시 찍어주세요."
-            : "신발이 보이도록 다시 찍어주세요!"
-        );
+      console.log(p.shoe);
+
+      if (p.shoe < 0.7) {
+        Alert.alert("신발이 잘 안 보여요", "프레임 안에 신발이 크게 보이게 다시 찍어주세요.");
         return;
       }
+      //const p = await sendPhotoForVerdict(capturedUri);
+
+      // if (!p.isShoe || p.confidence < 0.55) {
+      //   Alert.alert(
+      //     "신발이 잘 안 보여요",
+      //     p.confidence < 0.55
+      //       ? "판정이 애매해요. 신발이 프레임 중앙에 오게 다시 찍어주세요."
+      //       : "신발이 보이도록 다시 찍어주세요!"
+      //   );
+      //   return;
+      // }
 
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {

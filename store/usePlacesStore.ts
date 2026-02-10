@@ -356,7 +356,7 @@ export const usePlacesStore = create<PlacesState>()(
 
           // 출발 시각부터 minutes분 동안 1분 간격 알림을 DATE로 여러 개 예약
           const ids = await scheduleVerifyNagSeries(departureAt, minutes, {
-            title: "아직 인증을을 안 했어요!",
+            title: "아직 인증을 안 했어요!",
             body: "신발 사진을 찍어주세요.",
             data: { appointmentId: id },
           });
