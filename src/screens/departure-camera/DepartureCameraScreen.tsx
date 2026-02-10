@@ -1,8 +1,9 @@
 import React, { useMemo, useRef, useState } from "react";
-import { View, Text, Alert, Pressable, ActivityIndicator, Linking, StyleSheet } from "react-native";
+import { View, Text, Alert, Pressable, ActivityIndicator, Linking } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { CameraView, useCameraPermissions, CameraType } from "expo-camera";
 import * as Location from "expo-location";
+import { styles } from "./styles";
 
 import { usePlacesStore } from "../../../store/usePlacesStore";
 import { evaluateShoeProof, deleteCapturedPhotoSafely } from "@/src/lib/camera";
@@ -20,7 +21,7 @@ export default function DepartureCameraScreen() {
   const [isTaking, setIsTaking] = useState(false);
   const [facing, setFacing] = useState<CameraType>("back");
 
-  const { setCameraVerified } = usePlacesStore();
+  const { setCameraVerified, cancelVerifyNag } = usePlacesStore();
   const appt = usePlacesStore((s) =>
     s.appointments?.find((a: any) => a.id === appId)
   );
@@ -156,12 +157,15 @@ export default function DepartureCameraScreen() {
       });
 
       if (verdict.ok) {
+        setCameraVerified(appId, true);
+        await cancelVerifyNag(appId);
+
         Alert.alert(
           "인증 완료!",
           `나갈준비가 다 되셨군요!`,
           [{ text: "확인", onPress: () => router.back() }]
         );
-        setCameraVerified(appId, true);
+
       } else {
         const msg =
           verdict.reason === "too_far"
@@ -217,59 +221,3 @@ export default function DepartureCameraScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#000" },
-  camera: { flex: 1 },
-
-  center: { flex: 1, justifyContent: "center", alignItems: "center", padding: 16 },
-  centerText: { color: "white", marginBottom: 12 },
-
-  primaryBtn: {
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: "rgba(255,255,255,0.15)",
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 14,
-    minWidth: 180,
-  },
-  secondaryBtn: { marginTop: 10, opacity: 0.7 },
-
-  btnText: { color: "white", fontWeight: "700" },
-
-  overlayWrap: {
-    position: "absolute",
-    top: "20%",
-    left: 0,
-    right: 0,
-    alignItems: "center",
-  },
-  shoeFrame: {
-    width: 260,
-    height: 260,
-    borderRadius: 24,
-    borderWidth: 2,
-    borderColor: "rgba(255,255,255,0.7)",
-  },
-  overlayText: { marginTop: 12, color: "white", opacity: 0.9 },
-
-  bottomBar: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 28,
-    paddingHorizontal: 18,
-  },
-  actionsRow: { flexDirection: "row", gap: 10, alignItems: "center" },
-
-  actionBtn: {
-    flex: 1,
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: "rgba(255,255,255,0.15)",
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 14,
-  },
-  actionBtnDim: { opacity: 0.8 },
-});

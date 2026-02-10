@@ -58,7 +58,7 @@ export async function initNotifications() {
  */
 export async function scheduleAlarmAt(
   date: Date,
-  opts?: { title?: string; body?: string }
+  opts?: { title?: string; body?: string; data?: any }
 ) {
   // 이미 지난 시간 방지
   if (date.getTime() <= Date.now()) {
@@ -72,7 +72,7 @@ export async function scheduleAlarmAt(
       body: opts?.body ?? "시간입니다!",  // 알림 내용
       sound: "default",                   // 소리 재생
       ...(Platform.OS === "android" ? { channelId: "alarm" } : {}), // Android 채널 지정
-      data: { type: "ALARM" },            // 알림 클릭 시 구분용 데이터
+      data: opts?.data ?? {},            // 알림 클릭 시 구분용 데이터
     },
 
     // 알림 트리거 (특정 날짜/시간)
@@ -83,6 +83,72 @@ export async function scheduleAlarmAt(
   });
 
   return id; // 나중에 취소할 때 쓸 알림 ID 반환
+}
+
+// 1분마다 repaet할 알람 예약 함수
+// 앱이 백그라운드, 종료 상태에는 알람 예약이 불가함
+export async function startVerifyNag() {
+  const id = await Notifications.scheduleNotificationAsync({
+    content: {
+      title: "아직 인증을 안 했어요!",
+      body: "신발 사진을 찍어주세요.",
+      sound: "default",
+      ...(Platform.OS === "android" ? { channelId: "alarm" } : {}),
+      data: { type: "VERIFY_NAG" },
+    },
+    trigger: {
+      type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+      seconds: 60,
+      repeats: true,
+    },
+  });
+
+  return id;
+}
+
+// 출발시간이 정해지면 애초에 여러개를 예약약
+export async function scheduleVerifyNagSeries(
+  startAt: Date,
+  minutes: number,
+  opts?: { title?: string; body?: string; data?: any }
+) {
+  // startAt이 과거면 지금부터 시작
+  const base = startAt.getTime() > Date.now() ? startAt : new Date(Date.now() + 1000);
+
+  const ids: string[] = [];
+
+  for (let i = 0; i < minutes; i++) {
+    const date = new Date(base.getTime() + i * 60 * 1000);
+
+    const id = await Notifications.scheduleNotificationAsync({
+      content: {
+        title: opts?.title ?? "아직 인증을 안 했어요!",
+        body: opts?.body ?? "신발 사진을 찍어주세요.",
+        sound: "default",
+        ...(Platform.OS === "android" ? { channelId: "alarm" } : {}),
+        data: { ...(opts?.data ?? {}), type: "VERIFY_NAG" },
+      },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.DATE,
+        date,
+      },
+    });
+
+    ids.push(id);
+  }
+
+  return ids;
+}
+
+// 인증미완료 시 알람 배열 취소 처리 함수
+export async function cancelAlarms(ids: string[]) {
+  await Promise.all(
+    ids.map(async (id) => {
+      try {
+        await Notifications.cancelScheduledNotificationAsync(id);
+      } catch { }
+    })
+  );
 }
 
 /**
