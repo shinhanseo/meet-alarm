@@ -312,7 +312,7 @@ export const usePlacesStore = create<PlacesState>()(
             });
             newIds.push(nid2);
 
-            await get().startVerifyNag(id, 30);
+            await get().startVerifyNag(id, 10);
 
             set((s) => ({
               appointments: s.appointments.map((a) =>

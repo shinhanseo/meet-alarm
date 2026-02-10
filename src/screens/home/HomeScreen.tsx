@@ -234,6 +234,7 @@ export default function HomeScreen() {
           seconds={seconds}
           timerText={timerText}
           isConfirmed={isConfirmed}
+          isCameraVerified={isCameraVerified}
         />
 
         <CameraSection

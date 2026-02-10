@@ -1,5 +1,5 @@
 import { View, Text, Image as RNImage } from "react-native";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { styles } from "../styles";
 import { THEME } from "../../../styles/theme";
 
@@ -10,6 +10,7 @@ type Props = {
   seconds: number;
   timerText: string;
   isConfirmed: boolean;
+  isCameraVerified: boolean;
 };
 
 // "오늘/내일/날짜" 라벨 만들기 (출발 시각 기준)
@@ -51,59 +52,55 @@ export default function TimerSection({
   seconds,
   timerText,
   isConfirmed,
+  isCameraVerified,
 }: Props) {
+  const stage = getStage(seconds);
+
   const dayPrefix =
     readyToShowResult && departureAtISO ? `${departDayLabel(departureAtISO)} ` : "";
 
-  const stageRef = useRef<number | null>(null);
-  const bearRef = useRef<any>(null);
-
-  const stage = getStage(seconds);
+  const [bearSource, setBearSource] = useState<any>(
+    require("../../../../assets/bears/bear_sleep.png")
+  );
 
   useEffect(() => {
-    if (stageRef.current !== stage) {
-      stageRef.current == stage;
+    let pool: any[] = [];
 
-      let pool: any[] = [];
-
-      if (stage === 0) {
-        pool = [
+    if (stage === 0) {
+      pool = isCameraVerified
+        ? [
           require("../../../../assets/bears/bear_busback.png"),
-          require("../../../../assets/bears/bear_bus.png")
-        ];
-      } else if (stage === 1) {
-        pool = [
-          require("../../../../assets/bears/bear_go3.png")
-        ];
-      } else if (stage === 2) {
-        pool = [
-          require("../../../../assets/bears/bear_hurry.png"),
-          require("../../../../assets/bears/bear_hurry2.png"),
-        ];
-      } else if (stage === 3) {
-        pool = [
-          require("../../../../assets/bears/bear_bag.png")
-        ];
-      } else if (stage === 4) {
-        pool = [
-          require("../../../../assets/bears/bear_wearing.png"),
-          require("../../../../assets/bears/bear_wearing2.png"),
-        ];
-      } else if (stage === 5) {
-        pool = [
-          require("../../../../assets/bears/bear_shower.png"),
-          require("../../../../assets/bears/bear_shower2.png"),
-        ];
-      } else {
-        pool = [
-          require("../../../../assets/bears/bear_sleep.png"),
-          require("../../../../assets/bears/bear_bed.png"),
-        ];
-      }
-
-      bearRef.current = pool[Math.floor(Math.random() * pool.length)];
+          require("../../../../assets/bears/bear_bus.png"),
+        ]
+        : [require("../../../../assets/bears/bear_camera.png")];
+    } else if (stage === 1) {
+      pool = [require("../../../../assets/bears/bear_go3.png")];
+    } else if (stage === 2) {
+      pool = [
+        require("../../../../assets/bears/bear_hurry.png"),
+        require("../../../../assets/bears/bear_hurry2.png"),
+      ];
+    } else if (stage === 3) {
+      pool = [require("../../../../assets/bears/bear_bag.png")];
+    } else if (stage === 4) {
+      pool = [
+        require("../../../../assets/bears/bear_wearing.png"),
+        require("../../../../assets/bears/bear_wearing2.png"),
+      ];
+    } else if (stage === 5) {
+      pool = [
+        require("../../../../assets/bears/bear_shower.png"),
+        require("../../../../assets/bears/bear_shower2.png"),
+      ];
+    } else {
+      pool = [
+        require("../../../../assets/bears/bear_sleep.png"),
+        require("../../../../assets/bears/bear_bed.png"),
+      ];
     }
-  }, [stage]);
+
+    setBearSource(pool[Math.floor(Math.random() * pool.length)]);
+  }, [stage, isCameraVerified]);
 
   return (
     <View style={styles.timerCard}>
@@ -137,8 +134,7 @@ export default function TimerSection({
                         ? "옷을 입어볼까요?"
                         : seconds <= 1800
                           ? "이제 씻어볼까요?"
-                          : "아직은 마음 놓으셔도 돼요"
-                }
+                          : "아직은 마음 놓으셔도 돼요"}
               </Text>
             </View>
           </View>
@@ -149,11 +145,7 @@ export default function TimerSection({
             </Text>
             <Text style={styles.countdownSub}>출발까지 남은 시간</Text>
 
-            <RNImage
-              source={bearRef.current}
-              style={styles.timerBear}
-              resizeMode="contain"
-            />
+            <RNImage source={bearSource} style={styles.timerBear} resizeMode="contain" />
           </View>
 
           <Text style={[styles.ghostBtnText, { fontWeight: "600", fontSize: 12 }]}>
