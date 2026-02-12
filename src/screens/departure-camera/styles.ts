@@ -19,6 +19,7 @@ export const styles = StyleSheet.create({
   secondaryBtn: { marginTop: 10, opacity: 0.7 },
 
   btnText: { color: "white", fontWeight: "700" },
+  btnTextBlack: { color: "black", fontWeight: "700" },
 
   overlayWrap: {
     position: "absolute",

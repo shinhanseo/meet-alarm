@@ -18,7 +18,7 @@ export default function CameraSection({ enabled, seconds, isCameraVerified, onPr
       <View style={styles.cameraCardTop}>
         <View style={styles.cameraTitleRow}>
           <Ionicons name="camera" size={18} color="#F97316" />
-          <Text style={styles.cameraTitle}>출발 인증 가능!</Text>
+          <Text style={styles.cameraTitle}>지금 바로 출발을 알려주세요!</Text>
         </View>
       </View>
 
@@ -27,11 +27,11 @@ export default function CameraSection({ enabled, seconds, isCameraVerified, onPr
       </Text>
 
       <Pressable style={styles.cameraCtaBtn} onPress={onPressCamera}>
-        <Text style={styles.cameraCtaText}>신발 사진 찍고 인증하기 👟</Text>
+        <Text style={styles.cameraCtaText}>인증하고 약속 장소로 가기</Text>
       </Pressable>
 
       <Text style={styles.cameraHint}>
-        * 사진은 저장하지 않고 판정 후 바로 삭제돼요.
+        * 사진은 판정 즉시 파기되니 안심하세요.
       </Text>
     </View>
   );
