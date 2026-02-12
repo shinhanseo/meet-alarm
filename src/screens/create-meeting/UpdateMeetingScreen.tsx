@@ -17,7 +17,6 @@ import { DatePickerModal } from "./components/DatePickerModal";
 
 import { API_BASE_URL } from "@/src/config/env";
 import axios from "axios";
-import { getOrCreateInstallId } from "@/src/lib/installId";
 
 function getLocalYYYYMMDD(d = new Date()) {
   const yyyy = d.getFullYear();
@@ -241,6 +240,18 @@ export default function UpdateMeetingScreen() {
       <HeaderBar title="약속 수정" />
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <ProgressSection
+          originDone={!!originPlace}
+          destDone={!!destPlace}
+          dateDone={!!meetingDate}
+          timeDone={!!meetingTimeStr}
+          titleDone={!!meetingTitle}
+          routeDone={!!selectedRoute}
+          doneCount={doneCount}
+          progressText={progressText}
+          showTips={!readyInput}
+        />
+
         <InputCard
           originName={originPlace ? originPlace.name : ""}
           destName={destPlace ? destPlace.name : ""}
@@ -273,7 +284,7 @@ export default function UpdateMeetingScreen() {
           }}
         />
 
-        <ProgressSection
+        <TipSection
           originDone={!!originPlace}
           destDone={!!destPlace}
           dateDone={!!meetingDate}
@@ -282,7 +293,6 @@ export default function UpdateMeetingScreen() {
           routeDone={!!selectedRoute}
           doneCount={doneCount}
           progressText={progressText}
-          showTips={!readyInput}
         />
 
         <View style={{ height: 110 }} />
