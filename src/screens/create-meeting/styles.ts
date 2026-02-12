@@ -123,6 +123,12 @@ export const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: THEME.orangeBorder,
     gap: 10,
+    elevation: 4,
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 8 },
+
   },
   routeTitle: { fontSize: 14, fontWeight: "900", color: THEME.text },
   routeBtn: {
@@ -154,10 +160,15 @@ export const styles = StyleSheet.create({
   infoCard: {
     backgroundColor: THEME.card,
     borderRadius: 20,
-    padding: 16,
+    padding: 9,
     borderWidth: 1,
     borderColor: THEME.orangeBorder,
     gap: 10,
+    elevation: 4,
+    shadowColor: "#000",
+    shadowOpacity: 0.08,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 8 },
   },
   infoTitle: { fontSize: 14, fontWeight: "900", color: THEME.text },
   infoDesc: {
@@ -169,12 +180,11 @@ export const styles = StyleSheet.create({
   progressRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
-    flexWrap: "wrap",
+    justifyContent: "space-between"
   },
   dot: {
-    width: 10,
-    height: 10,
+    width: 8,
+    height: 8,
     borderRadius: 999,
     backgroundColor: "#E5E7EB",
     borderWidth: 1,
@@ -306,15 +316,18 @@ export const styles = StyleSheet.create({
 
   bearGuideWrap: {
     flexDirection: "row",
-    alignItems: "center",
-    marginTop: 10,
+    alignItems: "flex-start",
   },
+
   bearGuideImg: {
     width: 64,
     height: 64,
+    marginRight: 10,
   },
+
   bearBubble: {
-    alignSelf: "flex-start",
+    flex: 1,
+    minWidth: 0,
     borderWidth: 1,
     borderColor: "#F1D3B5",
     backgroundColor: "#FFF7EF",
@@ -322,9 +335,11 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 14,
   },
+
   bearBubbleText: {
     fontSize: 13,
     color: "#333",
     fontWeight: "600",
+    flexShrink: 1,
   },
 });

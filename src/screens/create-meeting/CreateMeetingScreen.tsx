@@ -13,6 +13,7 @@ import { HeaderBar } from "./components/HeaderBar";
 import { InputCard } from "./components/InputCard";
 import { CreateMeetingRouteSection } from "./components/CreateMeetingRouteSection";
 import { ProgressSection } from "./components/ProgressSection";
+import { TipSection } from "./components/TipSection";
 import { BottomBar } from "./components/BottomBar";
 import { DatePickerModal } from "./components/DatePickerModal";
 
@@ -241,6 +242,18 @@ export default function CreateMeetingScreen() {
       <HeaderBar title="약속 설정" />
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <ProgressSection
+          originDone={!!originPlace}
+          destDone={!!destPlace}
+          dateDone={!!meetingDate}
+          timeDone={!!meetingTimeStr}
+          titleDone={!!meetingTitle}
+          routeDone={!!selectedRoute}
+          doneCount={doneCount}
+          progressText={progressText}
+          showTips={!readyInput}
+        />
+
         <InputCard
           originName={originPlace ? originPlace.name : ""}
           destName={destPlace ? destPlace.name : ""}
@@ -273,7 +286,7 @@ export default function CreateMeetingScreen() {
           }}
         />
 
-        <ProgressSection
+        <TipSection
           originDone={!!originPlace}
           destDone={!!destPlace}
           dateDone={!!meetingDate}
@@ -282,7 +295,6 @@ export default function CreateMeetingScreen() {
           routeDone={!!selectedRoute}
           doneCount={doneCount}
           progressText={progressText}
-          showTips={!readyInput}
         />
 
         <View style={{ height: 110 }} />

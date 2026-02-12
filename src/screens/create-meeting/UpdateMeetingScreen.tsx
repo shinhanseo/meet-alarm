@@ -11,6 +11,7 @@ import { HeaderBar } from "./components/HeaderBar";
 import { InputCard } from "./components/InputCard";
 import { CreateMeetingRouteSection } from "./components/CreateMeetingRouteSection";
 import { ProgressSection } from "./components/ProgressSection";
+import { TipSection } from "./components/TipSection";
 import { BottomBar } from "./components/BottomBar";
 import { DatePickerModal } from "./components/DatePickerModal";
 
