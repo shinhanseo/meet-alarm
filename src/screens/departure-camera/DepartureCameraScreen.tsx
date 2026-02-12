@@ -124,26 +124,27 @@ export default function DepartureCameraScreen() {
       capturedUri = photo.uri;
       if (!capturedUri) return;
 
-      const croppedUri = await cropToFrame(capturedUri);
-      const p = await predictShoe(croppedUri);
+      // const croppedUri = await cropToFrame(capturedUri);
+      // const p = await predictShoe(croppedUri);
 
-      console.log(p.shoe);
+      // console.log(p.shoe);
 
-      if (p.shoe < 0.7) {
-        Alert.alert("신발이 잘 안 보여요", "프레임 안에 신발이 크게 보이게 다시 찍어주세요.");
-        return;
-      }
-      //const p = await sendPhotoForVerdict(capturedUri);
-
-      // if (!p.isShoe || p.confidence < 0.55) {
-      //   Alert.alert(
-      //     "신발이 잘 안 보여요",
-      //     p.confidence < 0.55
-      //       ? "판정이 애매해요. 신발이 프레임 중앙에 오게 다시 찍어주세요."
-      //       : "신발이 보이도록 다시 찍어주세요!"
-      //   );
+      // if (p.shoe < 0.7) {
+      //   Alert.alert("신발이 잘 안 보여요", "프레임 안에 신발이 크게 보이게 다시 찍어주세요.");
       //   return;
       // }
+
+      const p = await sendPhotoForVerdict(capturedUri);
+
+      if (!p.isShoe || p.confidence < 0.55) {
+        Alert.alert(
+          "신발이 잘 안 보여요",
+          p.confidence < 0.55
+            ? "판정이 애매해요. 신발이 프레임 중앙에 오게 다시 찍어주세요."
+            : "신발이 보이도록 다시 찍어주세요!"
+        );
+        return;
+      }
 
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
