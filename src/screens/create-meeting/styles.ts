@@ -312,10 +312,9 @@ export const styles = StyleSheet.create({
   bearGuideImg: {
     width: 64,
     height: 64,
-    marginRight: 10,
   },
   bearBubble: {
-    flex: 1,
+    alignSelf: "flex-start",
     borderWidth: 1,
     borderColor: "#F1D3B5",
     backgroundColor: "#FFF7EF",
