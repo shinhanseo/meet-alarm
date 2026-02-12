@@ -89,7 +89,7 @@ export default function DirectionSearchScreen() {
           return;
         }
 
-        Alert.alert("오류", "경로 탐색 중 문제가 발생했어요.", [{ text: "확인" }]);
+        Alert.alert("오류", "잠시 오류가 생겼네요, 다시 탐색해보세요", [{ text: "확인" }]);
       } finally {
         setLoading(false);
       }
