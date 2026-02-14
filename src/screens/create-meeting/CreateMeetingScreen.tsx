@@ -110,7 +110,8 @@ export default function CreateMeetingScreen() {
       };
       setRegion(r);
 
-      if (!originPlace) {
+      // draft가 create 모드이고 originPlace가 없을 때만 현재 위치 설정
+      if (draft?.mode === "create" && !draft.originPlace) {
         setDraftPlaceSilent("origin", {
           name: "현재 위치",
           address: "내 위치",
@@ -119,7 +120,7 @@ export default function CreateMeetingScreen() {
         });
       }
     })();
-  }, [originPlace, setDraftPlaceSilent]);
+  }, [draft, setDraftPlaceSilent]);
 
   const openSearch = (mode: "origin" | "dest") => {
     router.push({ pathname: "/place-search", params: { mode, scope: "draft", type: "create" } });
