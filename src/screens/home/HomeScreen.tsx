@@ -4,11 +4,12 @@ import { useRouter } from "expo-router";
 import axios from "axios";
 
 import { API_BASE_URL } from "@/src/config/env";
-import { usePlacesStore } from "@/store/usePlacesStore";
+import { usePlacesStore } from "@/src/store/usePlacesStore";
 import { calculateDepartureAt } from "@/src/utils/calculateDepartureAt";
 import { DEPARTURE_CONSTANTS, API_CONSTANTS, TIMER_STAGES } from "@/src/constants";
 import { Appointment } from "@/src/types";
 import { styles } from "./styles";
+import { useNetworkStore } from "@/src/store/useNetworkStore";
 
 import HeaderBar from "./components/HeaderBar";
 import MeetingSection from "./components/MeetingSection";
@@ -55,7 +56,7 @@ function pickNearestFuture(appointments: Appointment[] = []) {
 export default function HomeScreen() {
   const router = useRouter();
   const { appointments } = usePlacesStore();
-
+  const { offline } = useNetworkStore();
   const bufferMin = DEPARTURE_CONSTANTS.BUFFER_MINUTES;
 
   // 1) 가장 가까운 "미래" 약속 1개만 뽑기
@@ -268,6 +269,7 @@ export default function HomeScreen() {
           error={weatherError}
           weather={destWeather}
           isConfirmed={isConfirmed}
+          offline={offline}
         />
 
         <HomeRouteSection
