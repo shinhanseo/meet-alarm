@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { View, Text, ActivityIndicator, ScrollView, Alert, Image } from "react-native";
 import { Region } from "react-native-maps";
 import * as Location from "expo-location";
@@ -7,6 +7,7 @@ import { useFocusEffect } from "expo-router";
 import { useCallback } from "react";
 
 import { usePlacesStore } from "../../store/usePlacesStore";
+import { useNetworkStore } from "../../store/useNetworkStore";
 import { styles } from "./styles";
 
 import { HeaderBar } from "./components/HeaderBar";
@@ -61,6 +62,8 @@ export default function CreateMeetingScreen() {
 
   } = usePlacesStore();
 
+  const { offline } = useNetworkStore();
+
   const originPlace = draft?.originPlace ?? null;
   const destPlace = draft?.destPlace ?? null;
   const meetingDate = draft?.meetingDate ?? null;
@@ -87,6 +90,25 @@ export default function CreateMeetingScreen() {
       }
     }, [])
   );
+
+  const shownRef = useRef(false);
+
+  useEffect(() => {
+    if (offline && !shownRef.current) {
+      shownRef.current = true;
+
+      Alert.alert(
+        "인터넷 연결 필요",
+        "약속 설정은 인터넷 연결 후 이용할 수 있어요.",
+        [{
+          text: "확인",
+          onPress: () => {
+            shownRef.current = false;
+          }
+        }]
+      );
+    }
+  }, [offline])
 
   useEffect(() => {
     if (!draft) return;
