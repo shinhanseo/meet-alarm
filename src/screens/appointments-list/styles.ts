@@ -23,8 +23,8 @@ export const styles = StyleSheet.create({
 
   header: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 16 },
   headerTitle: {
-    fontSize: 24,
-    fontWeight: "800",
+    fontSize: 22,
+    fontWeight: "900",
     color: THEME.text,
     letterSpacing: -0.4,
   },
