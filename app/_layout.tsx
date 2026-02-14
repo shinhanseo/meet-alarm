@@ -5,7 +5,7 @@ import "react-native-reanimated";
 import { useEffect } from "react";
 import axios from "axios";
 
-import { useColorScheme } from "@/hooks/use-color-scheme";
+import { useColorScheme } from "react-native";
 import { API_BASE_URL } from "@/src/config/env";
 import { getOrCreateInstallId } from "@/src/lib/installId";
 import { getInstallMeta } from "@/src/lib/installMeta";
