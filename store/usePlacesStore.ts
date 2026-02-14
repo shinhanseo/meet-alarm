@@ -10,8 +10,9 @@ import {
 } from "@/src/lib/notifications";
 
 import { calculateDepartureAt } from "@/src/utils/calculateDepartureAt";
+import { Place, Route, Appointment as AppointmentType } from "@/src/types";
+import { DEPARTURE_CONSTANTS } from "@/src/constants";
 
-type Place = { name: string; address: string; lat: number; lng: number };
 type Mode = "origin" | "dest";
 type DraftMode = "create" | "edit";
 
@@ -20,29 +21,11 @@ type UpdatePayload = {
   destPlace: Place | null;
   meetingDate: string | null;
   meetingTime: string | null;
-  selectedRoute: any | null;
+  selectedRoute: Route | null;
   meetingTitle: string;
 };
 
-export type Appointment = {
-  id: string;
-  dbId: number | null;
-  originPlace: Place | null;
-  destPlace: Place | null;
-
-  meetingDate: string | null; // YYYY-MM-DD
-  meetingTime: string | null; // HH:mm
-  selectedRoute: any | null;
-
-  isConfirmed: boolean;
-
-  scheduledDepartureNotifId: string[]; // 출발 관련 알림 ID들
-  meetingTitle: string;
-
-  isCameraVerified: boolean;
-
-  scheduledVerifyNagNotifId: string[];
-};
+export type Appointment = AppointmentType;
 
 export type AppointmentDraft = {
   dbId: number | null;
@@ -52,7 +35,7 @@ export type AppointmentDraft = {
   destPlace: Place | null;
   meetingDate: string | null;
   meetingTime: string | null;
-  selectedRoute: any | null;
+  selectedRoute: Route | null;
   meetingTitle: string;
 };
 
@@ -73,7 +56,7 @@ type PlacesState = {
   setDraftMeetingDate: (date: string | null) => void;
   setDraftMeetingTime: (time: string | null) => void;
 
-  setDraftSelectedRoute: (route: any | null) => void;
+  setDraftSelectedRoute: (route: Route | null) => void;
   clearDraftSelectedRoute: () => void;
 
   setDraftMeetingTitle: (title: string) => void;
@@ -280,7 +263,9 @@ export const usePlacesStore = create<PlacesState>()(
 
           if (!departureAt || departureAt.getTime() <= Date.now()) return;
 
-          const tenMinBefore = new Date(departureAt.getTime() - 10 * 60 * 1000);
+          const tenMinBefore = new Date(
+            departureAt.getTime() - DEPARTURE_CONSTANTS.EARLY_ALLOWANCE_MINUTES * 60 * 1000
+          );
 
           set({ isScheduling: true });
           try {

@@ -405,5 +405,7 @@ export const styles = StyleSheet.create({
     color: "#D2042D",
   },
 
-
+  bottomSpacer: {
+    height: 12,
+  },
 });

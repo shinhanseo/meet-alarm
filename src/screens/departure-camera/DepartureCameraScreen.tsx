@@ -9,8 +9,8 @@ import { usePlacesStore } from "../../../store/usePlacesStore";
 import { evaluateShoeProof, deleteCapturedPhotoSafely } from "@/src/lib/camera";
 import { calculateDepartureAt } from "@/src/utils/calculateDepartureAt";
 import { sendPhotoForVerdict } from "@/src/lib/photoApi";
-import { predictShoe } from "@/src/lib/tfModel";
-import { cropToFrame } from "@/src/lib/crop";
+import { DEPARTURE_CONSTANTS, LOCATION_CONSTANTS, PHOTO_CONSTANTS } from "@/src/constants";
+import { Appointment } from "@/src/types";
 
 export default function DepartureCameraScreen() {
   const router = useRouter();
@@ -25,7 +25,7 @@ export default function DepartureCameraScreen() {
 
   const { setCameraVerified, cancelVerifyNag } = usePlacesStore();
   const appt = usePlacesStore((s) =>
-    s.appointments?.find((a: any) => a.id === appId)
+    s.appointments?.find((a: Appointment) => a.id === appId)
   );
 
   if (!appId || !appt) {
@@ -55,7 +55,12 @@ export default function DepartureCameraScreen() {
 
   const departureAt = useMemo(() => {
     if (!appt?.meetingDate || !appt?.meetingTime || !appt?.selectedRoute) return null;
-    return calculateDepartureAt(appt.meetingDate, appt.meetingTime, appt.selectedRoute, 10);
+    return calculateDepartureAt(
+      appt.meetingDate,
+      appt.meetingTime,
+      appt.selectedRoute,
+      DEPARTURE_CONSTANTS.BUFFER_MINUTES
+    );
   }, [appt?.meetingDate, appt?.meetingTime, appt?.selectedRoute]);
 
   if (!departureAt) {
@@ -111,7 +116,7 @@ export default function DepartureCameraScreen() {
     let capturedUri: string | null = null;
 
     try {
-      const photo = await (cameraRef.current as any)?.takePictureAsync?.({
+      const photo = await cameraRef.current?.takePictureAsync?.({
         quality: 0.7,
         skipProcessing: false,
       });
@@ -124,22 +129,12 @@ export default function DepartureCameraScreen() {
       capturedUri = photo.uri;
       if (!capturedUri) return;
 
-      // const croppedUri = await cropToFrame(capturedUri);
-      // const p = await predictShoe(croppedUri);
-
-      // console.log(p.shoe);
-
-      // if (p.shoe < 0.7) {
-      //   Alert.alert("신발이 잘 안 보여요", "프레임 안에 신발이 크게 보이게 다시 찍어주세요.");
-      //   return;
-      // }
-
       const p = await sendPhotoForVerdict(capturedUri);
 
-      if (!p.isShoe || p.confidence < 0.55) {
+      if (!p.isShoe || p.confidence < PHOTO_CONSTANTS.MIN_CONFIDENCE) {
         Alert.alert(
           "신발이 잘 안 보여요",
-          p.confidence < 0.55
+          p.confidence < PHOTO_CONSTANTS.MIN_CONFIDENCE
             ? "판정이 애매해요. 신발이 프레임 중앙에 오게 다시 찍어주세요."
             : "신발이 보이도록 다시 찍어주세요!"
         );
@@ -163,9 +158,9 @@ export default function DepartureCameraScreen() {
         homeLng: origin.lng,
         currentLat: loc.coords.latitude,
         currentLng: loc.coords.longitude,
-        allowedRadiusM: 200,
-        allowEarlyMs: 10 * 60 * 1000,
-        allowLateMs: 5 * 60 * 1000,
+        allowedRadiusM: LOCATION_CONSTANTS.ALLOWED_RADIUS_METERS,
+        allowEarlyMs: DEPARTURE_CONSTANTS.EARLY_ALLOWANCE_MINUTES * 60 * 1000,
+        allowLateMs: DEPARTURE_CONSTANTS.LATE_ALLOWANCE_MINUTES * 60 * 1000,
       });
 
       if (verdict.ok) {

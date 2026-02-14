@@ -11,6 +11,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import axios from "axios";
 import { usePlacesStore } from "@/store/usePlacesStore";
 import { API_BASE_URL } from "@/src/config/env";
+import { Route, RouteSegment } from "@/src/types";
 import { useLocalSearchParams, useRouter } from "expo-router";
 
 import { SegmentChip } from "@/src/components/SegmentChip";
@@ -19,30 +20,7 @@ import { getOrCreateInstallId } from "@/src/lib/installId";
 
 import { styles } from "./styles";
 
-type Segment = {
-  type: "WALK" | "BUS" | "SUBWAY" | string;
-  timeMin: number;
-  timeText: string;
-  from?: string;
-  to?: string;
-  distanceM: number;
-  route?: string;
-  line?: string;
-  stops?: number;
-  color?: string;
-};
-
-type RouteItem = {
-  summary: {
-    totalTimeMin: number;
-    totalTimeText: string;
-    totalWalkTimeMin: number;
-    totalWalkTimeText: string;
-    totalFare: number;
-    transferCount: number;
-  };
-  segments: Segment[];
-};
+type RouteItem = Route;
 
 const formatWon = (n: number) => `${Number(n || 0).toLocaleString("ko-KR")}원`;
 
@@ -77,8 +55,8 @@ export default function DirectionSearchScreen() {
 
         setRoutes(res.data.routes ?? []);
         setSelectedIndex(0);
-      } catch (e: any) {
-        if (e?.response?.status === 404) {
+      } catch (e) {
+        if (axios.isAxiosError(e) && e.response?.status === 404) {
           Alert.alert(
             "경로를 찾을 수 없어요",
             "출발지와 목적지가 너무 가까워서 경로가 제공되지 않을 수 있어요.\n도보로 이동해보세요.",

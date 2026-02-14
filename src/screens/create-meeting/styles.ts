@@ -342,4 +342,8 @@ export const styles = StyleSheet.create({
     fontWeight: "600",
     flexShrink: 1,
   },
+
+  bottomSpacer: {
+    height: 110,
+  },
 });

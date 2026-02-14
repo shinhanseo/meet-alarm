@@ -159,7 +159,7 @@ export default function CreateMeetingScreen() {
     if (doneCount === 2) return "좋아요. 네 가지만 더 하면 돼요.";
     if (doneCount === 3) return "절반 왔어요. 두개만 설정하면 경로를 선택할 수 있어요!";
     if (doneCount === 4) return "정말 다 왔어요. 마지막 하나만 선택해주세요!";
-    if (doneCount === 5) return "다 왔어요. 이제 경로를 선택하세요!"
+    if (doneCount === 5) return "다 왔어요. 이제 경로를 선택하세요!";
     return "준비 완료! 저장하면 약속을 늦지 않게 알려드릴게요";
   }, [doneCount]);
 
@@ -297,7 +297,7 @@ export default function CreateMeetingScreen() {
           progressText={progressText}
         />
 
-        <View style={{ height: 110 }} />
+        <View style={styles.bottomSpacer} />
       </ScrollView>
 
       <BottomBar

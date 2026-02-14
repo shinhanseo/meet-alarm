@@ -13,16 +13,12 @@ import { Ionicons } from "@expo/vector-icons";
 
 import { usePlacesStore } from "@/store/usePlacesStore";
 import { API_BASE_URL } from "@/src/config/env";
+import { API_CONSTANTS } from "@/src/constants";
+import { Place } from "@/src/types";
 import { getOrCreateInstallId } from "@/src/lib/installId";
 
 import { styles } from "./styles";
 
-type Place = {
-  name: string;
-  address: string;
-  lat: number;
-  lng: number;
-};
 
 export default function PlaceSearchScreen() {
   const router = useRouter();
@@ -43,7 +39,7 @@ export default function PlaceSearchScreen() {
         return;
       }
       search(query);
-    }, 250);
+    }, API_CONSTANTS.SEARCH_DEBOUNCE_MS);
 
     return () => clearTimeout(t);
   }, [q]);
@@ -55,7 +51,7 @@ export default function PlaceSearchScreen() {
 
       const res = await axios.get(`${API_BASE_URL}/api/places/search`, {
         params: { q: query },
-        timeout: 5000,
+        timeout: API_CONSTANTS.SEARCH_TIMEOUT,
         headers: {
           "x-install-id": installId,
         }

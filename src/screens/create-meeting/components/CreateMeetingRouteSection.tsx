@@ -1,14 +1,14 @@
 import { View, Text, Pressable } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
+import { Route } from "@/src/types";
 import { styles } from "../styles";
 import { THEME } from "@/src/styles/theme";
 import { RouteBar } from "@/src/components/RouteBar";
 
 type Props = {
-  selectedRoute: any | null;
+  selectedRoute: Route | null;
   readyInput: boolean;
   routeSummaryText: string;
-
   onPressSearch: () => void;
   onPressClear: () => void;
 };

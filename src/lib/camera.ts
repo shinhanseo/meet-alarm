@@ -107,10 +107,11 @@ export function evaluateShoeProof(r: ShoeProofRules): ShoeProofVerdict {
 /**
  * 촬영된 사진 즉시 삭제 (캐시 정리)
  */
-export async function deleteCapturedPhotoSafely(uri: string) {
+export async function deleteCapturedPhotoSafely(uri: string): Promise<void> {
   try {
     await FileSystem.deleteAsync(uri, { idempotent: true });
   } catch {
+    // 파일 삭제 실패는 무시 (이미 삭제되었거나 존재하지 않을 수 있음)
   }
 }
 

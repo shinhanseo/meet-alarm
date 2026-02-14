@@ -1,10 +1,11 @@
 import { View, Text, Pressable } from "react-native";
+import { Route } from "@/src/types";
 import { styles } from "../styles";
 import { SegmentChip } from "@/src/components/SegmentChip";
 import { RouteBar } from "@/src/components/RouteBar";
 
 type Props = {
-  selectedRoute: any;
+  selectedRoute: Route | null;
   isConfirmed: boolean;
 };
 
@@ -33,7 +34,7 @@ export default function HomeRouteSection({ selectedRoute, isConfirmed }: Props) 
           routeOnly
         />
 
-        {selectedRoute.segments?.map((seg: any, i: number) => (
+        {selectedRoute.segments?.map((seg, i) => (
           <SegmentChip key={`seg-${i}`} seg={seg} />
         ))}
       </View>

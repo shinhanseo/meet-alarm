@@ -53,12 +53,14 @@ export async function initNotifications() {
   }
 }
 
+type NotificationData = Record<string, unknown>;
+
 /**
  * 특정 시각에 울리는 알람(로컬 알림) 예약 함수
  */
 export async function scheduleAlarmAt(
   date: Date,
-  opts?: { title?: string; body?: string; data?: any }
+  opts?: { title?: string; body?: string; data?: NotificationData }
 ) {
   // 이미 지난 시간 방지
   if (date.getTime() <= Date.now()) {
@@ -106,11 +108,13 @@ export async function startVerifyNag() {
   return id;
 }
 
-// 출발시간이 정해지면 애초에 여러개를 예약약
+/**
+ * 출발시간이 정해지면 미리 여러 개를 예약하는 함수
+ */
 export async function scheduleVerifyNagSeries(
   startAt: Date,
   minutes: number,
-  opts?: { title?: string; body?: string; data?: any }
+  opts?: { title?: string; body?: string; data?: NotificationData }
 ) {
   // startAt이 과거면 지금부터 시작
   const base = startAt.getTime() > Date.now() ? startAt : new Date(Date.now() + 1000);
@@ -140,8 +144,10 @@ export async function scheduleVerifyNagSeries(
   return ids;
 }
 
-// 인증미완료 시 알람 배열 취소 처리 함수
-export async function cancelAlarms(ids: string[]) {
+/**
+ * 인증 미완료 시 알람 배열 취소 처리 함수
+ */
+export async function cancelAlarms(ids: string[]): Promise<void> {
   await Promise.all(
     ids.map(async (id) => {
       try {
@@ -154,6 +160,6 @@ export async function cancelAlarms(ids: string[]) {
 /**
  * 예약된 알람 취소 함수
  */
-export async function cancelAlarm(id: string) {
+export async function cancelAlarm(id: string): Promise<void> {
   await Notifications.cancelScheduledNotificationAsync(id);
 }

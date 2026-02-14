@@ -1,5 +1,6 @@
-import { View, Text, Image as RNImage } from "react-native";
-import { useEffect, useRef, useState } from "react";
+import { View, Text, Image as RNImage, ImageSourcePropType } from "react-native";
+import { useEffect, useState } from "react";
+import { TIMER_STAGES } from "@/src/constants";
 import { styles } from "../styles";
 import { THEME } from "../../../styles/theme";
 
@@ -37,11 +38,11 @@ function departDayLabel(departureAtISO: string) {
 
 function getStage(seconds: number) {
   if (seconds <= 0) return 0;
-  if (seconds <= 120) return 1;
-  if (seconds <= 300) return 2;
-  if (seconds <= 600) return 3;
-  if (seconds <= 900) return 4;
-  if (seconds <= 1800) return 5;
+  if (seconds <= TIMER_STAGES.URGENT) return 1;
+  if (seconds <= TIMER_STAGES.VERY_URGENT) return 2;
+  if (seconds <= TIMER_STAGES.PREPARE) return 3;
+  if (seconds <= TIMER_STAGES.DRESS) return 4;
+  if (seconds <= TIMER_STAGES.SHOWER) return 5;
   return 6;
 }
 
@@ -59,12 +60,12 @@ export default function TimerSection({
   const dayPrefix =
     readyToShowResult && departureAtISO ? `${departDayLabel(departureAtISO)} ` : "";
 
-  const [bearSource, setBearSource] = useState<any>(
+  const [bearSource, setBearSource] = useState<ImageSourcePropType>(
     require("../../../../assets/bears/bear_sleep.png")
   );
 
   useEffect(() => {
-    let pool: any[] = [];
+    let pool: ImageSourcePropType[] = [];
 
     if (stage === 0) {
       pool = isCameraVerified
@@ -117,22 +118,22 @@ export default function TimerSection({
             <View
               style={[
                 styles.badge,
-                seconds <= 300 && {
+                seconds <= TIMER_STAGES.VERY_URGENT && {
                   backgroundColor: THEME.dangerSoft,
                   borderColor: "#FECACA",
                 },
               ]}
             >
-              <Text style={[styles.badgeText, seconds <= 300 && styles.badgeDanger]}>
+              <Text style={[styles.badgeText, seconds <= TIMER_STAGES.VERY_URGENT && styles.badgeDanger]}>
                 {seconds <= 0
                   ? "지금 출발하세요!"
-                  : seconds <= 300
+                  : seconds <= TIMER_STAGES.VERY_URGENT
                     ? "늦지 않게 서두르세요!"
-                    : seconds <= 600
+                    : seconds <= TIMER_STAGES.PREPARE
                       ? "이제 소지품을 챙겨보세요!"
-                      : seconds <= 900
+                      : seconds <= TIMER_STAGES.DRESS
                         ? "옷을 입어볼까요?"
-                        : seconds <= 1800
+                        : seconds <= TIMER_STAGES.SHOWER
                           ? "이제 씻어볼까요?"
                           : "아직은 마음 놓으셔도 돼요"}
               </Text>
@@ -140,7 +141,7 @@ export default function TimerSection({
           </View>
 
           <View style={styles.countdownBox}>
-            <Text style={[styles.countdownText, seconds <= 300 && styles.countdownDanger]}>
+            <Text style={[styles.countdownText, seconds <= TIMER_STAGES.VERY_URGENT && styles.countdownDanger]}>
               {timerText}
             </Text>
             <Text style={styles.countdownSub}>출발까지 남은 시간</Text>

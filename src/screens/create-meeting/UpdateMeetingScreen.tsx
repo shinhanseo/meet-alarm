@@ -295,7 +295,7 @@ export default function UpdateMeetingScreen() {
           progressText={progressText}
         />
 
-        <View style={{ height: 110 }} />
+        <View style={styles.bottomSpacer} />
       </ScrollView>
 
       <BottomBar

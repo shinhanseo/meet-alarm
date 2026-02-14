@@ -6,6 +6,8 @@ import axios from "axios";
 import { API_BASE_URL } from "@/src/config/env";
 import { usePlacesStore } from "@/store/usePlacesStore";
 import { calculateDepartureAt } from "@/src/utils/calculateDepartureAt";
+import { DEPARTURE_CONSTANTS, API_CONSTANTS, TIMER_STAGES } from "@/src/constants";
+import { Appointment } from "@/src/types";
 import { styles } from "./styles";
 
 import HeaderBar from "./components/HeaderBar";
@@ -35,7 +37,7 @@ function buildMeetingAt(meetingDate: string, meetingTimeHHmm: string) {
   return new Date(y, m - 1, d, hh, mm, 0, 0);
 }
 
-function pickNearestFuture(appointments: any[] = []) {
+function pickNearestFuture(appointments: Appointment[] = []) {
   const now = Date.now();
 
   const future = (appointments ?? [])
@@ -54,7 +56,7 @@ export default function HomeScreen() {
   const router = useRouter();
   const { appointments } = usePlacesStore();
 
-  const bufferMin = 10;
+  const bufferMin = DEPARTURE_CONSTANTS.BUFFER_MINUTES;
 
   // 1) 가장 가까운 "미래" 약속 1개만 뽑기
   const nearest = useMemo(() => {
@@ -149,7 +151,7 @@ export default function HomeScreen() {
 
         const res = await axios.get(`${API_BASE_URL}/api/weather`, {
           params: { lat: destPlace.lat, lon: destPlace.lng },
-          timeout: 8000,
+          timeout: API_CONSTANTS.WEATHER_TIMEOUT,
         });
 
         if (cancelled) return;
@@ -169,7 +171,7 @@ export default function HomeScreen() {
     };
   }, [destPlace?.lat, destPlace?.lng]);
 
-  const cameraDisabled = seconds > 600;
+  const cameraDisabled = seconds > TIMER_STAGES.PREPARE;
 
   const goDepartureCamera = () => {
     if (!app?.id) return;
@@ -188,11 +190,11 @@ export default function HomeScreen() {
   const nowMs = Date.now();
   const departureMs = departureAt?.getTime() ?? null;
 
-  // 출발 전 10분 ~ 출발 후 10분
+  // 출발 전 10분 ~ 출발 후 5분
   const inCameraWindow =
     !!departureMs &&
-    nowMs >= departureMs - 10 * 60 * 1000 &&
-    nowMs <= departureMs + 5 * 60 * 1000;
+    nowMs >= departureMs - DEPARTURE_CONSTANTS.CAMERA_WINDOW_EARLY_MINUTES * 60 * 1000 &&
+    nowMs <= departureMs + DEPARTURE_CONSTANTS.CAMERA_WINDOW_LATE_MINUTES * 60 * 1000;
 
   // 5) 약속 없음 화면
   if (!app) {
@@ -273,7 +275,7 @@ export default function HomeScreen() {
           isConfirmed={isConfirmed}
         />
 
-        <View style={{ height: 12 }} />
+        <View style={styles.bottomSpacer} />
       </ScrollView>
     </View>
   );

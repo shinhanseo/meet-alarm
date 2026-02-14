@@ -1,14 +1,13 @@
 import { View, Text, Pressable } from "react-native";
+import { Place, Route } from "@/src/types";
 import { styles } from "../styles";
 
 type Props = {
-  originPlace: any;
-  destPlace: any;
-
+  originPlace: Place | null;
+  destPlace: Place | null;
   meetingDate: string | null;
   meetingTime: string | null;
-
-  selectedRoute: any;
+  selectedRoute: Route | null;
   isConfirmed: boolean;
   meetingTitle: string;
   isCameraVerified: boolean;

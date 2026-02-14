@@ -1,9 +1,10 @@
 // utils/calculateDepartureAt.ts
+import { Route } from "@/src/types";
 
 export function calculateDepartureAt(
   meetingDate: string | null,
   meetingTime: string | null,
-  selectedRoute: any,
+  selectedRoute: Route | null,
   bufferMin: number = 10
 ): Date | null {
   if (!meetingDate || !meetingTime || !selectedRoute) return null;
