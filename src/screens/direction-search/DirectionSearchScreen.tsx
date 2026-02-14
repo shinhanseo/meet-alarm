@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import axios from "axios";
-import { usePlacesStore } from "@/store/usePlacesStore";
+import { usePlacesStore } from "@/src/store/usePlacesStore";
 import { API_BASE_URL } from "@/src/config/env";
 import { Route, RouteSegment } from "@/src/types";
 import { useLocalSearchParams, useRouter } from "expo-router";

@@ -2,7 +2,7 @@ import { View, Text, Pressable, Platform, Alert } from "react-native";
 import DateTimePicker, { DateTimePickerEvent } from "@react-native-community/datetimepicker";
 import { useMemo, useState } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { usePlacesStore } from "../../../store/usePlacesStore";
+import { usePlacesStore } from "../../store/usePlacesStore";
 import { styles } from "./styles";
 
 function buildMeetingAt(meetingDate: string, time: Date) {

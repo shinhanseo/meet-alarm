@@ -11,7 +11,7 @@ import { useLocalSearchParams, useRouter, Stack } from "expo-router";
 import axios from "axios";
 import { Ionicons } from "@expo/vector-icons";
 
-import { usePlacesStore } from "@/store/usePlacesStore";
+import { usePlacesStore } from "@/src/store/usePlacesStore";
 import { API_BASE_URL } from "@/src/config/env";
 import { API_CONSTANTS } from "@/src/constants";
 import { Place } from "@/src/types";

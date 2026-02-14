@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { usePlacesStore } from "@/store/usePlacesStore";
+import { usePlacesStore } from "@/src/store/usePlacesStore";
 import { RouteBar } from "@/src/components/RouteBar";
 import { SegmentChip } from "@/src/components/SegmentChip";
 import { useRouter } from "expo-router";

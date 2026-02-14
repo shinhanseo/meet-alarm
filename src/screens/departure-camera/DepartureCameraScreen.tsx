@@ -5,7 +5,7 @@ import { CameraView, useCameraPermissions, CameraType } from "expo-camera";
 import * as Location from "expo-location";
 import { styles } from "./styles";
 
-import { usePlacesStore } from "../../../store/usePlacesStore";
+import { usePlacesStore } from "../../store/usePlacesStore";
 import { evaluateShoeProof, deleteCapturedPhotoSafely } from "@/src/lib/camera";
 import { calculateDepartureAt } from "@/src/utils/calculateDepartureAt";
 import { sendPhotoForVerdict } from "@/src/lib/photoApi";

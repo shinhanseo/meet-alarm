@@ -6,7 +6,7 @@ import { useRouter } from "expo-router";
 import { useFocusEffect } from "expo-router";
 import { useCallback } from "react";
 
-import { usePlacesStore } from "../../../store/usePlacesStore";
+import { usePlacesStore } from "../../store/usePlacesStore";
 import { styles } from "./styles";
 
 import { HeaderBar } from "./components/HeaderBar";

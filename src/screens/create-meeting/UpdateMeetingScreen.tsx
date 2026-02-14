@@ -4,7 +4,7 @@ import { Region } from "react-native-maps";
 import * as Location from "expo-location";
 import { useLocalSearchParams, useRouter } from "expo-router";
 
-import { usePlacesStore } from "../../../store/usePlacesStore";
+import { usePlacesStore } from "../../store/usePlacesStore";
 import { styles } from "./styles";
 
 import { HeaderBar } from "./components/HeaderBar";

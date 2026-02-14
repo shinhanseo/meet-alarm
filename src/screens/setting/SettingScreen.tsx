@@ -1,7 +1,7 @@
 import { View, Text, StyleSheet, Pressable } from "react-native";
 import { useRouter } from "expo-router";
 import { MaterialIcons, Ionicons } from "@expo/vector-icons";
-import { usePlacesStore } from "@/store/usePlacesStore";
+import { usePlacesStore } from "@/src/store/usePlacesStore";
 import { THEME } from "@/src/styles/theme";
 import { styles } from "./styles";
 
