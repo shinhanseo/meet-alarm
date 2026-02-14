@@ -6,6 +6,9 @@ import { useEffect } from "react";
 import axios from "axios";
 
 import { useColorScheme } from "react-native";
+import NetInfo from "@react-native-community/netinfo";
+import { useNetworkStore } from "@/src/store/useNetworkStore";
+
 import { API_BASE_URL } from "@/src/config/env";
 import { getOrCreateInstallId } from "@/src/lib/installId";
 import { getInstallMeta } from "@/src/lib/installMeta";
@@ -24,6 +27,19 @@ async function pingInstallOnce() {
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+
+  const setStatus = useNetworkStore((s) => s.setStatus);
+  useEffect(() => {
+    const unsub = NetInfo.addEventListener((state) => {
+      const ok =
+        state.isConnected &&
+        (state.isInternetReachable === null || state.isInternetReachable === true);
+
+      setStatus(!ok, state.type);
+    });
+
+    return () => unsub();
+  }, [setStatus]);
 
   useEffect(() => {
     pingInstallOnce().catch((e) => {
