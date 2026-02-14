@@ -292,7 +292,7 @@ export const usePlacesStore = create<PlacesState>()(
             if (tenMinBefore.getTime() > Date.now()) {
               const nid = await scheduleAlarmAt(tenMinBefore, {
                 title: "10분 뒤 출발 준비!",
-                body: `${app.destPlace.name} 가려면 10분 뒤에 출발해야되요!`,
+                body: `${app.destPlace.name} 가려면 10분 뒤에 출발해야돼요!`,
                 data: { type: "TEN_MIN_BEFORE", appointmentId: id },
               });
               newIds.push(nid);

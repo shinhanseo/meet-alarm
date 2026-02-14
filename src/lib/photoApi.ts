@@ -1,6 +1,7 @@
 import * as ImageManipulator from "expo-image-manipulator";
 import { API_BASE_URL } from "@/src/config/env";
 import axios from "axios";
+import { cropToFrame } from "@/src/lib/crop";
 
 export type PhotoVerdict = {
   isShoe: boolean;
@@ -11,9 +12,10 @@ export type PhotoVerdict = {
 
 export async function sendPhotoForVerdict(photoUri: string): Promise<PhotoVerdict> {
 
+  const croppedUri = await cropToFrame(photoUri);
   // 사진 리사이즈화
   const manipulated = await ImageManipulator.manipulateAsync(
-    photoUri,
+    croppedUri,
     [{ resize: { width: 768 } }],
     { compress: 0.75, format: ImageManipulator.SaveFormat.JPEG }
   );

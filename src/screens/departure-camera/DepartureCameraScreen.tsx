@@ -95,10 +95,10 @@ export default function DepartureCameraScreen() {
             requestPermission();
           }}
         >
-          <Text style={styles.btnText}>권한 허용</Text>
+          <Text style={styles.btnTextBlack}>권한 허용</Text>
         </Pressable>
         <Pressable style={[styles.primaryBtn, styles.secondaryBtn]} onPress={() => router.back()}>
-          <Text style={styles.btnText}>다음에 할래요</Text>
+          <Text style={styles.btnTextBlack}>다음에 할래요</Text>
         </Pressable>
       </View>
     )
