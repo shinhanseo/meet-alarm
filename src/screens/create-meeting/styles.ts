@@ -177,6 +177,55 @@ export const styles = StyleSheet.create({
     color: THEME.muted,
     lineHeight: 18,
   },
+  progressRowCompact: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    flexWrap: "nowrap",
+  },
+  progressItemCompact: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+  progressDotContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  dotCompact: {
+    width: 14,
+    height: 14,
+    borderRadius: 9,
+    backgroundColor: "#E5E7EB",
+    borderWidth: 1.5,
+    borderColor: THEME.border,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 4,
+  },
+  dotCompactOn: {
+    backgroundColor: THEME.orange,
+    borderColor: THEME.orangeDark,
+  },
+  progressTextCompact: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: THEME.muted,
+  },
+  progressTextCompactDone: {
+    color: THEME.text,
+    fontWeight: "900",
+  },
+  progressConnectorCompact: {
+    flex: 1,
+    height: 2,
+    backgroundColor: THEME.border,
+    marginHorizontal: 4,
+    maxWidth: 20,
+  },
+  progressConnectorCompactDone: {
+    backgroundColor: THEME.orange,
+  },
   progressRow: {
     flexDirection: "row",
     alignItems: "center",
