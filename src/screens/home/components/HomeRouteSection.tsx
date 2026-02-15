@@ -24,17 +24,17 @@ export default function HomeRouteSection({ selectedRoute, isConfirmed }: Props) 
       </View>
 
       <Text style={styles.routeMeta}>
-        {selectedRoute.summary.totalTimeText} · 환승 {selectedRoute.summary.transferCount}회 · 도보{" "}
-        {selectedRoute.summary.totalWalkTimeText}
+        {selectedRoute?.summary.totalTimeText} · 환승 {selectedRoute?.summary.transferCount}회 · 도보{" "}
+        {selectedRoute?.summary.totalWalkTimeText}
       </Text>
 
       <View style={{ marginTop: 12, gap: 10 }}>
         <RouteBar
-          segments={selectedRoute.segments ?? []}
+          segments={selectedRoute?.segments ?? []}
           routeOnly
         />
 
-        {selectedRoute.segments?.map((seg, i) => (
+        {selectedRoute?.segments?.map((seg, i) => (
           <SegmentChip key={`seg-${i}`} seg={seg} />
         ))}
       </View>
