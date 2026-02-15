@@ -372,9 +372,11 @@ export const styles = StyleSheet.create({
     width: 64,
     height: 64,
     marginRight: 10,
+    flexShrink: 0,
   },
 
   bearBubble: {
+    flex: 1,
     minWidth: 0,
     borderWidth: 1,
     borderColor: "#F1D3B5",
@@ -388,7 +390,6 @@ export const styles = StyleSheet.create({
     fontSize: 13,
     color: "#333",
     fontWeight: "600",
-    flexShrink: 1,
   },
 
   bottomSpacer: {
