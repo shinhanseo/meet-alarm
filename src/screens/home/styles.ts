@@ -112,10 +112,10 @@ export const styles = StyleSheet.create({
   departRow: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    flexWrap: "wrap",
     gap: 10,
   },
-  departTime: { fontSize: 22, fontWeight: "900", color: THEME.text },
+  departTime: { fontSize: 22, fontWeight: "900", color: THEME.text, flexShrink: 1, minWidth: 0, },
 
   badge: {
     paddingVertical: 6,
