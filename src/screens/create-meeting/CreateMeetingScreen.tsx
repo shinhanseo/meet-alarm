@@ -85,10 +85,12 @@ export default function CreateMeetingScreen() {
   useFocusEffect(
     useCallback(() => {
       const d = usePlacesStore.getState().draft;
-      if (!d || d.mode !== "create") {
-        usePlacesStore.getState().startDraft();
+      if (!d || d.mode !== "create" || !d.originPlace) {
+        startDraft();
       }
-    }, [])
+
+      didInitLocationRef.current = false;
+    }, [startDraft])
   );
 
   const shownRef = useRef(false);
@@ -115,25 +117,32 @@ export default function CreateMeetingScreen() {
     if (!draft.meetingDate) setDraftMeetingDate(getLocalYYYYMMDD());
   }, [draft, setDraftMeetingDate]);
 
+  const didInitLocationRef = useRef(false);
+
   useEffect(() => {
+    if (didInitLocationRef.current) return;
+    if (!draft || draft.mode !== "create") return;
+
+    didInitLocationRef.current = true;
+
     (async () => {
       const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== "granted") {
-        console.log("위치 권한 거부됨");
-        return;
-      }
+      if (status !== "granted") return;
 
-      const location = await Location.getCurrentPositionAsync({});
+      const last = await Location.getLastKnownPositionAsync();
+      const pos = last ?? (await Location.getCurrentPositionAsync({}));
+
       const r = {
-        latitude: location.coords.latitude,
-        longitude: location.coords.longitude,
+        latitude: pos.coords.latitude,
+        longitude: pos.coords.longitude,
         latitudeDelta: 0.01,
         longitudeDelta: 0.01,
       };
+
       setRegion(r);
 
-      // draft가 create 모드이고 originPlace가 없을 때만 현재 위치 설정
-      if (draft?.mode === "create" && !draft.originPlace) {
+      const curDraft = usePlacesStore.getState().draft;
+      if (curDraft?.mode === "create" && !curDraft.originPlace) {
         setDraftPlaceSilent("origin", {
           name: "현재 위치",
           address: "내 위치",
@@ -142,7 +151,8 @@ export default function CreateMeetingScreen() {
         });
       }
     })();
-  }, [draft, setDraftPlaceSilent]);
+  }, [draft?.mode, setDraftPlaceSilent]);
+
 
   const openSearch = (mode: "origin" | "dest") => {
     router.push({ pathname: "/place-search", params: { mode, scope: "draft", type: "create" } });
