@@ -44,7 +44,7 @@ export const styles = StyleSheet.create({
     bottom: 28,
     paddingHorizontal: 18,
   },
-  actionsRow: { flexDirection: "row", gap: 10, alignItems: "center" },
+  actionsRow: { flexDirection: "row", gap: 10, alignItems: "center", marginBottom: 40 },
 
   actionBtn: {
     flex: 1,
