@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
-import { FlatList, Text, View } from "react-native";
+import { FlatList, Text, View, Image, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
 import { useRouter } from "expo-router";
 
 import { usePlacesStore } from "@/src/store/usePlacesStore";
@@ -22,7 +21,7 @@ export default function AppointmentsListScreen() {
   const { appointments, deleteAppointment } = usePlacesStore();
   const router = useRouter();
   const [openKey, setOpenKey] = useState<string | null>(null);
-
+  const bearSource = require("../../../assets/bears/bear_boring.png");
   const items = useMemo<AppointmentListItem[]>(() => {
     const now = Date.now();
 
@@ -74,7 +73,15 @@ export default function AppointmentsListScreen() {
         ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
         ListEmptyComponent={
           <View style={styles.emptyBox}>
-            <Text style={styles.emptyText}>예정된 약속이 없어요.</Text>
+            <Image source={bearSource} style={styles.bear} resizeMode="contain" />
+            <Text style={styles.emptyText}>
+              예정된 약속이 없어요.{"\n"}
+              새로운 약속을 만들어볼까요?
+            </Text>
+
+            <Pressable onPress={() => { router.replace("/create-meeting") }} style={styles.primaryBtn}>
+              <Text style={styles.primaryBtnText}>약속 설정하러 가기</Text>
+            </Pressable>
           </View>
         }
         renderItem={({ item }) => (

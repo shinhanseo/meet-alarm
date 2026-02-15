@@ -1,22 +1,5 @@
 import { StyleSheet } from "react-native";
-
-export const THEME = {
-  bg: "#FAFAF9",
-  card: "#FFFFFF",
-  text: "#111827",
-  muted: "#6B7280",
-  placeholder: "#9AA0A6",
-  border: "#E7E5E4",
-
-  orangeSoft: "#FFF7ED",
-  orangeBorder: "#FED7AA",
-  danger: "#DC2626",
-  dangerSoft: "#FEF2F2",
-
-  edit: "#2563EB",
-  editSoft: "#EFF6FF",
-  editBorder: "#BFDBFE",
-};
+import { THEME } from "../../styles/theme";
 
 export const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: THEME.bg },
@@ -102,7 +85,14 @@ export const styles = StyleSheet.create({
     paddingBottom: 14,
   },
 
-  emptyBox: { marginTop: 80, alignItems: "center" },
+  emptyBox: {
+    marginTop: 180,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 20,
+    gap: 12,
+  },
+
   emptyText: {
     color: THEME.muted,
     fontSize: 15,
@@ -147,4 +137,20 @@ export const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "900",
   },
+
+  bear: {
+    width: 150,
+    height: 150,
+    opacity: 0.95,
+    marginBottom: 2,
+  },
+
+  primaryBtn: {
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    borderRadius: 14,
+    backgroundColor: THEME.orange,
+    alignItems: "center",
+  },
+  primaryBtnText: { fontSize: 14, fontWeight: "900", color: "#fff" },
 });
