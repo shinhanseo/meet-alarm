@@ -18,7 +18,12 @@ type Props = {
 
 export function TipSection(props: Props) {
 
-  const bearSetting = require("../../../../assets/bears/bear_setting.png");
+  const bearSetting = useMemo(() => {
+    if (props.doneCount <= 5)
+      return require("../../../../assets/bears/bear_setting.png");
+    else
+      return require("../../../../assets/bears/bear_good.png");
+  }, [props.doneCount])
 
   const tipText = useMemo(() => {
     if (!props.destDone) {
