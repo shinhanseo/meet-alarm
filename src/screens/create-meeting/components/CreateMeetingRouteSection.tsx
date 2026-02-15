@@ -17,8 +17,8 @@ export function CreateMeetingRouteSection(props: Props) {
   return (
     <View style={styles.routeCard}>
       <View style={styles.routeHeader}>
-        <Text style={styles.routeTitle}>경로 선택</Text>
         <MaterialIcons name="directions" size={20} color={THEME.orange} />
+        <Text style={styles.routeTitle}>경로 선택</Text>
       </View>
 
       {!props.selectedRoute ? (
