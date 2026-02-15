@@ -41,7 +41,7 @@ export function TipSection(props: Props) {
       return "이동 시간은 최근 교통 데이터를 기반으로 한 평균값이에요.\n실제 상황에 따라 조금 달라질 수 있어요.";
     }
 
-    return "약속 저장 후 출발 10분 전부터 사진을 찍어 출발 인증이 가능해요.";
+    return "약속 저장 후 출발 10분 전부터\n사진을 찍어 출발 인증이 가능해요.";
 
   }, [props.destDone, props.dateDone, props.timeDone, props.titleDone, props.routeDone]);
 
