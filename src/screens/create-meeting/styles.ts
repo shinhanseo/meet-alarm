@@ -376,7 +376,6 @@ export const styles = StyleSheet.create({
   },
 
   bearBubble: {
-    flex: 1,
     minWidth: 0,
     borderWidth: 1,
     borderColor: "#F1D3B5",
