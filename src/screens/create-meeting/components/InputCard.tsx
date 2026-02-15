@@ -1,6 +1,7 @@
 import { View, Text, TextInput, Pressable } from "react-native";
 import { styles } from "../styles";
 import { THEME } from "@/src/styles/theme";
+import { MaterialIcons } from "@expo/vector-icons";
 
 type Props = {
   originName: string;
@@ -28,10 +29,10 @@ type Props = {
 export function InputCard(props: Props) {
   return (
     <View style={styles.card}>
-      <View style={styles.accent} />
 
       <View style={{ flex: 1 }}>
         <View style={styles.row}>
+          <MaterialIcons name="location-on" size={18} color={THEME.orange} />
           <Text style={styles.label}>출발</Text>
 
           <Pressable onPress={props.onPressOrigin} style={{ flex: 1 }}>
@@ -70,8 +71,9 @@ export function InputCard(props: Props) {
           </Pressable>
         </View>
 
-        {/* 도착 (출발과 동일한 패턴으로 통일) */}
+        {/* 도착  */}
         <View style={styles.row}>
+          <MaterialIcons name="flag" size={18} color={THEME.orange} />
           <Text style={styles.label}>도착</Text>
 
           <Pressable onPress={props.onPressDest} style={{ flex: 1 }}>
@@ -91,6 +93,7 @@ export function InputCard(props: Props) {
 
         {/* 날짜 */}
         <View style={styles.row}>
+          <MaterialIcons name="event" size={18} color={THEME.orange} />
           <Text style={styles.label}>날짜</Text>
 
           <Pressable onPress={props.onPressCalendar} style={{ flex: 1 }}>
@@ -142,6 +145,7 @@ export function InputCard(props: Props) {
 
         {/* 시간 */}
         <View style={styles.row}>
+          <MaterialIcons name="schedule" size={18} color={THEME.orange} />
           <Text style={styles.label}>시간</Text>
 
           <Pressable onPress={props.onPressTime} style={styles.timePressable}>
@@ -158,6 +162,7 @@ export function InputCard(props: Props) {
 
         {/* 제목 */}
         <View style={styles.row}>
+          <MaterialIcons name="edit" size={18} color={THEME.orange} />
           <Text style={styles.label}>제목</Text>
 
           <TextInput
