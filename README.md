@@ -110,7 +110,7 @@ src/
   store/usePlacesStore.ts    # 핵심 도메인 상태 + 알림 스케줄링
   store/useNetworkStore.ts   # 오프라인 상태
   lib/                       # 알림/카메라/사진 API/설치ID 등
-  utils/calculateDepartureAt.ts
+  utils/calculateDepartureAt.ts # 출발시간 계산 함수
   constants/index.ts         # 시간/위치/알림/사진 상수
   types/index.ts             # Place/Route/Appointment 타입
 ```
