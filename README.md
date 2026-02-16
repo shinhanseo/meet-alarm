@@ -259,4 +259,4 @@ npm run web
 - 이 앱은 `expo-router` 기반 file-based routing 구조를 사용합니다.
 - 타입스크립트 strict 모드로 작성되어 있습니다.
 
-필요하면 다음 단계로 README에 **아키텍처 다이어그램(mermaid)**, **API 요청/응답 예시**, **릴리즈 체크리스트**까지 확장해드릴게요.
+
