@@ -104,9 +104,6 @@ const emptyDraft = (): AppointmentDraft => ({
 export const usePlacesStore = create<PlacesState>()(
   persist(
     (set, get) => {
-      // ---------------------------
-      // internal helpers
-      // ---------------------------
       const internalCancelDeparture = async (id: string) => {
         const app = get().appointments.find((a) => a.id === id);
         const ids = app?.scheduledDepartureNotifId ?? [];
@@ -171,6 +168,7 @@ export const usePlacesStore = create<PlacesState>()(
                 ...s.draft,
                 originPlace: mode === "origin" ? place : s.draft.originPlace,
                 destPlace: mode === "dest" ? place : s.draft.destPlace,
+                selectedRoute: null,
               },
             };
           }),
