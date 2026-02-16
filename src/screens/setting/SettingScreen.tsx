@@ -72,7 +72,7 @@ export default function SettingScreen() {
           <View style={styles.rightSpacer} />
         </View>
 
-        <Text style={styles.subtitle}>우리집, 여유 시간을 설정할 수 있어요</Text>
+        <Text style={styles.subtitle}>우리집을 설정할 수 있어요</Text>
       </View>
 
       {/* 섹션 */}
