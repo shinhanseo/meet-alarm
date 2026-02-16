@@ -1,50 +1,83 @@
-# Welcome to your Expo app 👋
+# Meet Alarm (meet-alarm)
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+약속에 늦지 않도록 **출발 시점**을 계산하고 알람을 예약해주는 위치 기반 약속 관리 앱입니다. 출발지/목적지와 약속 시간, 경로를 입력하면 도착에 필요한 이동 시간을 반영해 “언제 출발해야 하는지”를 알려줍니다. 앱은 가장 가까운 약속을 홈에서 타이머로 보여주고, 출발 알림을 예약합니다.
 
-## Get started
+## 핵심 기능
 
-1. Install dependencies
+- **약속 생성/수정/삭제**
+  - 출발지·목적지·날짜·시간·제목을 입력해 약속을 만들고, 목록에서 수정/삭제할 수 있습니다.
+- **경로 탐색 및 선택**
+  - 출발지/목적지를 기반으로 경로를 검색하고, 소요시간·도보·환승·요금을 비교해 경로를 선택합니다.
+- **출발 시점 계산 + 알람 예약**
+  - 약속 시간에서 이동시간과 여유 시간을 빼서 출발 시각을 계산하고, 로컬 알림을 예약합니다.
+- **홈 타이머 & D-Day 표시**
+  - 가장 가까운 약속을 기준으로 출발까지 남은 시간을 카운트다운으로 보여줍니다.
+- **목적지 날씨 확인**
+  - 목적지 좌표로 날씨 API를 호출해 현재 날씨를 홈에서 확인합니다.
+- **우리집(기본 출발지) 등록**
+  - 설정 화면에서 우리집을 저장해 출발지 선택을 빠르게 할 수 있습니다.
+- **지도에서 위치 선택**
+  - 검색뿐 아니라 지도에서 핀으로 위치를 직접 선택할 수 있습니다.
 
-   ```bash
-   npm install
-   ```
+## 화면 흐름 요약
 
-2. Start the app
+1. **홈**: 가장 가까운 약속의 출발 타이머, 경로 요약, 목적지 날씨를 확인합니다.
+2. **약속 만들기**: 출발지/목적지/날짜/시간/제목 입력 → 경로 탐색 → 저장 시 알림 예약.
+3. **약속 목록**: 저장된 약속을 모아보고, 상세 경로를 펼쳐서 확인한 뒤 수정/삭제합니다.
+4. **설정**: 우리집(기본 출발지) 저장.
 
-   ```bash
-   npx expo start
-   ```
+## 기술 스택
 
-In the output, you'll find options to open the app in a
+- **Frontend**: Expo + React Native + Expo Router
+- **상태 관리**: Zustand + AsyncStorage (로컬 저장)
+- **지도/위치**: react-native-maps, expo-location
+- **알림**: expo-notifications
+- **API 통신**: axios
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## API 서버 의존성
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+앱은 다음 기능에서 백엔드 API를 사용합니다.
 
-## Get a fresh project
+- **장소 검색**: `/api/places/search`
+- **지도 역지오코딩**: `/api/places/map-pick`
+- **경로 탐색**: `/api/direction/find`
+- **날씨 정보**: `/api/weather`
 
-When you're ready, run:
+API 서버 주소는 `API_BASE_URL` 환경값에 의해 결정됩니다. 로컬 개발 시 `app.json`의 `extra.API_BASE_URL` 또는 Expo 환경 설정을 맞춰주세요.
 
-```bash
-npm run reset-project
+## 프로젝트 구조
+
+```
+app/
+  (tabs)/                 # 홈/약속 만들기/약속 목록 탭 라우팅
+  direction-search.tsx    # 경로 탐색 화면
+  place-search.tsx        # 장소 검색 화면
+  map-pick.tsx            # 지도에서 위치 선택
+  set-time.tsx            # 시간 선택 화면
+  setting.tsx             # 설정(우리집 등록)
+
+src/
+  screens/                # 화면 구성(홈/약속 생성)
+  components/             # 공통 컴포넌트 (경로 요약, 칩 등)
+  lib/                    # 알림 예약/취소
+  utils/                  # 출발 시간 계산 등
+  config/                 # API base URL 설정
+store/                    # Zustand 스토어 (약속/임시 입력)
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## 로컬 실행 방법
 
-## Learn more
+```bash
+npm install
+npx expo start
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+> iOS Simulator, Android Emulator, Expo Go에서 실행할 수 있습니다.
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## 알림 권한 참고
 
-## Join the community
+앱 최초 실행 시 알림 권한을 요청하며, Android에서는 알림 채널을 생성합니다. 알림이 허용되지 않으면 출발 알림이 동작하지 않습니다.
 
-Join our community of developers creating universal apps.
+---
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+필요하시면 **앱 소개 문구, 스토어 등록용 카피, 기능 상세 문서**까지 이어서 정리해 드릴게요.
