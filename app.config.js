@@ -11,6 +11,7 @@ export default {
     newArchEnabled: true,
 
     ios: {
+      bundleIdentifier: "com.imkara1.meetalarm",
       supportsTablet: true,
     },
 
