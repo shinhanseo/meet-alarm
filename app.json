@@ -25,11 +25,7 @@
         "android.permission.RECORD_AUDIO"
       ],
       "package": "com.imkara1.meetalarm",
-      "config": {
-        "googleMaps": {
-          "apiKey": "AIzaSyAqmX0ly7lBi5CnglRxatSJoT227MYUUcI"
-        }
-      }
+      "config": {}
     },
     "web": {
       "output": "static",
