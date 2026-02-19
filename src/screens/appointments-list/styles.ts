@@ -4,7 +4,7 @@ import { THEME } from "../../styles/theme";
 export const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: THEME.bg },
 
-  header: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 16 },
+  header: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 16, marginBottom: 12 },
   headerTitle: {
     fontSize: 22,
     fontWeight: "900",
