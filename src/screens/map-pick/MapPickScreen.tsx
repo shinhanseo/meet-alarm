@@ -67,7 +67,7 @@ export default function MapPickScreen() {
 
       const res = await axios.get(`${API_BASE_URL}/api/places/map-pick`, {
         params: { lat, lng },
-        timeout: 5000,
+        timeout: 10_000,
         headers: {
           "x-install-id": installId,
         }

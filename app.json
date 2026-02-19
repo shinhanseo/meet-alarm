@@ -24,7 +24,12 @@
         "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO"
       ],
-      "package": "com.imkara1.meetalarm"
+      "package": "com.imkara1.meetalarm",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyAqmX0ly7lBi5CnglRxatSJoT227MYUUcI"
+        }
+      }
     },
     "web": {
       "output": "static",
@@ -58,7 +63,7 @@
       "reactCompiler": true
     },
     "extra": {
-      "API_BASE_URL": "http://3.26.43.127:4000",
+      "API_BASE_URL": "https://api.meetalarm.kr",
       "router": {},
       "eas": {
         "projectId": "82825f0b-c0e8-4629-8b08-257b68a76ff0"
