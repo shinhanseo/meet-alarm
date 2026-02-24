@@ -1,18 +1,25 @@
 // app.config.js
 export default {
   expo: {
-    name: "meet-alarm",
+    name: "지금이니",
     slug: "meet-alarm",
     version: "1.0.0",
     orientation: "portrait",
-    icon: "./assets/images/icon.png",
+    icon: "./assets/bears/right_now_icon.png",
     scheme: "meetalarm",
     userInterfaceStyle: "automatic",
     newArchEnabled: true,
 
     ios: {
       bundleIdentifier: "com.imkara1.meetalarm",
+      bundleName: "지금이니",
       supportsTablet: true,
+      buildNumber: "2",
+      infoPlist: {
+        NSCameraUsageDescription: "출발 인증 사진을 위해 카메라 접근이 필요해요.",
+        NSLocationWhenInUseUsageDescription: "출발지를 현재위치로 설정하기 위해 위치 접근이 필요해요.",
+        NSUserNotificationUsageDescription: "약속 알림을 보내기 위해 알림 권한이 필요해요.",
+      },
     },
 
     android: {
@@ -50,6 +57,13 @@ export default {
           dark: {
             backgroundColor: "#000000",
           },
+        },
+      ],
+      [
+        "expo-notifications",
+        {
+          icon: "./assets/bears/right_now_icon.png",
+          color: "#E6F4FE",
         },
       ],
       [
