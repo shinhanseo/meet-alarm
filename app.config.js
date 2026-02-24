@@ -13,8 +13,9 @@ export default {
     ios: {
       bundleIdentifier: "com.imkara1.meetalarm",
       bundleName: "지금이니",
-      supportsTablet: true,
-      buildNumber: "2",
+      supportsTablet: false,
+      buildNumber: "3",
+      icon: "./assets/bears/right_now_icon.png",
       infoPlist: {
         NSCameraUsageDescription: "출발 인증 사진을 위해 카메라 접근이 필요해요.",
         NSLocationWhenInUseUsageDescription: "출발지를 현재위치로 설정하기 위해 위치 접근이 필요해요.",
