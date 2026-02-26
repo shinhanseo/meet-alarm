@@ -259,4 +259,8 @@ npm run web
 - 이 앱은 `expo-router` 기반 file-based routing 구조를 사용합니다.
 - 타입스크립트 strict 모드로 작성되어 있습니다.
 
+## 🍎 App Store 출시
+지금이니는 현재 App Store에 정식 출시되었습니다.
 
+##🤖 Google Play 출시
+지금이니는 현재 Google Play Store에 정식 출시되었습니다.
