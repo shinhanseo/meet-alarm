@@ -262,5 +262,5 @@ npm run web
 ## 🍎 App Store 출시
 지금이니는 현재 App Store에 정식 출시되었습니다.
 
-##🤖 Google Play 출시
+## 🤖 Google Play 출시
 지금이니는 현재 Google Play Store에 정식 출시되었습니다.
