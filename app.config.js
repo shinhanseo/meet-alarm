@@ -26,13 +26,11 @@ export default {
     android: {
       adaptiveIcon: {
         backgroundColor: "#E6F4FE",
-        foregroundImage: "./assets/images/android-icon-foreground.png",
-        backgroundImage: "./assets/images/android-icon-background.png",
-        monochromeImage: "./assets/images/android-icon-monochrome.png",
+        foregroundImage: "./assets/bears/right_now_icon_fg.png",
+        backgroundImage: "./assets/bears/right_now_icon_bg.png",
       },
       edgeToEdgeEnabled: true,
       predictiveBackGestureEnabled: false,
-      permissions: ["android.permission.CAMERA", "android.permission.RECORD_AUDIO"],
       package: "com.imkara1.meetalarm",
       config: {
         googleMaps: {
@@ -63,7 +61,7 @@ export default {
       [
         "expo-notifications",
         {
-          icon: "./assets/bears/right_now_icon.png",
+          icon: "./assets/bears/right_now_icon_fg.png",
           color: "#E6F4FE",
         },
       ],
